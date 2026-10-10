@@ -17,6 +17,7 @@ Core.lua
 Settings.lua
 Tools.lua
 Recorder.lua
+Debrief.lua
 Book.lua
 Welcome.lua
 Minimap.lua

@@ -281,6 +281,8 @@ if not G.FOREVER then
   )
 end
 
+local function lessons(d) return table.concat(ns.lessonsOf(d), " | ") end
+
 -- ── what I had ───────────────────────────────────────────────────────────────
 debriefs = life()
 G.state.book = {
@@ -316,8 +318,87 @@ if not G.FOREVER then
   local d = only(debriefs, "close")
   check(d and named(d.ready) == "Shield Wall, Disarm, Healing Potion", "a close call: what was ready below half health")
   check(named(d.unused) == "Shield Wall, Disarm", "… and what went unused: the potion was drunk")
+  check(lessons(d) == "Shield Wall was ready and went unused. | Disarm was ready too.", "… its lessons")
 end
 G.state.book, G.state.bags, G.state.auras = {}, {}, {}
+
+-- ── facts and lessons ────────────────────────────────────────────────────────
+local base =
+  { kind = "close", lowPct = 11, level = 8, maxHealth = 180, foes = { { name = "Ragged Young Wolf", first = 0 } } }
+local function with(t)
+  local d = {}
+  for k, v in pairs(base) do
+    d[k] = v
+  end
+  for k, v in pairs(t) do
+    d[k] = v
+  end
+  return d
+end
+check(lessons(with({})) == "", "a plain close call: no lesson to force")
+check(
+  lessons(
+    with({ startPct = 48, unused = { { n = "Healing Potion", k = "heal" }, { n = "Shield Wall", k = "guard" } } })
+  ) == "You went in at 48% health. | A Healing Potion was in your bags, ready.",
+  "the two weightiest: went in hurt, a potion ready"
+)
+check(
+  lessons(with({
+    unused = { { n = "Shield Wall", k = "guard" }, { n = "Last Stand", k = "guard" }, { n = "Disarm", k = "stop" } },
+  })) == "Shield Wall and Last Stand were ready and went unused. | Disarm was ready too.",
+  "guards ready and unused, then what holds a foe"
+)
+check(lessons(with({
+  foes = {
+    { name = "Defias Thug", first = 0 },
+    { name = "Defias Thug", first = 0 },
+    { name = "Defias Bandit", first = 6 },
+  },
+})) == "Three foes at once. | Defias Bandit joined six seconds in.", "three at once, one late")
+check(
+  lessons(with({
+    events = { { k = "hit", t = 2, src = "Rockjaw Trogg", spell = "Fireball", amount = 70, crit = true, school = 4 } },
+  })) == "A critical Fireball took a third of your health at once. | Most of the harm was magic (Fireball).",
+  "a critical that took a third, the harm mostly magic"
+)
+check(
+  lessons(with({ foes = {}, env = "Falling", startPct = 100, lowPct = 8 })) == "A fall took 92% of your health.",
+  "a fall: its own lesson"
+)
+check(lessons(with({
+  foes = { { name = "Gibblewilt", rank = "elite", first = 0 }, { name = "Kobold Miner", level = 10, first = 0 } },
+})) == "Gibblewilt was an elite.", "an elite before a foe above my level")
+check(
+  lessons(with({ foes = { { name = "Kobold Miner", level = 10, first = 0 } } }))
+    == "Kobold Miner was two levels above you.",
+  "… a foe two levels above"
+)
+check(
+  lessons(with({ lowT = 5, samples = { { t = 0, pct = 100 }, { t = 4, pct = 60 }, { t = 5, pct = 11 } } }))
+    == "From half your health to 11% in a second.",
+  "from half health to the low point, fast"
+)
+local f = ns.factsOf(with({
+  events = {
+    { k = "hit", t = 1, src = "Ragged Young Wolf", amount = 20 },
+    { k = "hit", t = 2, src = "Rockjaw Trogg", spell = "Fireball", amount = 70, crit = true },
+    { k = "heal", t = 3, src = "you", amount = 30 },
+    { k = "hit", t = 4, src = "Ragged Young Wolf", amount = 40 },
+    { k = "hit", t = 5, src = "Ragged Young Wolf", amount = 10 },
+    { k = "hit", t = 6, src = "Ragged Young Wolf", amount = 5 },
+  },
+  lowT = 6,
+  ready = { { n = "Shield Wall", k = "guard" }, { n = "Healing Potion", k = "heal" } },
+  unused = { { n = "Shield Wall", k = "guard" } },
+}))
+check(
+  f.title == "Close call: 11% health" and #f.hits == 3 and f.hits[1].amount == 70 and f.hits[1].before == 4,
+  "the facts: the three largest hits, how long before the low point"
+)
+check(
+  #f.used == 1 and f.used[1].n == "Healing Potion" and f.unused[1].n == "Shield Wall",
+  "… what was used and what wasn't"
+)
 
 -- ── the fake game itself: fights as the game sends them ──────────────────────
 life()

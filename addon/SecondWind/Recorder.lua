@@ -22,7 +22,7 @@
 -- and a battleground are no danger: never kept.
 --
 --   debriefs[i] = { kind = "close" | "death", at, length, zone, sub, level,
---     grouped, hardcore, startPct, lowPct, lowT, env, ready, readyT, unused
+--     maxHealth, grouped, hardcore, startPct, lowPct, lowT, env, ready, readyT, unused
 --     (tools: Tools.lua), killer = { name, spell,
 --     amount, overkill }, foes = { { name, npc, first, hits, misses, damage,
 --     level, rank, type, player } }, heals = { { name, amount } }, casts = {
@@ -86,6 +86,7 @@ local function begin()
     zone = zone,
     sub = sub ~= "" and sub ~= zone and sub or nil,
     level = UnitLevel("player"),
+    max = UnitHealthMax("player"),
     grouped = IsInGroup and IsInGroup() or nil,
     startPct = p,
     low = p,
@@ -216,6 +217,7 @@ local function written(f, death)
     zone = f.zone,
     sub = f.sub,
     level = f.level,
+    maxHealth = not ns.secret(f.max) and f.max or nil,
     grouped = f.grouped,
     hardcore = hardcore and true or nil,
     startPct = round(f.startPct),

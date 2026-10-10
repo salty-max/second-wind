@@ -40,6 +40,14 @@ The plan, its research and its decisions: PLAN.md.
     close call (below the threshold) or a death (with the game's recap, read
     a moment later), never for a duel or a battleground; a hundred kept, a
     death always. Its schema in its header. `ns.summaryOf(d)`: a line.
+  - `Debrief.lua`: a debrief read, pure: `ns.factsOf(d)` (its title, place,
+    the three largest hits and how long before the low point, the fall from
+    half health, what was used and what wasn't), `ns.lessonsOf(d)` (rules
+    over the facts, weighed, the two weightiest told: harm from the world,
+    went in hurt, a potion ready, a guard unused, three foes or more, one
+    late, a hold or a way out unused, a blow that took a third, half health
+    to the low in three seconds, an elite or a foe two levels up, mostly
+    magic).
   - `Book.lua`: the theme (frost steel) and the window, its tabs (Debriefs,
     Patterns); until the card, the debriefs a line each, and a line in chat
     when one is written (`ns.debriefed`).
