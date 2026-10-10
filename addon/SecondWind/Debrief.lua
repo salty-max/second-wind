@@ -290,6 +290,16 @@ function ns.cardOf(d)
     table.insert(foes, foeLine(foe))
   end
   section("Foes", foes)
+  -- what Forever hid (its health and casts in a fight), said plainly
+  local hidden = {}
+  if d.lowAtEnd then
+    table.insert(hidden, "Forever hides your health during a fight: the lowest point here is your health at its end.")
+  elseif d.blind then
+    table.insert(hidden, "Forever hides your health during a fight: the lowest point here is your health as it began.")
+  end
+  if d.readyFrom == "start" then table.insert(hidden, "What you had is what was ready when the fight began.") end
+  if d.castsHidden then table.insert(hidden, "Forever hid your casts: what went unused can't be told.") end
+  section("What the game hid", hidden)
   local mattered = {}
   for _, h in ipairs(f.hits) do
     local what = h.spell and (h.crit and (h.spell .. ", critical,") or (h.spell .. ","))
@@ -299,6 +309,15 @@ function ns.cardOf(d)
     table.insert(mattered, ("%d: %s from %s%s"):format(h.amount, what, h.src, before and (", " .. before) or ""))
   end
   section("The hits that mattered", mattered)
+  -- (no combat log: the game's damage meter, by spell, totals)
+  if #f.hits == 0 then
+    local harm = {}
+    for _, sp in ipairs(d.spells or {}) do
+      local what = sp.spell and sp.src and (sp.spell .. " from " .. sp.src) or sp.spell or sp.src or "?"
+      table.insert(harm, ("%d in all: %s"):format(sp.amount, what))
+    end
+    section("The harm, by spell", harm)
+  end
   local heals = {}
   for _, h in ipairs(d.heals or {}) do
     table.insert(heals, h.name == "you" and ("Your own: %d"):format(h.amount) or ("%s: %d"):format(h.name, h.amount))

@@ -13,6 +13,8 @@ globals:
     any: true
   C_Container:
     any: true
+  C_DamageMeter:
+    any: true
   C_DeathRecap:
     any: true
   C_GameRules:
@@ -32,6 +34,8 @@ globals:
   CreateFrame:
     any: true
   date:
+    any: true
+  Enum:
     any: true
   GameTooltip:
     any: true

@@ -173,7 +173,11 @@ ns.setOption("threshold", 20)
 G.pull()
 G.hit({ from = "Ragged Young Wolf", amount = 147 })
 G.leave()
-check(G.FOREVER and #debriefs == 0 or only(debriefs, "close"), "at 18%, with a threshold of 20%: a close call")
+local d18 = only(debriefs, "close")
+check(d18 and d18.lowPct == 18, "at 18%, with a threshold of 20%: a close call")
+if G.FOREVER then
+  check(d18.lowAtEnd and d18.blind, "Forever: its low point read at the fight's end, my health hidden in it")
+end
 
 if not G.FOREVER then
   debriefs = life()
@@ -231,7 +235,7 @@ check(said("Death in Coldridge Valley"), "… and a line in chat")
 check(not d.recap, "… the game's recap read a moment later")
 G.wait(1.5)
 check(
-  d.recap and d.recap[1].src == "Rockjaw Trogg" and d.recap[1].spell == nil and d.recap[1].hp == 0,
+  d.recap and d.recap[1].src == "Rockjaw Trogg" and d.recap[1].spell == "Fireball" and d.recap[1].hp == 0,
   "… the recap, the killing blow first"
 )
 check(d.killer and d.killer.name == "Rockjaw Trogg" and d.killer.overkill == 30, "… the killer, and by how much")
@@ -481,8 +485,7 @@ check(
   "… the card: the killing blow first"
 )
 check(
-  book.cardShown.sections[1].lines[1]
-    == "Rockjaw Trogg" .. (G.FOREVER and "" or "'s Fireball") .. ", 150 (30 more than you had)",
+  book.cardShown.sections[1].lines[1] == "Rockjaw Trogg's Fireball, 150 (30 more than you had)",
   "… by whom, with what, by how much"
 )
 book:Hide()
@@ -576,6 +579,94 @@ check(not book.card:IsShown() and not book.left:IsShown(), "… over the whole p
 ns.showTab(ns.TAB.debriefs)
 check(book.card:IsShown() and not book.patterns:IsShown(), "back to the debriefs: the card again")
 book:Hide()
+
+-- ── Forever: what the game hides, and its damage meter ───────────────────────
+if G.FOREVER then
+  debriefs = life()
+  G.state.book = { ["Shield Wall"] = {} }
+  G.pull()
+  G.hit({ from = "Ragged Young Wolf", amount = 50 })
+  G.hit({ from = "Rockjaw Trogg", amount = 60, spell = { 9053, "Fireball", 4 } })
+  G.hit({ from = "Ragged Young Wolf", amount = 50 })
+  G.leave()
+  local d = only(debriefs, "close")
+  check(
+    d and d.lowPct == 11 and d.lowAtEnd and d.startPct == 100,
+    "Forever: a close call read at the fight's end, its start before combat"
+  )
+  check(
+    #d.foes == 2 and d.foes[1].name == "Ragged Young Wolf" and d.foes[1].damage == 100,
+    "… the foes from the game's damage meter"
+  )
+  check(
+    d.spells[1].amount == 100 and d.spells[1].spell == "Attack" and d.spells[2].spell == "Fireball",
+    "… the harm by spell"
+  )
+  check(d.readyFrom == "start" and named(d.unused) == "Shield Wall", "… what was ready at its start, and went unused")
+  local c = ns.cardOf(d)
+  local hid, harm
+  for _, sec in ipairs(c.sections) do
+    if sec.heading == "What the game hid" then hid = table.concat(sec.lines, " ") end
+    if sec.heading == "The harm, by spell" then harm = sec.lines[1] end
+  end
+  check(
+    hid and hid:find("your health at its end") and hid:find("ready when the fight began"),
+    "… the card says what the game hid"
+  )
+  check(harm == "100 in all: Attack from Ragged Young Wolf", "… and shows the harm by spell")
+
+  debriefs = life()
+  G.state.castsSecret = true
+  G.pull()
+  G.hit({ from = "Ragged Young Wolf", amount = 170 })
+  G.cast({ 871, "Shield Wall" })
+  G.leave()
+  G.state.castsSecret, G.state.book = false, {}
+  d = only(debriefs, "close")
+  check(d and d.castsHidden and d.unused == nil, "Forever: my casts hidden, nothing called unused")
+  check(not lessons(d):find("unused"), "… nor in a lesson")
+
+  debriefs = life()
+  G.pull()
+  G.hit({ from = "Ragged Young Wolf", amount = 60 })
+  G.hit({ from = "Rockjaw Trogg", amount = 150, spell = { 9053, "Fireball", 4 } })
+  G.die()
+  G.wait(1.5)
+  d = only(debriefs, "death")
+  check(
+    d and d.spells and d.spells[1].spell == "Fireball",
+    "Forever: a death's harm by spell, read once out of the fight"
+  )
+end
+
+debriefs = life()
+G.slash("probe")
+check(said("the probe is armed"), "/wind probe: armed for the next fight")
+G.pull()
+G.hit({ from = "Ragged Young Wolf", amount = 30 })
+G.cast({ 6673, "Battle Shout" })
+G.leave()
+G.wait(1)
+check(said("the probe's report"), "… its report once the fight is over")
+if G.FOREVER then
+  check(
+    said("the combat log: closed") and said("your health in the fight: hidden"),
+    "… Forever: the log closed, my health hidden"
+  )
+  check(
+    said("the notice before combat's restrictions: seen") and said("the damage meter: 1 of the spells"),
+    "… the notice seen, the meter read"
+  )
+else
+  check(
+    said("the combat log: %d+ lines heard") and said("your health in the fight: readable"),
+    "… Classic: the log heard, my health readable"
+  )
+  check(
+    said("your casts in the fight: readable") and said("the notice before combat's restrictions: not seen"),
+    "… my casts readable, no notice"
+  )
+end
 
 -- ── the fake game itself: fights as the game sends them ──────────────────────
 life()

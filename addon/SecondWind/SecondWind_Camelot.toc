@@ -16,6 +16,7 @@ Kit.lua
 Core.lua
 Settings.lua
 Tools.lua
+Forever.lua
 Recorder.lua
 Debrief.lua
 Patterns.lua

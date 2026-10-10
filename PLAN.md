@@ -120,6 +120,24 @@ sentence of counts ("In 3 of your 5 close calls, you went in below 60%
 health.") once it marks half of them. The warning before a pull waits, as
 decided.
 
+## Step 5, Forever (11 October 2026)
+
+Forever's own documentation (its interface code, 1.60.1) says what it hides:
+an addon's restrictions are active while the player affects combat, in an
+encounter or a PvP match; `UnitHealth` is secret then, a cast's spell may be
+(`SecretWhenUnitSpellCastRestricted`), the damage meter is secret in combat
+and readable after; `UnitHealthPercent` through a curve stays secret (for
+display only); a notice comes just before the restrictions begin
+(`ADDON_RESTRICTION_STATE_CHANGED`, Activating), while values are readable.
+
+So, on Forever: the fight begins at that notice (my health, my ready tools);
+its low point is my health at its end when it was hidden (a close call
+healed back during the fight is missed, said on the card); what was ready
+at its start stands for what was ready below half; a hidden cast means
+nothing is called unused; the damage meter, after the fight, gives the foes
+and the harm by spell. `/wind probe` checks it all in the Forever client:
+the user's test, before 0.1.0.
+
 ## Decided (11 October 2026)
 
 The user took the four recommendations: a close call below 15% by default; the

@@ -31,6 +31,12 @@ The plan, its research and its decisions: PLAN.md.
     11 October 2026); `ns.readyTools()` (known, off cooldown but for the
     global one, usable; a bandage not while Recently Bandaged),
     `ns.unusedOf(ready, casts, since)`.
+  - `Forever.lua`: where the combat log tells nothing (Forever): the game's
+    damage meter (`C_DamageMeter`, readable once out of combat) for the foes
+    and the harm by spell (`ns.meterFill`, never for a fall); `/wind probe`,
+    which says after the next fight what the game let the addon read (the
+    combat log, my health and casts, the notice before combat's
+    restrictions, the meter).
   - `Recorder.lua`: each fight as it went (its start: combat or the first
     harm; its end: combat's, a moment later so a death wins, or QUIET seconds
     after a fall), the foes (when each came, hits, misses, damage, level and
@@ -40,6 +46,11 @@ The plan, its research and its decisions: PLAN.md.
     close call (below the threshold) or a death (with the game's recap, read
     a moment later), never for a duel or a battleground; a hundred kept, a
     death always. Its schema in its header. `ns.summaryOf(d)`: a line.
+    Forever: the fight begins at the notice before combat's restrictions
+    (`ADDON_RESTRICTION_STATE_CHANGED`, Activating: my health and cooldowns
+    still readable); my health hidden in it, its low point is read at its
+    end (`lowAtEnd`) and what was ready at its start stands in (`readyFrom`);
+    my casts hidden, nothing is called unused (`castsHidden`).
   - `Debrief.lua`: a debrief read, pure: `ns.factsOf(d)` (its title, place,
     the three largest hits and how long before the low point, the fall from
     half health, what was used and what wasn't), `ns.lessonsOf(d)` (rules
@@ -69,11 +80,12 @@ The plan, its research and its decisions: PLAN.md.
 - `addon/test/game.lua`: the fake game: the API the addon calls, its events,
   a character, and fights to replay (`G.pull`, `G.hit`, `G.miss`, `G.heal`,
   `G.debuff`, `G.cast`, `G.env` (a fall, the water), `G.leave`, `G.die`;
-  `G.sight` a creature the game can name, `G.duel`, `state.instance`): the
-  combat log as `COMBAT_LOG_EVENT_UNFILTERED` on
+  `G.sight` a creature the game can name, `G.duel`, `state.instance`,
+  `state.castsSecret`): the combat log as `COMBAT_LOG_EVENT_UNFILTERED` on
   Classic only, the health with it (a secret value in a fight on Forever),
-  the game's death recap (`C_DeathRecap`, killing blow first), timers run by
-  `G.wait`. `addon/test/sim.lua`: the checks, on both games.
+  Forever's notices around combat, the damage meter (secret in combat on
+  Forever), the game's death recap (`C_DeathRecap`, killing blow first),
+  timers run by `G.wait`. `addon/test/sim.lua`: the checks, on both games.
 - `addon/CURSEFORGE.md` (to come): the project page.
 
 ## Rules

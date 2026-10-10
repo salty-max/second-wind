@@ -99,7 +99,8 @@ end
 -- ── /secondwind ──────────────────────────────────────────────────────────────
 local USAGE = "/secondwind (or /wind) opens the book; /wind settings; /wind minimap shows or hides the button; "
   .. "/wind welcome shows the welcome page again; /wind export gives this character's settings as a code, "
-  .. "/wind import CODE takes them; /wind reset forgets this character's debriefs."
+  .. "/wind import CODE takes them; /wind reset forgets this character's debriefs; /wind probe says, after "
+  .. "the next fight, what the game let Second Wind read of it."
 
 SLASH_SECONDWIND1 = "/secondwind"
 SLASH_SECONDWIND2 = "/wind"
@@ -124,6 +125,8 @@ SlashCmdList.SECONDWIND = function(msg)
     else
       print(PREFIX .. "that isn't a Second Wind settings code (/wind export makes one).")
     end
+  elseif msg == "probe" then
+    ns.probeArm()
   elseif msg == "minimap" then
     ns.setOption("minimapHidden", not ns.option("minimapHidden"))
   elseif msg == "settings" or msg == "options" then

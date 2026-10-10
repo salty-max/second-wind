@@ -308,6 +308,30 @@ local function health(v)
   offer("UNIT_HEALTH", "player")
 end
 
+-- The game's damage meter (C_DamageMeter): my damage taken in the fight, by
+-- attacker and spell; secret while in combat on Forever (SecretWhenInCombat).
+local meter, MELEE = {}, 6603
+local function metered()
+  if FOREVER and state.inCombat then return { combatSpells = secret() } end
+  local list = {}
+  for _, m in pairs(meter) do
+    table.insert(list, {
+      spellID = m.id,
+      totalAmount = m.amount,
+      overkillAmount = m.overkill,
+      creatureName = m.src,
+      combatSpellDetails = { unitName = m.src, classification = "normal" },
+    })
+  end
+  return { combatSpells = list }
+end
+C_DamageMeter = {
+  IsDamageMeterAvailable = function() return true, "" end,
+  GetCombatSessionSourceFromType = function() return metered() end,
+  GetAvailableCombatSessions = function() return { { sessionID = 1 } } end,
+  GetCombatSessionSourceFromID = function() return metered() end,
+}
+
 local G = {}
 function G.sight(name, info)
   local token = "nameplate" .. (#tokens + 1)
@@ -315,16 +339,25 @@ function G.sight(name, info)
   units[token] = info
 end
 -- A fight begins: in combat.
+-- (Forever: told before combat's restrictions begin, and after they end)
 function G.pull()
-  recap = {}
+  recap, meter = {}, {}
+  if FOREVER then offer("ADDON_RESTRICTION_STATE_CHANGED", 0, 1) end
   state.inCombat = true
   offer("PLAYER_REGEN_DISABLED")
+  if FOREVER then offer("ADDON_RESTRICTION_STATE_CHANGED", 0, 2) end
 end
 -- A hit on me: { from = name, amount, spell = { id, name, school } (else a
 -- melee swing), crit = true }.
 function G.hit(h)
   local source = creature(h.from, h.player)
   local overkill = math.max(0, h.amount - state.health)
+  local id = h.spell and h.spell[1] or MELEE
+  SPELLS[id] = h.spell and h.spell[2] or "Attack"
+  local key = h.from .. ":" .. id
+  meter[key] = meter[key] or { id = id, src = h.from, amount = 0, overkill = 0 }
+  meter[key].amount = meter[key].amount + h.amount
+  meter[key].overkill = meter[key].overkill + overkill
   if h.spell then
     log(
       "SPELL_DAMAGE",
@@ -418,10 +451,12 @@ G.wait = wait
 function G.duel() offer("DUEL_REQUESTED", "Kyle") end
 function G.duelOver() offer("DUEL_FINISHED") end
 -- A spell of mine cast: { id, name }.
+-- (state.castsSecret: the game hides my casts' spells, as Forever may)
 function G.cast(spell)
   SPELLS[spell[1]] = spell[2]
   log("SPELL_CAST_SUCCESS", state.guid, state.name, nil, nil, spell[1], spell[2], 1)
-  offer("UNIT_SPELLCAST_SUCCEEDED", "player", ("Cast-3-4170-0-1-%d-0001"):format(spell[1]), spell[1])
+  local id = state.castsSecret and secret() or spell[1]
+  offer("UNIT_SPELLCAST_SUCCEEDED", "player", ("Cast-3-4170-0-1-%d-0001"):format(spell[1]), id)
 end
 -- An item of my bags used: { item, the spell its use casts, its name }.
 function G.use(item, spell, name)
@@ -434,6 +469,7 @@ end
 function G.leave()
   state.inCombat = false
   offer("PLAYER_REGEN_ENABLED")
+  if FOREVER then offer("ADDON_RESTRICTION_STATE_CHANGED", 0, 0) end
   wait(0.5)
 end
 -- I die: the last hit's done it; out of combat, the game's recap kept.

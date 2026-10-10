@@ -22,7 +22,10 @@
 -- and a battleground are no danger: never kept.
 --
 --   debriefs[i] = { kind = "close" | "death", at, length, zone, sub, level,
---     maxHealth, grouped, hardcore, startPct, lowPct, lowT, env, ready, readyT, unused
+--     maxHealth, grouped, hardcore, startPct, lowPct, lowT, env, ready, readyT,
+--     readyFrom ("start": what was ready as the fight began, my health being
+--     hidden), unused, blind (my health hidden in the fight: Forever),
+--     lowAtEnd (its low point read at its end), spells (Forever.lua)
 --     (tools: Tools.lua), killer = { name, spell,
 --     amount, overkill }, foes = { { name, npc, first, hits, misses, damage,
 --     level, rank, type, player } }, heals = { { name, amount } }, casts = {
@@ -42,6 +45,8 @@ local READY_BELOW = 50 -- health (percent) at which what was ready is noted
 local DUEL_FORGET = 180 -- seconds after which a duel never finished is forgotten
 
 local fight, buffer = nil, {}
+local lastPct, lastAt -- my health when last readable (Forever hides it in a fight)
+local KNOWN_FOR = 10 -- seconds a last readable health stands for the start
 local duelAt -- when a duel was asked for or offered (GetTime), until it ends
 
 local function round(x) return x and math.floor(x + 0.5) or nil end
@@ -79,7 +84,7 @@ end
 local function begin()
   if fight or UnitIsDeadOrGhost("player") or pvp() then return fight end
   local zone, sub = GetRealZoneText(), GetSubZoneText()
-  local p = pct()
+  local p = pct() or (lastAt and GetTime() - lastAt < KNOWN_FOR and lastPct) or nil
   fight = {
     t0 = GetTime(),
     at = time(),
@@ -104,6 +109,9 @@ local function begin()
   if p and p < READY_BELOW then
     fight.readyT, fight.ready = 0, ns.readyTools and ns.readyTools() or nil
   end
+  -- (Forever hides my health in a fight: what was ready at its start stands
+  -- for what was ready below half, should it never be seen)
+  if ns.forever and ns.readyTools then fight.startReady = ns.readyTools() end
   return fight
 end
 
@@ -152,7 +160,14 @@ end
 -- below half for the first time (what was ready noted).
 local function health()
   local f = fight
+  if ns.secret(UnitHealth("player")) then
+    if f then f.blind = true end
+    return
+  end
   local p = pct()
+  if p and not f then
+    lastPct, lastAt = p, GetTime()
+  end
   if not f or not p then return end
   sample(f, p)
   if not f.low or p < f.low then
@@ -223,6 +238,9 @@ local function written(f, death)
     startPct = round(f.startPct),
     lowPct = death and 0 or round(f.low),
     lowT = death and tenth(GetTime() - f.t0) or f.lowT,
+    blind = f.blind or nil,
+    castsHidden = f.castsHidden or nil,
+    lowAtEnd = not death and f.lowAtEnd or nil,
     env = f.env,
     killer = death and lastHit(buffer) or nil,
     foes = foes,
@@ -230,7 +248,9 @@ local function written(f, death)
     casts = f.casts,
     ready = f.ready,
     readyT = f.readyT,
-    unused = ns.unusedOf and ns.unusedOf(f.ready, f.casts, f.readyT) or nil,
+    readyFrom = f.readyFrom,
+    -- (my casts hidden: no telling what went unused)
+    unused = not f.castsHidden and ns.unusedOf and ns.unusedOf(f.ready, f.casts, f.readyT) or nil,
     events = rows(death and buffer or f.window or buffer),
     samples = thin(f.samples),
   }
@@ -291,13 +311,17 @@ local function recapOf(d)
       end
     end
   end
+  -- (the damage meter, hidden at the death (still in combat), read now)
+  if ns.meterFill then ns.meterFill(d) end
   if ns.refresh then ns.refresh() end
 end
 
 -- The fight is over: a debrief if it was a close call, or a death.
--- (a duel: one was on when it began, and only players touched me)
+-- (a duel: one was on when it began, and only players touched me; with no
+-- combat log to tell who did, a duel on is enough)
 local function duel(f)
-  if not f.duelOn or #f.order == 0 then return false end
+  if not f.duelOn then return false end
+  if #f.order == 0 then return not f.env end
   for _, guid in ipairs(f.order) do
     if not f.foes[guid].player then return false end
   end
@@ -308,8 +332,20 @@ local function finish(death)
   local f = fight
   fight = nil
   if not f or (not death and duel(f)) then return end
+  -- my health hidden in the fight (Forever): its end, readable again, stands
+  -- for its low point; what was ready at its start for what was below half
+  if f.blind and not death then
+    local p = pct()
+    if p and (not f.low or p < f.low) then
+      f.low, f.lowAtEnd, f.lowT = p, true, tenth(GetTime() - f.t0)
+    end
+  end
+  if f.blind and not f.ready and f.startReady then
+    f.ready, f.readyT, f.readyFrom = f.startReady, 0, "start"
+  end
   if not death and not (f.low and f.low < ns.option("threshold")) then return end
   local d = written(f, death)
+  if ns.meterFill then ns.meterFill(d) end
   store(d)
   if death then C_Timer.After(1, function() recapOf(d) end) end
   if ns.debriefed then ns.debriefed(d) end
@@ -390,6 +426,13 @@ end
 
 -- ── the events ───────────────────────────────────────────────────────────────
 ns.on("PLAYER_REGEN_DISABLED", begin)
+-- (Forever: told just before combat's restrictions begin, while my health and
+-- cooldowns can still be read: the fight begins there)
+local COMBAT = Enum and Enum.AddOnRestrictionType and Enum.AddOnRestrictionType.Combat or 0
+local ACTIVATING = Enum and Enum.AddOnRestrictionState and Enum.AddOnRestrictionState.Activating or 1
+ns.on("ADDON_RESTRICTION_STATE_CHANGED", function(kind, state)
+  if kind == COMBAT and state == ACTIVATING then begin() end
+end)
 -- (the end of combat may come before the death that ended it: a moment's
 -- wait, and a death in it is the fight's end instead)
 local SETTLE = 0.3
@@ -410,7 +453,11 @@ end)
 ns.onUnit("UNIT_HEALTH", "player", health)
 ns.onUnit("UNIT_SPELLCAST_SUCCEEDED", "player", function(_, _, id)
   local f = fight
-  if not f or ns.secret(id) then return end
+  if not f then return end
+  if ns.secret(id) then
+    f.castsHidden = true
+    return
+  end
   table.insert(f.casts, { t = tenth(GetTime() - f.t0), id = id, name = spellName(id) })
 end)
 if not ns.forever then ns.on("COMBAT_LOG_EVENT_UNFILTERED", logged) end
