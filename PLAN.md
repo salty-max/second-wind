@@ -138,6 +138,25 @@ nothing is called unused; the damage meter, after the fight, gives the foes
 and the harm by spell. `/wind probe` checks it all in the Forever client:
 the user's test, before 0.1.0.
 
+## What players carry (11 October 2026, the user's ask)
+
+The bag held potions, healthstones and bandages only; Hardcore players carry
+much more for the worst moments. From the guides and lists (Wowhead's
+Hardcore tips, Warcraft Tavern's PvP consumables list on barrens.chat, the
+Hardcore consumables and professions guides): quest rewards (Magic Dust,
+Slumber Sand, Really Sticky Glue, Bag of Marbles, Restoring Balm, Light of
+Elune), engineering (Target Dummies, Iron and Thorium Grenades, the
+Net-o-Matic, Rocket Boots, the Cloaking Device, the Rocket Helmet, the Mind
+Control Cap, the Shrink Ray, dragonlings, the reflectors), alchemy (the
+protection potions, Stoneshield, Magic Resistance, Purification, Major
+Rejuvenation, Flask of Petrification, Swim Speed, Noggenfogger), First Aid's
+anti-venoms, and trinkets (Nifty Stopwatch, Skull of Impending Doom, Tidal
+Charm, Linken's Boomerang, the Insignias and TBC's Medallions). 172 items in
+all, each resolved by name in the game's own tables, with the spell its use
+casts. A tool counts only where it could have helped: a cure with what it
+cures on me (the spell data says what each removes), a protection against
+harm of its school, a slow fall in a fall, a worn item worn.
+
 ## Decided (11 October 2026)
 
 The user took the four recommendations: a close call below 15% by default; the

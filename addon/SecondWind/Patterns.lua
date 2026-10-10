@@ -22,7 +22,8 @@ local TRAITS = {
   { "above", "a foe two levels or more above you" },
   { "magic", "the harm was mostly magic" },
   { "potion", "a healing potion or healthstone went unused" },
-  { "guard", "a spell that guards went unused" },
+  { "guard", "something that guards went unused" },
+  { "cure", "a cure went unused, with what it cures on you" },
 }
 
 local function plural(n, one, many) return n == 1 and ("a " .. one) or (n .. " " .. many) end

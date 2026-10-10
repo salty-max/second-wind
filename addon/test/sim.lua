@@ -404,6 +404,72 @@ check(
   "… what was used and what wasn't"
 )
 
+-- ── what I had: the bag's and the body's ─────────────────────────────────────
+debriefs = life()
+G.state.bags = {
+  [15993] = { count = 5 }, -- Thorium Grenade
+  [4397] = { count = 1 }, -- Gnomish Cloaking Device, carried, not worn
+  [6452] = { count = 2 }, -- Anti-Venom
+  [13457] = { count = 1 }, -- Greater Fire Protection Potion
+  [8529] = { count = 1 }, -- Noggenfogger Elixir
+}
+G.state.equipped = { [13] = { id = 2820 }, [8] = { id = 7189, ready = GetTime() + 600 } }
+local now = named(ns.readyTools())
+check(
+  now:find("Thorium Grenade") and now:find("Nifty Stopwatch"),
+  "the bag's and the body's: a grenade, a trinket worn"
+)
+check(
+  not now:find("Gnomish Cloaking Device") and not now:find("Goblin Rocket Boots"),
+  "… not a trinket carried, nor boots on cooldown"
+)
+check(not now:find("Anti%-Venom"), "… a cure only with what it cures on me")
+G.state.debuffs = { { name = "Poison", type = "Poison" } }
+local antivenom
+for _, t in ipairs(ns.readyTools()) do
+  if t.n == "Anti-Venom" then antivenom = t end
+end
+check(antivenom and antivenom.against == "Poison" and antivenom.count == 2, "… with poison on me, the anti-venom")
+if not G.FOREVER then
+  G.pull()
+  G.hit({ from = "Ragged Young Wolf", amount = 100 })
+  G.hit({ from = "Ragged Young Wolf", amount = 70 })
+  G.leave()
+  local d = only(debriefs, "close")
+  check(
+    d and not named(d.ready):find("Fire Protection") and not named(d.ready):find("Noggenfogger"),
+    "a fight of claws: no fire protection counted, nor what helps in a fall"
+  )
+  check(
+    lessons(d):find("Anti%-Venom was ready, with poison on you%."),
+    "… the anti-venom, with the poison on me: a lesson"
+  )
+  debriefs = life()
+  G.pull()
+  G.hit({ from = "Frostmane Seer", amount = 170, spell = { 20793, "Fireball", 4 } })
+  G.leave()
+  d = only(debriefs, "close")
+  check(d and named(d.unused):find("Greater Fire Protection Potion"), "a Fireball: the fire protection counts")
+  debriefs = life()
+  G.env("Falling", 165)
+  G.wait(4)
+  d = only(debriefs, "close")
+  check(d and named(d.ready):find("Noggenfogger Elixir"), "a fall: what slows a fall counts")
+end
+G.state.bags, G.state.equipped, G.state.debuffs = {}, {}, {}
+check(
+  lessons(with({
+    unused = {
+      { n = "Thorium Grenade", k = "stop" },
+      { n = "Masterwork Target Dummy", k = "stop" },
+      { n = "Nifty Stopwatch", k = "away" },
+      { n = "Swiftness Potion", k = "away" },
+      { n = "Gnomish Net-o-Matic Projector", k = "stop" },
+    },
+  })) == "Thorium Grenade, Masterwork Target Dummy, Nifty Stopwatch and 2 more were ready too.",
+  "a long list: three named, then how many more"
+)
+
 -- ── the card ─────────────────────────────────────────────────────────────────
 local function headings(c)
   local out = {}

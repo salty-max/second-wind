@@ -343,6 +343,8 @@ local function finish(death)
   if f.blind and not f.ready and f.startReady then
     f.ready, f.readyT, f.readyFrom = f.startReady, 0, "start"
   end
+  -- (what was ready that counted here: no fire protection against wolves)
+  if f.ready and ns.relevantTools then f.ready = ns.relevantTools(f.ready, { schools = f.schools, env = f.env }) end
   if not death and not (f.low and f.low < ns.option("threshold")) then return end
   local d = written(f, death)
   if ns.meterFill then ns.meterFill(d) end
@@ -395,6 +397,10 @@ local function logged()
     end
     if not row.over or row.over <= 0 then row.over = nil end
     row.crit = row.crit or nil
+    if row.school and row.school ~= 1 then
+      f.schools = f.schools or {}
+      f.schools[row.school] = true
+    end
     keep(row)
     harmed(f)
   elseif MISS[sub] then

@@ -25,11 +25,17 @@ The plan, its research and its decisions: PLAN.md.
     25%), a line in chat, the alert, the debrief after a death, the minimap
     button; the Options page.
   - `Tools.lua`: what I had for a bad moment: every class's and people's
-    emergency spells by name (every rank; guard, stop, away) and the bag's
-    healing, bandage and escape items by id with the spell their use casts
-    (classic-db and the TBC Anniversary client's ItemSparse/ItemEffect,
-    11 October 2026); `ns.readyTools()` (known, off cooldown but for the
-    global one, usable; a bandage not while Recently Bandaged),
+    emergency spells by name (every rank; guard, stop, away) and 172 items
+    players carry for the worst moments (the Hardcore guides and lists read
+    11 October 2026), each by id with the spell its use casts, resolved by
+    name in classic-db and the TBC Anniversary client's ItemSparse/ItemEffect:
+    heals, bandages, cures (counted only while what they cure is on me),
+    guards (a protection potion counted only if harm of its school came),
+    holds (grenades, nets, dummies, Magic Dust...), ways out (rocket boots,
+    the cloaking device, Insignias...; swim and slow-fall ones only in the
+    water or a fall); worn ones (head, feet, trinkets) counted only worn.
+    `ns.readyTools()` (known, off cooldown but for the global one, usable;
+    a bandage not while Recently Bandaged), `ns.relevantTools(ready, fight)`,
     `ns.unusedOf(ready, casts, since)`.
   - `Forever.lua`: where the combat log tells nothing (Forever): the game's
     damage meter (`C_DamageMeter`, readable once out of combat) for the foes

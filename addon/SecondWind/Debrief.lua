@@ -21,10 +21,13 @@ local function share(f)
   if f >= 0.22 then return "a quarter" end
   return nil
 end
+local LISTED = 3 -- names in a lesson's list, then "and N more"
 local function list(names)
   if #names <= 1 then return names[1] or "" end
+  if #names > LISTED then return table.concat(names, ", ", 1, LISTED) .. (" and %d more"):format(#names - LISTED) end
   return table.concat(names, ", ", 1, #names - 1) .. " and " .. names[#names]
 end
+local AFFLICTION = { Poison = "poison", Disease = "a disease", Curse = "a curse", Magic = "magic" }
 local function above(foe, d) return foe.level and d.level and foe.level > 0 and foe.level - d.level or 0 end
 local ELITE = { elite = true, rareelite = true, worldboss = true }
 -- Harm from the world: what it is among the hits, and its lesson.
@@ -135,6 +138,14 @@ local RULES = {
     if #names == 1 then return 80, ("%s was ready and went unused."):format(names[1]) end
     if #names > 1 then return 80, ("%s were ready and went unused."):format(list(names)) end
   end,
+  -- a cure, ready, while what it cures was on me
+  function(d)
+    for _, t in ipairs(d.unused or {}) do
+      if type(t) == "table" and t.k == "cure" and t.against then
+        return 78, ("%s was ready, with %s on you."):format(t.n, AFFLICTION[t.against] or t.against:lower())
+      end
+    end
+  end,
   -- too many at once
   function(d)
     local n = #(d.foes or {})
@@ -215,6 +226,7 @@ function ns.traitsOf(d)
   for _, tool in ipairs(d.unused or {}) do
     if type(tool) == "table" and tool.k == "heal" then t.potion = true end
     if type(tool) == "table" and tool.k == "guard" then t.guard = true end
+    if type(tool) == "table" and tool.k == "cure" then t.cure = true end
   end
   t.grouped = d.grouped or nil
   return t

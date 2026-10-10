@@ -96,9 +96,23 @@ function IsUsableSpell(name)
 end
 function GetItemCount(item) return state.bags[item] and state.bags[item].count or 0 end
 function GetItemCooldown(item) return cooldown(state.bags[item]) end
+-- What I wear (by inventory slot: { id, ready, usable }) and the debuffs on me
+-- ({ name, type }: Poison, Disease, Curse, Magic).
+state.equipped, state.debuffs = {}, {}
+local function wornItem(item)
+  for _, e in pairs(state.equipped) do
+    if e.id == item then return e end
+  end
+end
 function IsUsableItem(item)
-  local b = state.bags[item]
+  local b = state.bags[item] or wornItem(item)
   return b ~= nil and b.usable ~= false, false
+end
+function GetInventoryItemID(_, slot) return state.equipped[slot] and state.equipped[slot].id or nil end
+function GetInventoryItemCooldown(_, slot) return cooldown(state.equipped[slot]) end
+function UnitDebuff(_, i)
+  local d = state.debuffs[i]
+  if d then return d.name, nil, 1, d.type end
 end
 C_UnitAuras = { GetPlayerAuraBySpellID = function(id) return state.auras[id] and { spellId = id } or nil end }
 function InCombatLockdown() return state.inCombat end
