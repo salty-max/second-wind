@@ -59,16 +59,16 @@ From Blizzard's own code for Classic Era 1.15.9 and Forever 1.60.1
 
 | Question | Proposal |
 |---|---|
-| A close call | Your health below 15% (a setting: 10, 15, 20, 25) in a fight you survived, once a fight; a fall, a drowning, lava too. Not a duel, not a battleground. |
+| A close call | Your health below 15% (the default; a setting: 10, 15, 20, 25) in a fight you survived, once a fight; a fall, a drowning, lava too. Not a duel, not a battleground. |
 | A death | Every death; on Hardcore, the last debrief of the life. |
-| When | Never in combat: when the fight ends, a toast (the kit's) and a chat line with a link, "Close call: 6% in Coldridge Valley"; the card opens on a click (or on its own after a death, a setting). |
+| When | Never in combat: when the fight ends, a toast (the kit's) and a chat line with a link, "Close call: 6% in Coldridge Valley"; the card opens on a click. After a death it opens on its own (you aren't playing then; on Hardcore it is the life's last page), a setting. |
 | The card | Where, your level, the foes (level, elite or rare, how many and when each joined), how long it lasted; your health over the fight (a line drawn in the window); the hits that mattered (the largest, by source and school, criticals) and the heals you got (by whom, in a group); what you had and didn't use; one or two lessons. |
 | What you had | Known, off cooldown and affordable when your health crossed 50%, and not used by the end: healing potions and healthstones (by item, every rank, the shared potion cooldown), bandages (unless Recently Bandaged), each class's emergency spells (Evasion, Vanish, Gouge, Ice Block, Frost Nova, Blink, Divine Shield, Blessing of Protection, Lay on Hands, Shield Wall, Last Stand, Intimidating Shout, Feign Death, Psychic Scream, Power Word: Shield, Fade, Death Coil, Howl of Terror, Barkskin, Bear Form, Frenzied Regeneration...), a curated table by spell, TBC's additions on TBC. |
 | Lessons | Rules over the facts, never invented and never a lecture: "You started the fight at 48% health", "three attackers at once", "an add joined six seconds in", "two casters", "a critical took a third of your health", "a healing potion was ready", "two levels above you, elite". At most two, the weightiest first. |
-| Patterns | Per character, over its debriefs: what most close calls share (started below 60%, three attackers or more, casters, elites, levels above, a zone, a creature). Shown in the book. A warning before a pull that matches them (a line, never a sound or a block) is a setting, off until it proves its worth. |
+| Patterns | Per character, over its debriefs: what most close calls share (started below 60%, three attackers or more, casters, elites, levels above, a zone, a creature). Shown in the book. A warning before a pull that matches them (a line, never a sound or a block) comes later, once real patterns show it would help. |
 | The book | The kit's window: the debriefs by date (place, level, lowest health or death, foes), each opening its card; a tab for the patterns. Kept per character (the last 100, a death always). |
 | Forever | Deaths from the recap, fights from the damage meter after combat, what you had from cooldowns and bags (to check they are not secret); close calls if the health is readable. Said plainly on the CurseForge page. |
-| Look | The kit: windows, toasts, select, settings per character with codes, the welcome page; a colour of its own. |
+| Look | The kit: windows, toasts, select, settings per character with codes, the welcome page; frost steel, blue-grey titles on cool panels (the Codex's gold on ink, the Field Journal's sage, Hearthtale's ember). |
 | Not | No damage meter, no community database (Deathlog's), no sound by default, nothing in combat, nothing that plays for you. |
 
 ## Steps
@@ -82,16 +82,14 @@ From Blizzard's own code for Classic Era 1.15.9 and Forever 1.60.1
    point; the close call and the death (with the recap, where there is one).
 3. The debrief: the facts (pure Lua, tested on replayed fights), what I had
    (the tools table, by class and by item), the lessons (rules), the card.
-4. The book and the patterns; the optional warning.
+4. The book and the patterns.
 5. Forever: the recap and the damage meter in place of the combat log, tried
    in the Forever client by the user.
 6. Settings and the welcome page; the CurseForge and Wago projects (the user);
    CURSEFORGE.md with the siblings linked; release 0.1.0.
 
-## Open questions
+## Decided (11 October 2026)
 
-- The threshold's default (15%?).
-- The card on its own after a death, or only on a click?
-- The pre-pull warning in 0.1.0, or once the patterns have shown it helps?
-- Its colour in the kit's family (Codex gold-on-ink, the Field Journal's sage,
-  Hearthtale's ember).
+The user took the four recommendations: a close call below 15% by default; the
+card opens on its own after a death, on a click after a close call; the
+pre-pull warning later, not in 0.1.0; frost steel for its colour.
