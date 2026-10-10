@@ -28,7 +28,7 @@ local DEATH = { 0.86, 0.45, 0.42 } -- a death's title, and the bar at its end
 local label, panel, rule = K.label, K.panel, K.rule
 
 local TITLE = "Second Wind"
-local ICON = "Interface\\Icons\\Spell_Nature_Rejuvenation"
+local ICON = "Interface\\AddOns\\SecondWind\\Media\\Logo"
 local TAB = { debriefs = 1, patterns = 2 }
 ns.TAB = TAB
 local TAB_TITLES = { "Debriefs", "Patterns" }

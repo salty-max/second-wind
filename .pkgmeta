@@ -13,6 +13,7 @@ manual-changelog:
   markup-type: markdown
 
 ignore:
+  - assets
   - addon/test
   - addon/CURSEFORGE.md
   - scripts

@@ -33,7 +33,7 @@ function ns.createMinimapButton()
   button:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
 
   local icon = button:CreateTexture(nil, "BACKGROUND")
-  icon:SetTexture("Interface\\Icons\\Spell_Nature_Rejuvenation")
+  icon:SetTexture("Interface\\AddOns\\SecondWind\\Media\\Logo")
   icon:SetSize(20, 20)
   icon:SetPoint("TOPLEFT", 7, -6)
   icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)

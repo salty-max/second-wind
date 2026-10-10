@@ -5,7 +5,7 @@
 ## Version: 0.1.0
 ## SavedVariablesPerCharacter: SecondWindChar
 ## SavedVariables: SecondWindSettings
-## IconTexture: Interface\Icons\Spell_Nature_Rejuvenation
+## IconTexture: Interface\AddOns\SecondWind\Media\Logo
 ## X-Website: https://github.com/salty-max/second-wind
 ## X-License: MIT
 

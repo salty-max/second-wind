@@ -11,9 +11,8 @@ local K = ns.kit
 local W = K.welcome({
   name = "SecondWindWelcome",
   title = "Welcome to Second Wind",
-  art = "Interface\\Icons\\Spell_Nature_Rejuvenation",
-  -- (the game's icon until Second Wind has a painted logo: Media/Logo)
-  logo = "Interface\\Icons\\Spell_Nature_Rejuvenation",
+  art = "Interface\\AddOns\\SecondWind\\Media\\Logo",
+  logo = "Interface\\AddOns\\SecondWind\\Media\\Logo",
   heading = "Second Wind",
   tagline = "A debrief after each close call and death.",
   intro = "When a fight leaves you on your last breath and you live, or ends you, Second Wind writes it down "
