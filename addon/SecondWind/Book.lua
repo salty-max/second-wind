@@ -32,12 +32,14 @@ local ICON = "Interface\\Icons\\Spell_Nature_Rejuvenation"
 local TAB = { debriefs = 1, patterns = 2 }
 ns.TAB = TAB
 local TAB_TITLES = { "Debriefs", "Patterns" }
-local LIST_W, ROW_H, CARD_W, GRAPH_H = 236, 38, 470, 60
+local LIST_W, ROW_H, CARD_W, PAGE_W, GRAPH_H = 236, 38, 470, 704, 60
 
-local function emptyText(n)
+local function emptyText(n, count)
   if n == TAB.patterns then
-    return "What your close calls have in common shows here once a few are written: how they began, how "
-      .. "many foes, which kinds, where."
+    return (
+      "What your close calls have in common shows here once three are written (%s so far): how they "
+      .. "began, how many foes, which kinds, where."
+    ):format(count == 0 and "none" or tostring(count))
   end
   return (
     "No close call yet. When a fight leaves you below %d%% health, or ends you, its debrief is written "
@@ -71,15 +73,40 @@ local function row(i)
   return r
 end
 
--- ── the card ─────────────────────────────────────────────────────────────────
--- Labels drawn top to bottom, reused from one card to the next.
-local function line(i, size, colour)
-  local l = book.lines[i]
+-- ── pages ────────────────────────────────────────────────────────────────────
+-- A page of the sheet: a scroll area, its title, labels drawn top to bottom
+-- (reused from one drawing to the next) and, for a card, my health over the
+-- fight. Drawn from Debrief.lua's card or Patterns.lua's page: { title, sub,
+-- lessons, sections = { { heading, lines } } }.
+local function newPage(name, x, width, withGraph)
+  local p = K.scrollArea(book.sheet, width, name)
+  p:SetPoint("TOPLEFT", x, -16)
+  p:SetPoint("BOTTOMRIGHT", -20, 12)
+  p.width, p.lines, p.hasGraph = width, {}, withGraph and true or false
+  p.title = label(p.child, K.TITLE_FONT, 20, T.accent)
+  p.title:SetPoint("TOPLEFT", 0, 0)
+  p.title:SetWidth(width)
+  if withGraph then
+    local g = CreateFrame("Frame", nil, p.child)
+    g:SetSize(width, GRAPH_H)
+    g.bars = {}
+    g.threshold = g:CreateTexture(nil, "OVERLAY")
+    g.threshold:SetColorTexture(T.accent[1], T.accent[2], T.accent[3], 0.5)
+    local base = rule(g)
+    base:SetPoint("BOTTOMLEFT")
+    base:SetWidth(width)
+    p.graph = g
+  end
+  return p
+end
+
+local function line(p, i, size, colour)
+  local l = p.lines[i]
   if not l then
-    l = label(book.card.child, K.BODY_FONT, size, colour)
-    l:SetWidth(CARD_W)
+    l = label(p.child, K.BODY_FONT, size, colour)
+    l:SetWidth(p.width)
     l:SetJustifyH("LEFT")
-    book.lines[i] = l
+    p.lines[i] = l
   end
   l:SetFont(K.BODY_FONT, size, "")
   l:SetTextColor(unpack(colour))
@@ -88,13 +115,13 @@ local function line(i, size, colour)
 end
 
 -- My health over the fight: a bar for each sample, the threshold a line.
-local function graph(d, y)
-  local g = book.graph
+local function graph(p, d, y)
+  local g = p.graph
   local samples = d.samples or {}
   g:SetPoint("TOPLEFT", 0, -y)
   g:SetShown(#samples > 1)
   if #samples <= 1 then return y end
-  local w = CARD_W / #samples
+  local w = p.width / #samples
   for i, s in ipairs(samples) do
     local bar = g.bars[i]
     if not bar then
@@ -114,41 +141,40 @@ local function graph(d, y)
   end
   g.threshold:ClearAllPoints()
   g.threshold:SetPoint("BOTTOMLEFT", 0, GRAPH_H * ns.option("threshold") / 100)
-  g.threshold:SetSize(CARD_W, 1)
+  g.threshold:SetSize(p.width, 1)
   return y + GRAPH_H + 14
 end
 
-local function drawCard(d)
-  local c = ns.cardOf(d)
-  book.cardShown = c -- (for the tests)
-  local n, y = 0, 0
+-- A page drawn: c its text; d a debrief (its health over the fight), or nil.
+local function drawPage(p, c, d)
+  local n, y = 0, 30
   local function put(text, size, colour, gap)
     n = n + 1
-    local l = line(n, size, colour)
+    local l = line(p, n, size, colour)
     y = y + (gap or 0)
     l:SetPoint("TOPLEFT", 0, -y)
     l:SetText(text)
     y = y + l:GetStringHeight() + 4
   end
-  book.cardTitle:SetText(c.title)
-  book.cardTitle:SetTextColor(unpack(d.kind == "death" and DEATH or T.accent))
-  y = 30
+  p.title:SetText(c.title)
+  p.title:SetTextColor(unpack(d and d.kind == "death" and DEATH or T.accent))
   put(c.sub, 11, T.soft)
   for _, lesson in ipairs(c.lessons) do
     put(lesson, 13, T.text, 6)
   end
-  y = graph(d, y + 12)
+  if p.hasGraph and d then y = graph(p, d, y + 12) end
   for _, s in ipairs(c.sections) do
     put(s.heading, 13, T.accent, 6)
     for _, l in ipairs(s.lines) do
       put(l, 12, T.text)
     end
   end
-  for i = n + 1, #book.lines do
-    book.lines[i]:Hide()
+  for i = n + 1, #p.lines do
+    p.lines[i]:Hide()
   end
-  book.card.child:SetHeight(y + 10)
-  book.card:ScrollTo(0)
+  p.child:SetHeight(y + 10)
+  p:ScrollTo(0)
+  p.shown = c -- (for the tests)
 end
 
 -- ── the book ─────────────────────────────────────────────────────────────────
@@ -165,12 +191,16 @@ function ns.refresh()
   local debriefs = record and record.debriefs or {}
   book.count:SetText(#debriefs == 1 and "1 debrief" or ("%d debriefs"):format(#debriefs))
   local listing = book.selectedTab == TAB.debriefs and #debriefs > 0
+  local patterns = book.selectedTab == TAB.patterns and ns.patternsOf(debriefs) or nil
+  local studied = patterns ~= nil and patterns.enough
   book.list:SetShown(listing)
   book.left:SetShown(listing)
   book.card:SetShown(listing)
-  book.empty:SetShown(not listing)
+  book.patterns:SetShown(studied)
+  book.empty:SetShown(not listing and not studied)
+  if studied then return drawPage(book.patterns, patterns) end
   if not listing then
-    book.empty:SetText(emptyText(book.selectedTab))
+    book.empty:SetText(emptyText(book.selectedTab, #debriefs))
     return
   end
   local open = find(debriefs, book.open) or debriefs[#debriefs]
@@ -191,7 +221,8 @@ function ns.refresh()
   end
   book.list.child:SetHeight(n * ROW_H + 8)
   book.list:UpdateThumb()
-  drawCard(open)
+  drawPage(book.card, ns.cardOf(open), open)
+  book.cardShown = book.card.shown -- (for the tests)
 end
 
 -- The tab n shown.
@@ -208,7 +239,7 @@ local function build()
   local window = K.gameWindow("SecondWindFrame", TITLE, ICON)
   book = window or K.dialog("SecondWindFrame", TITLE)
   K.movable(book, 760, 520)
-  book.rows, book.lines = {}, {}
+  book.rows = {}
 
   local edge = window and 8 or 14
   book.count = label(book, K.BODY_FONT, 11, T.accent)
@@ -231,22 +262,9 @@ local function build()
   book.empty:SetWidth(420)
   book.empty:SetJustifyH("CENTER")
 
-  -- the card, right of the list
-  book.card = K.scrollArea(book.sheet, CARD_W, "SecondWindCard")
-  book.card:SetPoint("TOPLEFT", LIST_W + 20, -16)
-  book.card:SetPoint("BOTTOMRIGHT", -20, 12)
-  book.cardTitle = label(book.card.child, K.TITLE_FONT, 20, T.accent)
-  book.cardTitle:SetPoint("TOPLEFT", 0, 0)
-  book.cardTitle:SetWidth(CARD_W)
-  local g = CreateFrame("Frame", nil, book.card.child)
-  g:SetSize(CARD_W, GRAPH_H)
-  g.bars = {}
-  g.threshold = g:CreateTexture(nil, "OVERLAY")
-  g.threshold:SetColorTexture(T.accent[1], T.accent[2], T.accent[3], 0.5)
-  local base = rule(g)
-  base:SetPoint("BOTTOMLEFT")
-  base:SetWidth(CARD_W)
-  book.graph = g
+  -- the card, right of the list; the patterns, the whole sheet
+  book.card = newPage("SecondWindCard", LIST_W + 20, CARD_W, true)
+  book.patterns = newPage("SecondWindPatterns", 20, PAGE_W, false)
 
   book.selectedTab = TAB.debriefs
   book:SetScript("OnShow", function() ns.showTab(book.selectedTab) end)

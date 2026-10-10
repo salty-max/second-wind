@@ -499,6 +499,84 @@ book.rows[2].scripts.OnClick(book.rows[2])
 check(book.open == death.at and book.cardShown.title == "Death", "… a row clicked: its card")
 book:Hide()
 
+-- ── patterns ─────────────────────────────────────────────────────────────────
+local function foes(...)
+  local out = {}
+  for i, name in ipairs({ ... }) do
+    table.insert(out, { name = name, first = i == 3 and 6 or 0 })
+  end
+  return out
+end
+local five = {
+  {
+    kind = "close",
+    at = 1000,
+    startPct = 40,
+    sub = "Coldridge Valley",
+    zone = "Dun Morogh",
+    foes = foes("Rockjaw Trogg", "Burly Rockjaw Trogg", "Rockjaw Skullthumper"),
+    unused = { { n = "Healing Potion", k = "heal" } },
+  },
+  {
+    kind = "close",
+    at = 2000,
+    startPct = 50,
+    sub = "Coldridge Valley",
+    zone = "Dun Morogh",
+    foes = foes("Rockjaw Trogg", "Frostmane Troll Whelp", "Frostmane Novice"),
+    unused = { { n = "Healing Potion", k = "heal" }, { n = "Shield Wall", k = "guard" } },
+  },
+  { kind = "close", at = 3000, startPct = 90, sub = "Anvilmar", zone = "Dun Morogh", foes = foes("Rockjaw Trogg") },
+  {
+    kind = "death",
+    at = 4000,
+    startPct = 30,
+    sub = "Shimmer Ridge",
+    zone = "Dun Morogh",
+    foes = foes("Frostmane Seer", "Frostmane Shadowcaster", "Frostmane Snowstrider"),
+  },
+  { kind = "close", at = 5000, startPct = 100, lowPct = 8, env = "Falling", zone = "Dun Morogh", foes = {} },
+}
+check(not ns.patternsOf({ five[1], five[2] }).enough, "patterns: nothing said before three debriefs")
+local pat = ns.patternsOf(five)
+check(
+  pat.enough and pat.sub == "From 5 debriefs: 4 close calls and a death, since " .. date("%d %b", 1000),
+  "… then what they are drawn from"
+)
+check(
+  pat.lessons[1] == "In 3 of your 5 close calls, you went in below 60% health.",
+  "… the commonest trait, said above"
+)
+local function section(page, heading)
+  for _, sec in ipairs(page.sections) do
+    if sec.heading == heading then return table.concat(sec.lines, " | ") end
+  end
+end
+check(
+  section(pat, "Most often")
+    == "3 of 5: you went in below 60% health | 3 of 5: three foes or more at once | 3 of 5: a foe joined after the start | 2 of 5: a healing potion or healthstone went unused",
+  "… the traits that come back, a third of the time or more"
+)
+check(section(pat, "Where") == "Coldridge Valley, Dun Morogh: 2", "… where, twice or more")
+check(section(pat, "Foes met more than once") == "Rockjaw Trogg: in 3", "… the foes met more than once")
+check(section(pat, "Left unused most often") == "Healing Potion: 2 times", "… the tools left unused most often")
+debriefs = life()
+book:Show()
+ns.showTab(ns.TAB.patterns)
+check(
+  book.empty:IsShown() and book.empty:GetText():find("%(none so far%)"),
+  "the Patterns tab: what it will hold, none so far"
+)
+for _, d in ipairs(five) do
+  table.insert(debriefs, d)
+end
+ns.refresh()
+check(not book.empty:IsShown() and book.patterns.shown.title == "What your close calls share", "… then the patterns")
+check(not book.card:IsShown() and not book.left:IsShown(), "… over the whole page, the list put away")
+ns.showTab(ns.TAB.debriefs)
+check(book.card:IsShown() and not book.patterns:IsShown(), "back to the debriefs: the card again")
+book:Hide()
+
 -- ── the fake game itself: fights as the game sends them ──────────────────────
 life()
 local seen = {}

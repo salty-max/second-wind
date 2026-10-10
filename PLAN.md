@@ -111,6 +111,15 @@ the TBC Anniversary client's tables), the facts and lessons (`Debrief.lua`:
 pure, the two weightiest lessons told), and the card in the book with its
 chat link and the game's alert.
 
+## Step 4, the patterns (11 October 2026)
+
+Done as planned: from three debriefs on, the Patterns tab counts what comes
+back (the lessons' own tests, as traits), where, the foes met more than once
+and the tools left unused most often; the commonest trait is said above in a
+sentence of counts ("In 3 of your 5 close calls, you went in below 60%
+health.") once it marks half of them. The warning before a pull waits, as
+decided.
+
 ## Decided (11 October 2026)
 
 The user took the four recommendations: a close call below 15% by default; the

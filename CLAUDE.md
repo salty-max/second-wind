@@ -49,10 +49,18 @@ The plan, its research and its decisions: PLAN.md.
     to the low in three seconds, an elite or a foe two levels up, mostly
     magic); `ns.cardOf(d)`: the card's text (title, the line under it, the
     lessons, sections: the killing blow, foes, the hits that mattered,
-    heals, what you had).
+    heals, what you had); `ns.traitsOf(d)`: a fight's traits, the lessons'
+    tests as yes or no, for the patterns.
+  - `Patterns.lua`: what the close calls share, pure: `ns.patternsOf(debriefs)`
+    from three debriefs on (counts, never advice): the commonest trait said
+    above when it marks half of them, the traits marking a third and twice
+    or more, the places, the foes met more than once, the tools left unused
+    most often.
   - `Book.lua`: the theme (frost steel) and the window, its tabs: the
     Debriefs (the list, newest first; the open one's card, my health drawn
-    as bars against the threshold), the Patterns (step 4). A debrief written
+    as bars against the threshold), the Patterns (the whole sheet). Pages
+    are drawn by one renderer (`drawPage`: title, the line under it,
+    lessons, the graph for a card, sections). A debrief written
     (`ns.debriefed`): a line in chat with a link (`|Hsecondwind:debrief:<at>|h`),
     the game's alert (the new recipe's), the book opened at a death's
     (`ns.openDebrief(at)`; settings).

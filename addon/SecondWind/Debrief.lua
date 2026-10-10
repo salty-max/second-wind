@@ -61,6 +61,22 @@ local function hits(d)
   return out
 end
 
+-- The share of the harm that was magic (a school other than physical), and
+-- its first spell.
+local function magicOf(d)
+  local magic, all, spell = 0, 0, nil
+  for _, r in ipairs(d.events or {}) do
+    if r.k == "hit" and r.amount and not r.what then
+      all = all + r.amount
+      if r.school and r.school ~= 1 then
+        magic = magic + r.amount
+        spell = spell or r.spell
+      end
+    end
+  end
+  return all > 0 and magic / all or 0, spell
+end
+
 -- The fall: from the last moment at or above half health to the low point.
 local function fall(d)
   local samples, low = d.samples or {}, d.lowT
@@ -171,22 +187,38 @@ local RULES = {
   end,
   -- most of the harm was magic
   function(d)
-    local magic, all, spell = 0, 0, nil
-    for _, r in ipairs(d.events or {}) do
-      if r.k == "hit" and r.amount and not r.what then
-        all = all + r.amount
-        if r.school and r.school ~= 1 then
-          magic = magic + r.amount
-          spell = spell or r.spell
-        end
-      end
-    end
-    if all > 0 and magic / all >= 0.6 then
-      return 50, ("Most of the harm was magic%s."):format(spell and (" (" .. spell .. ")") or "")
-    end
+    local magic, spell = magicOf(d)
+    if magic >= 0.6 then return 50, ("Most of the harm was magic%s."):format(spell and (" (" .. spell .. ")") or "") end
   end,
 }
 ns.MAX_LESSONS = 2
+
+-- A fight's traits, for what the close calls share (Patterns.lua): the same
+-- tests as the lessons', a yes or no each.
+function ns.traitsOf(d)
+  local t = {}
+  local foes = d.foes or {}
+  t.world = d.env ~= nil and #foes == 0 or nil
+  t.low = d.startPct and d.startPct < 60 and not d.env or nil
+  t.many = #foes >= 3 or nil
+  for _, foe in ipairs(foes) do
+    if foe.first and foe.first >= 5 and not foe.player then t.late = true end
+    if foe.rank and ELITE[foe.rank] then t.elite = true end
+    if above(foe, d) >= 2 then t.above = true end
+  end
+  t.magic = magicOf(d) >= 0.6 or nil
+  for _, h in ipairs(hits(d)) do
+    if h.share and h.share >= 0.3 then t.blow = true end
+  end
+  local f = fall(d)
+  t.fast = f and f.seconds <= 3 and d.kind ~= "death" or nil
+  for _, tool in ipairs(d.unused or {}) do
+    if type(tool) == "table" and tool.k == "heal" then t.potion = true end
+    if type(tool) == "table" and tool.k == "guard" then t.guard = true end
+  end
+  t.grouped = d.grouped or nil
+  return t
+end
 
 function ns.lessonsOf(d)
   local found = {}
