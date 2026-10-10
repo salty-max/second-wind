@@ -1,0 +1,81 @@
+# The game's globals the addon uses (selene.toml), and its own: saved
+# variables and the slash command.
+base: lua51
+name: wow
+globals:
+  ButtonFrameTemplate_HideButtonBar:
+    any: true
+  C_Timer:
+    any: true
+  C_XMLUtil:
+    any: true
+  CreateFrame:
+    any: true
+  GameTooltip:
+    any: true
+  GetBuildInfo:
+    any: true
+  GetCursorPosition:
+    any: true
+  GetLocale:
+    any: true
+  GetRealmName:
+    any: true
+  InCombatLockdown:
+    any: true
+  issecretvalue:
+    any: true
+  MenuUtil:
+    any: true
+  Minimap:
+    any: true
+  PanelTemplates_SetNumTabs:
+    any: true
+  PanelTemplates_SetTab:
+    any: true
+  PanelTemplates_TabResize:
+    any: true
+  PlaySound:
+    any: true
+  SecondWindChar:
+    any: true
+  SecondWindSettings:
+    any: true
+  Settings:
+    any: true
+  SLASH_SECONDWIND1:
+    any: true
+  SLASH_SECONDWIND2:
+    any: true
+  SlashCmdList:
+    any: true
+  SOUNDKIT:
+    any: true
+  STANDARD_TEXT_FONT:
+    any: true
+  strtrim:
+    any: true
+  time:
+    any: true
+  UIDropDownMenu_AddButton:
+    any: true
+  UIDropDownMenu_CreateInfo:
+    any: true
+  UIDropDownMenu_DisableDropDown:
+    any: true
+  UIDropDownMenu_EnableDropDown:
+    any: true
+  UIDropDownMenu_Initialize:
+    any: true
+  UIDropDownMenu_SetText:
+    any: true
+  UIDropDownMenu_SetWidth:
+    any: true
+  UIParent:
+    any: true
+  UISpecialFrames:
+    any: true
+  UnitGUID:
+    any: true
+  UnitName:
+    any: true
