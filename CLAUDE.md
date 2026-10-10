@@ -92,7 +92,8 @@ The plan, its research and its decisions: PLAN.md.
   Forever's notices around combat, the damage meter (secret in combat on
   Forever), the game's death recap (`C_DeathRecap`, killing blow first),
   timers run by `G.wait`. `addon/test/sim.lua`: the checks, on both games.
-- `addon/CURSEFORGE.md` (to come): the project page.
+- `addon/CURSEFORGE.md`: the project page (its summary in a comment, the TOCs'
+  Notes), the siblings linked on CurseForge and Wago.
 
 ## Rules
 

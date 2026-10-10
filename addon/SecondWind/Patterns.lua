@@ -98,7 +98,8 @@ function ns.patternsOf(debriefs)
     return a.i < b.i
   end)
   if often[1] and often[1].n / total >= HEADLINE then
-    table.insert(page.lessons, ("In %d of your %d close calls, %s."):format(often[1].n, total, often[1].phrase))
+    local of = deaths > 0 and "close calls and deaths" or "close calls"
+    table.insert(page.lessons, ("In %d of your %d %s, %s."):format(often[1].n, total, of, often[1].phrase))
   end
   local function section(heading, list, line)
     if #list == 0 then return end

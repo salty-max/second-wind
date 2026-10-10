@@ -613,8 +613,12 @@ check(
   "… then what they are drawn from"
 )
 check(
-  pat.lessons[1] == "In 3 of your 5 close calls, you went in below 60% health.",
-  "… the commonest trait, said above"
+  pat.lessons[1] == "In 3 of your 5 close calls and deaths, you went in below 60% health.",
+  "… the commonest trait, said above (the deaths among them named)"
+)
+check(
+  (ns.patternsOf({ five[1], five[2], five[3], five[5] }).lessons[1] or ""):find("^In %d of your 4 close calls, "),
+  "… close calls alone, said so"
 )
 local function section(page, heading)
   for _, sec in ipairs(page.sections) do

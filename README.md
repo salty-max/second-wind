@@ -5,7 +5,9 @@ debrief once the fight is over: how it went, the hits that mattered, what you
 had ready and didn't use, and over time what your close calls share. For
 Classic Era (Hardcore), TBC Anniversary and World of Warcraft: Forever.
 
-In development: the plan is in [PLAN.md](PLAN.md).
+Releases: [GitHub](https://github.com/salty-max/second-wind/releases), one zip for
+every game (unzip it into `Interface/AddOns`). The plan and its decisions:
+[PLAN.md](PLAN.md).
 
 ## Use
 
