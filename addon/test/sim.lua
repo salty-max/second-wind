@@ -82,7 +82,206 @@ check(ns.option("threshold") == 10 and said("settings imported"), "/wind import 
 G.slash("what")
 check(said("/wind settings"), "an unknown word: the commands")
 
--- ── the fights the recorder will hear (the fake game itself) ─────────────────
+-- ── the recorder ─────────────────────────────────────────────────────────────
+-- A fresh life (full health, alive), its own record, the default threshold.
+local lives = 0
+local function life()
+  lives = lives + 1
+  G.state.guid = ("Player-6113-1%07X"):format(lives)
+  G.state.health, G.state.dead, G.state.instance = G.state.maxHealth, false, nil
+  G.reload()
+  ns.setOption("threshold", 15)
+  ns.setOption("chat", true)
+  return ns.record().debriefs
+end
+local function only(list, kind) return #list == 1 and list[1].kind == kind and list[1] end
+
+local debriefs = life()
+ns.readyTools = function() return { "ready" } end
+G.sight("Rockjaw Trogg", { level = 9, type = "Humanoid" })
+G.pull()
+G.wait(1)
+G.hit({ from = "Ragged Young Wolf", amount = 50 })
+G.wait(2)
+G.hit({ from = "Rockjaw Trogg", amount = 60, spell = { 9053, "Fireball", 4 }, crit = true })
+G.wait(1)
+G.miss({ from = "Ragged Young Wolf", what = "DODGE" })
+G.debuff({ from = "Rockjaw Trogg", spell = { 6136, "Chilled" } })
+G.hit({ from = "Ragged Young Wolf", amount = 50 })
+G.cast({ 20230, "Retaliation" })
+G.heal({ from = "Brother Paxton", amount = 60, spell = { 2061, "Flash Heal" } })
+G.wait(2)
+G.leave()
+ns.readyTools = nil
+if G.FOREVER then
+  check(#debriefs == 0, "Forever: no close call while the game keeps my health secret in a fight")
+else
+  local d = only(debriefs, "close")
+  check(d and d.lowPct == 11 and d.startPct == 100, "a fight survived at 11%: a close call, from full health")
+  check(
+    d.zone == "Dun Morogh" and d.sub == "Coldridge Valley" and d.level == 8 and d.length == 6,
+    "… where, my level, how long"
+  )
+  local wolf, trogg = d.foes[1], d.foes[2]
+  check(
+    wolf.name == "Ragged Young Wolf" and wolf.first == 1 and trogg.first == 3,
+    "… the foes in the order they came, and when"
+  )
+  check(
+    wolf.hits == 2 and wolf.misses == 1 and wolf.damage == 100 and wolf.npc,
+    "… what each did: hits, misses, damage"
+  )
+  check(
+    trogg.level == 9 and trogg.type == "Humanoid" and not wolf.level,
+    "… a foe's level and kind when the game could tell"
+  )
+  check(d.heals[1].name == "Brother Paxton" and d.heals[1].amount == 60, "… the heals, by whom")
+  check(d.casts[1].name == "Retaliation" and d.casts[1].t == 4, "… my casts")
+  check(d.ready and d.ready[1] == "ready" and d.readyT == 3, "… what was ready when my health first fell below half")
+  local crit
+  for _, r in ipairs(d.events) do
+    if r.spell == "Fireball" then crit = r end
+  end
+  check(
+    crit and crit.crit and crit.amount == 60 and crit.school == 4,
+    "… the log's run-up to the low point: a critical Fireball"
+  )
+  local kinds = {}
+  for _, r in ipairs(d.events) do
+    kinds[r.k] = true
+  end
+  check(
+    kinds.miss and kinds.debuff and not kinds.heal,
+    "… with the miss and the debuff, not the heal after the low point"
+  )
+  check(d.samples[1].pct == 100 and d.samples[#d.samples].pct >= 11, "… my health over the fight")
+  check(
+    said("Close call, 11%% in Coldridge Valley, Dun Morogh %(Ragged Young Wolf, Rockjaw Trogg%)"),
+    "… and a line in chat"
+  )
+end
+
+debriefs = life()
+G.pull()
+G.hit({ from = "Ragged Young Wolf", amount = 100 })
+G.leave()
+check(#debriefs == 0, "a fight survived at 44%: no debrief")
+
+debriefs = life()
+ns.setOption("threshold", 20)
+G.pull()
+G.hit({ from = "Ragged Young Wolf", amount = 147 })
+G.leave()
+check(G.FOREVER and #debriefs == 0 or only(debriefs, "close"), "at 18%, with a threshold of 20%: a close call")
+
+if not G.FOREVER then
+  debriefs = life()
+  G.pull()
+  G.hit({ from = "Frostmane Seer", amount = 160, spell = { 20793, "Fireball", 4 } })
+  for _ = 1, 25 do
+    G.wait(1)
+    G.heal({ amount = 4, spell = { 2050, "Lesser Heal" } })
+    G.hit({ from = "Frostmane Seer", amount = 4 })
+  end
+  G.leave()
+  local d = only(debriefs, "close")
+  check(
+    d and d.events[1].spell == "Fireball" and d.lowT == 0,
+    "a low point early in a long fight: its run-up kept, not the end's"
+  )
+
+  debriefs = life()
+  G.env("Falling", 165)
+  G.wait(1)
+  check(#debriefs == 0, "a fall: nothing written while it might go on")
+  G.wait(3)
+  d = only(debriefs, "close")
+  check(d and d.env == "Falling" and d.lowPct == 8 and #d.foes == 0, "… then a close call: a fall, to 8%")
+end
+
+debriefs = life()
+G.duel()
+G.pull()
+G.hit({ from = "Kyle", player = true, amount = 170 })
+G.leave()
+G.duelOver()
+check(#debriefs == 0, "a duel: never a close call")
+
+debriefs = life()
+G.state.instance = "pvp"
+G.pull()
+G.hit({ from = "Kyle", player = true, amount = 170 })
+G.leave()
+check(#debriefs == 0, "a battleground: no part of it")
+
+debriefs = life()
+G.state.hardcore = true
+G.pull()
+G.hit({ from = "Ragged Young Wolf", amount = 90 })
+G.wait(1)
+G.hit({ from = "Rockjaw Trogg", amount = 120, spell = { 9053, "Fireball", 4 } })
+G.die()
+local d = only(debriefs, "death")
+check(
+  d and d.lowPct == 0 and d.hardcore == (not G.FOREVER or nil),
+  "a death: its debrief, Hardcore where the game says so"
+)
+check(said("Death in Coldridge Valley"), "… and a line in chat")
+check(not d.recap, "… the game's recap read a moment later")
+G.wait(1.5)
+check(
+  d.recap and d.recap[1].src == "Rockjaw Trogg" and d.recap[1].spell == nil and d.recap[1].hp == 0,
+  "… the recap, the killing blow first"
+)
+check(d.killer and d.killer.name == "Rockjaw Trogg" and d.killer.overkill == 30, "… the killer, and by how much")
+if G.FOREVER then
+  check(
+    #d.foes == 2 and d.foes[1].name == "Ragged Young Wolf" and d.foes[2].damage == 120,
+    "Forever: the foes from the recap"
+  )
+else
+  check(d.killer.spell == "Fireball" and #d.foes == 2, "… the foes from the log")
+end
+
+debriefs = life()
+G.pull()
+G.hit({ from = "Ragged Young Wolf", amount = 170 })
+G.state.inCombat = false
+G.offer("PLAYER_REGEN_ENABLED")
+G.state.dead, G.state.health = true, 0
+G.offer("PLAYER_DEAD")
+G.wait(1.5)
+check(#debriefs == 1 and debriefs[1].kind == "death", "the end of combat told before the death: one debrief, the death")
+
+if not G.FOREVER then
+  debriefs = life()
+  G.state.health = 60
+  ns.readyTools = function() return { "ready" } end
+  G.pull()
+  G.hit({ from = "Ragged Young Wolf", amount = 40 })
+  G.leave()
+  ns.readyTools = nil
+  local d = only(debriefs, "close")
+  check(d and d.startPct == 33 and d.readyT == 0, "a fight begun below half health: what was ready, from its start")
+end
+
+debriefs = life()
+table.insert(debriefs, { kind = "death", at = 1, foes = {} })
+for i = 2, 100 do
+  table.insert(debriefs, { kind = "close", at = i, foes = {} })
+end
+G.pull()
+G.hit({ from = "Ragged Young Wolf", amount = 170 })
+G.leave()
+if not G.FOREVER then
+  check(
+    #debriefs == 100 and debriefs[1].kind == "death" and debriefs[2].at == 3,
+    "a hundred kept: the oldest close call goes, a death stays"
+  )
+end
+
+-- ── the fake game itself: fights as the game sends them ──────────────────────
+life()
 local seen = {}
 local listener = CreateFrame("Frame")
 local logged = pcall(listener.RegisterEvent, listener, "COMBAT_LOG_EVENT_UNFILTERED")

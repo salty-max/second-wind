@@ -5,11 +5,21 @@ name: wow
 globals:
   ButtonFrameTemplate_HideButtonBar:
     any: true
+  C_DeathRecap:
+    any: true
+  C_GameRules:
+    any: true
+  C_Spell:
+    any: true
   C_Timer:
     any: true
   C_XMLUtil:
     any: true
+  CombatLogGetCurrentEventInfo:
+    any: true
   CreateFrame:
+    any: true
+  date:
     any: true
   GameTooltip:
     any: true
@@ -21,7 +31,21 @@ globals:
     any: true
   GetRealmName:
     any: true
+  GetRealZoneText:
+    any: true
+  GetSpellInfo:
+    any: true
+  GetSubZoneText:
+    any: true
+  GetTime:
+    any: true
+  hooksecurefunc:
+    any: true
   InCombatLockdown:
+    any: true
+  IsInGroup:
+    any: true
+  IsInInstance:
     any: true
   issecretvalue:
     any: true
@@ -53,6 +77,8 @@ globals:
     any: true
   STANDARD_TEXT_FONT:
     any: true
+  StartDuel:
+    any: true
   strtrim:
     any: true
   time:
@@ -75,7 +101,23 @@ globals:
     any: true
   UISpecialFrames:
     any: true
+  UnitAffectingCombat:
+    any: true
+  UnitClassification:
+    any: true
+  UnitCreatureType:
+    any: true
   UnitGUID:
     any: true
+  UnitHealth:
+    any: true
+  UnitHealthMax:
+    any: true
+  UnitIsDeadOrGhost:
+    any: true
+  UnitLevel:
+    any: true
   UnitName:
+    any: true
+  UnitTokenFromGUID:
     any: true

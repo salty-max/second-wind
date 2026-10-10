@@ -88,6 +88,20 @@ From Blizzard's own code for Classic Era 1.15.9 and Forever 1.60.1
 6. Settings and the welcome page; the CurseForge and Wago projects (the user);
    CURSEFORGE.md with the siblings linked; release 0.1.0.
 
+## Step 2, the recorder (11 October 2026)
+
+Done as planned, with what the build showed:
+
+- A fight ends a moment (0.3 s) after combat ends, so a death the game tells
+  after the end of combat is the fight's end, not a close call and an empty
+  death.
+- A fall or the water out of combat is a fight of its own, over after three
+  quiet seconds.
+- A duel can't be told by the game for sure: a fight that began within three
+  minutes of a duel asked for or offered, against players only, is one.
+- On Forever, the player's health is secret in a fight: no close call there
+  (step 5 tries the damage meter); a death is told from the game's recap.
+
 ## Decided (11 October 2026)
 
 The user took the four recommendations: a close call below 15% by default; the

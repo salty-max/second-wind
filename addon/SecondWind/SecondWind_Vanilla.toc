@@ -15,6 +15,7 @@
 Kit.lua
 Core.lua
 Settings.lua
+Recorder.lua
 Book.lua
 Welcome.lua
 Minimap.lua

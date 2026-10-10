@@ -24,13 +24,25 @@ The plan, its research and its decisions: PLAN.md.
     `SW1:p15:c1:t1:d1:h0:a250`): the close call's threshold (10, 15, 20,
     25%), a line in chat, the alert, the debrief after a death, the minimap
     button; the Options page.
+  - `Recorder.lua`: each fight as it went (its start: combat or the first
+    harm; its end: combat's, a moment later so a death wins, or QUIET seconds
+    after a fall), the foes (when each came, hits, misses, damage, level and
+    rank where the game can tell), the log's last 20 seconds copied at each
+    new low point, my health over it, my casts, what was ready when my health
+    first fell below half (`ns.readyTools`, the card's); a debrief kept for a
+    close call (below the threshold) or a death (with the game's recap, read
+    a moment later), never for a duel or a battleground; a hundred kept, a
+    death always. Its schema in its header. `ns.summaryOf(d)`: a line.
   - `Book.lua`: the theme (frost steel) and the window, its tabs (Debriefs,
-    Patterns).
+    Patterns); until the card, the debriefs a line each, and a line in chat
+    when one is written (`ns.debriefed`).
   - `Welcome.lua`: the kit's welcome page, once per character.
   - `Minimap.lua`: the button.
 - `addon/test/game.lua`: the fake game: the API the addon calls, its events,
-  a character, and fights to replay (`G.pull`, `G.hit`, `G.heal`, `G.cast`,
-  `G.leave`, `G.die`): the combat log as `COMBAT_LOG_EVENT_UNFILTERED` on
+  a character, and fights to replay (`G.pull`, `G.hit`, `G.miss`, `G.heal`,
+  `G.debuff`, `G.cast`, `G.env` (a fall, the water), `G.leave`, `G.die`;
+  `G.sight` a creature the game can name, `G.duel`, `state.instance`): the
+  combat log as `COMBAT_LOG_EVENT_UNFILTERED` on
   Classic only, the health with it (a secret value in a fight on Forever),
   the game's death recap (`C_DeathRecap`, killing blow first), timers run by
   `G.wait`. `addon/test/sim.lua`: the checks, on both games.

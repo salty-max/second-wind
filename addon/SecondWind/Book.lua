@@ -1,8 +1,7 @@
 -- The book: the standard game window (portrait, title bar), its tabs (the
 -- debriefs, the patterns) and the kit its pages are made of (Kit.lua).
--- /wind opens it. The debriefs and the patterns come with the recorder and
--- the card (PLAN.md, steps 2 to 4): until then each tab says what it will
--- hold.
+-- /wind opens it. Until the card (PLAN.md, step 3) the debriefs are listed a
+-- line each, and the patterns' tab says what it will hold.
 local _, ns = ...
 
 -- ── look ─────────────────────────────────────────────────────────────────────
@@ -43,13 +42,35 @@ end
 
 local book
 
+-- The debriefs, newest first, a line each (until the card).
+local LISTED = 30
+local function listed(debriefs)
+  local lines = {}
+  for i = #debriefs, math.max(1, #debriefs - LISTED + 1), -1 do
+    local d = debriefs[i]
+    table.insert(lines, date("%d %b %H:%M", d.at) .. "  " .. ns.summaryOf(d))
+  end
+  return table.concat(lines, "\n")
+end
+
 -- Rewrite what the open tab shows.
 function ns.refresh()
   if not book then return end
   local record = ns.record()
-  local n = record and #record.debriefs or 0
-  book.count:SetText(n == 1 and "1 debrief" or ("%d debriefs"):format(n))
-  book.empty:SetText(emptyText(book.selectedTab))
+  local debriefs = record and record.debriefs or {}
+  book.count:SetText(#debriefs == 1 and "1 debrief" or ("%d debriefs"):format(#debriefs))
+  if book.selectedTab == TAB.debriefs and #debriefs > 0 then
+    book.empty:SetJustifyH("LEFT")
+    book.empty:SetText(listed(debriefs))
+  else
+    book.empty:SetJustifyH("CENTER")
+    book.empty:SetText(emptyText(book.selectedTab))
+  end
+end
+
+-- A debrief written: a line in chat (the setting's), until the card's alert.
+function ns.debriefed(d)
+  if ns.option("chat") then print(ns.PREFIX .. ns.summaryOf(d) .. ".") end
 end
 
 -- The tab n shown.
@@ -75,7 +96,7 @@ local function build()
   book.sheet:SetPoint("BOTTOMRIGHT", -edge, edge)
   book.empty = label(book.sheet, K.BODY_FONT, 13, T.soft)
   book.empty:SetPoint("CENTER")
-  book.empty:SetWidth(420)
+  book.empty:SetWidth(680)
   book.empty:SetJustifyH("CENTER")
 
   book.selectedTab = TAB.debriefs

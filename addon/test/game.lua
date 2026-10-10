@@ -48,7 +48,13 @@ function GetSubZoneText() return state.sub end
 function GetRealmName() return state.realm end
 function UnitGUID(u) return u == "player" and state.guid or nil end
 function UnitName(u) return u == "player" and state.name or nil end
-function UnitLevel(u) return u == "player" and state.level or 1 end
+local units = {} -- token = what the game can tell of a creature in sight
+function UnitLevel(u)
+  if u == "player" then return state.level end
+  return units[u] and units[u].level or 1
+end
+function UnitClassification(u) return units[u] and units[u].rank or "normal" end
+function UnitCreatureType(u) return units[u] and units[u].type or nil end
 function UnitClass(u) return u == "player" and state.class:sub(1, 1) .. state.class:sub(2):lower(), state.class end
 function UnitRace(u) return state.race, state.race end
 function UnitHealthMax(u) return u == "player" and state.maxHealth or 0 end
@@ -59,6 +65,20 @@ function UnitHealth(u)
 end
 function UnitIsDeadOrGhost(u) return u == "player" and state.dead end
 function UnitAffectingCombat(u) return u == "player" and state.inCombat end
+function IsInInstance() return state.instance ~= nil, state.instance or "none" end
+function IsInGroup() return state.grouped == true end
+if not FOREVER then C_GameRules = { IsHardcoreActive = function() return state.hardcore == true end } end
+function hooksecurefunc(name, fn)
+  local original = _G[name]
+  _G[name] = function(...)
+    local r = original(...)
+    fn(...)
+    return r
+  end
+end
+function StartDuel() end
+local SPELLS = {}
+function GetSpellInfo(id) return SPELLS[id] end
 function InCombatLockdown() return state.inCombat end
 
 -- Timers: run when the clock passes them (G.wait).
@@ -236,13 +256,17 @@ end
 -- ── fights ───────────────────────────────────────────────────────────────────
 -- Creatures by name: their GUIDs ("Creature-0-...-<npc id>-<spawn>").
 local npcs, nextSpawn = {}, 0
-local function creature(name)
+local function creature(name, player)
   if not npcs[name] then
     nextSpawn = nextSpawn + 1
-    npcs[name] = ("Creature-0-4170-0-12-%d-%08X"):format(1000 + nextSpawn, nextSpawn)
+    npcs[name] = player and ("Player-6113-%08X"):format(nextSpawn)
+      or ("Creature-0-4170-0-12-%d-%08X"):format(1000 + nextSpawn, nextSpawn)
   end
   return npcs[name]
 end
+-- A creature in sight (a nameplate): its level, rank ("elite", "rare") and kind.
+local tokens = {}
+function UnitTokenFromGUID(guid) return tokens[guid] end
 -- The combat log: its current line (CombatLogGetCurrentEventInfo), each sent
 -- as COMBAT_LOG_EVENT_UNFILTERED (Classic only: Forever keeps it from addons).
 local line = {}
@@ -263,6 +287,11 @@ local function health(v)
 end
 
 local G = {}
+function G.sight(name, info)
+  local token = "nameplate" .. (#tokens + 1)
+  tokens[creature(name)] = token
+  units[token] = info
+end
 -- A fight begins: in combat.
 function G.pull()
   recap = {}
@@ -272,7 +301,7 @@ end
 -- A hit on me: { from = name, amount, spell = { id, name, school } (else a
 -- melee swing), crit = true }.
 function G.hit(h)
-  local source = creature(h.from)
+  local source = creature(h.from, h.player)
   local overkill = math.max(0, h.amount - state.health)
   if h.spell then
     log(
@@ -342,15 +371,41 @@ function G.heal(h)
   )
   health(state.health + h.amount)
 end
+-- Harm from the world out of a fight: kind ("Falling", "Drowning", "Lava").
+function G.env(kind, amount)
+  local overkill = math.max(0, amount - state.health)
+  log("ENVIRONMENTAL_DAMAGE", nil, nil, state.guid, state.name, kind, amount, overkill, 1, 0, 0, 0, false, false, false)
+  health(state.health - amount)
+  table.insert(recap, 1, {
+    timestamp = clock,
+    amount = amount,
+    overkill = overkill > 0 and overkill or nil,
+    currentHP = state.health,
+    school = 1,
+  })
+end
+-- A blow that missed me: { from, what = "DODGE" | "PARRY" | ... }.
+function G.miss(m) log("SWING_MISSED", creature(m.from), m.from, state.guid, state.name, m.what, false, 0) end
+-- A debuff on me: { from, spell = { id, name } }.
+function G.debuff(d)
+  log("SPELL_AURA_APPLIED", creature(d.from), d.from, state.guid, state.name, d.spell[1], d.spell[2], 1, "DEBUFF")
+end
+-- Time passes (the clock and the timers).
+G.wait = wait
+-- A duel asked of me, and its end.
+function G.duel() offer("DUEL_REQUESTED", "Kyle") end
+function G.duelOver() offer("DUEL_FINISHED") end
 -- A spell of mine cast: { id, name }.
 function G.cast(spell)
+  SPELLS[spell[1]] = spell[2]
   log("SPELL_CAST_SUCCESS", state.guid, state.name, nil, nil, spell[1], spell[2], 1)
   offer("UNIT_SPELLCAST_SUCCEEDED", "player", ("Cast-3-4170-0-1-%d-0001"):format(spell[1]), spell[1])
 end
--- The fight is over: out of combat.
+-- The fight is over: out of combat, a moment passing.
 function G.leave()
   state.inCombat = false
   offer("PLAYER_REGEN_ENABLED")
+  wait(0.5)
 end
 -- I die: the last hit's done it; out of combat, the game's recap kept.
 local recaps = {}
