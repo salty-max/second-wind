@@ -16,16 +16,17 @@
 --     secret: Forever, in a fight), its lowest point
 --   my casts (UNIT_SPELLCAST_SUCCEEDED: Forever too)
 --   what was ready when my health first fell below half (ns.readyTools,
---     the card's: Debrief.lua), to tell what went unused
+--     Tools.lua), and at the end what of it went unused (ns.unusedOf)
 -- A death takes the game's recap too (C_DeathRecap: every client), read a
 -- moment after it. A duel (a fight against players only, while one was on)
 -- and a battleground are no danger: never kept.
 --
 --   debriefs[i] = { kind = "close" | "death", at, length, zone, sub, level,
---     grouped, hardcore, startPct, lowPct, lowT, env, killer = { name, spell,
+--     grouped, hardcore, startPct, lowPct, lowT, env, ready, readyT, unused
+--     (tools: Tools.lua), killer = { name, spell,
 --     amount, overkill }, foes = { { name, npc, first, hits, misses, damage,
 --     level, rank, type, player } }, heals = { { name, amount } }, casts = {
---     { t, id, name } }, ready, readyT, events = { { t, k, src, spell, id,
+--     { t, id, name } }, events = { { t, k, src, spell, id,
 --     amount, over, crit, school, what } }, samples = { { t, pct } }, recap =
 --     { { t, amount, overkill, hp, src, school, spell } } }
 --   (times t: seconds from the fight's start, or before the death for the
@@ -227,6 +228,7 @@ local function written(f, death)
     casts = f.casts,
     ready = f.ready,
     readyT = f.readyT,
+    unused = ns.unusedOf and ns.unusedOf(f.ready, f.casts, f.readyT) or nil,
     events = rows(death and buffer or f.window or buffer),
     samples = thin(f.samples),
   }

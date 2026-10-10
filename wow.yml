@@ -5,13 +5,19 @@ name: wow
 globals:
   ButtonFrameTemplate_HideButtonBar:
     any: true
+  C_Container:
+    any: true
   C_DeathRecap:
     any: true
   C_GameRules:
     any: true
+  C_Item:
+    any: true
   C_Spell:
     any: true
   C_Timer:
+    any: true
+  C_UnitAuras:
     any: true
   C_XMLUtil:
     any: true
@@ -27,11 +33,17 @@ globals:
     any: true
   GetCursorPosition:
     any: true
+  GetItemCooldown:
+    any: true
+  GetItemCount:
+    any: true
   GetLocale:
     any: true
   GetRealmName:
     any: true
   GetRealZoneText:
+    any: true
+  GetSpellCooldown:
     any: true
   GetSpellInfo:
     any: true
@@ -48,6 +60,10 @@ globals:
   IsInInstance:
     any: true
   issecretvalue:
+    any: true
+  IsUsableItem:
+    any: true
+  IsUsableSpell:
     any: true
   MenuUtil:
     any: true

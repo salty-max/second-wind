@@ -97,6 +97,7 @@ end
 local function only(list, kind) return #list == 1 and list[1].kind == kind and list[1] end
 
 local debriefs = life()
+local readyTools = ns.readyTools
 ns.readyTools = function() return { "ready" } end
 G.sight("Rockjaw Trogg", { level = 9, type = "Humanoid" })
 G.pull()
@@ -112,7 +113,7 @@ G.cast({ 20230, "Retaliation" })
 G.heal({ from = "Brother Paxton", amount = 60, spell = { 2061, "Flash Heal" } })
 G.wait(2)
 G.leave()
-ns.readyTools = nil
+ns.readyTools = readyTools
 if G.FOREVER then
   check(#debriefs == 0, "Forever: no close call while the game keeps my health secret in a fight")
 else
@@ -260,7 +261,7 @@ if not G.FOREVER then
   G.pull()
   G.hit({ from = "Ragged Young Wolf", amount = 40 })
   G.leave()
-  ns.readyTools = nil
+  ns.readyTools = readyTools
   local d = only(debriefs, "close")
   check(d and d.startPct == 33 and d.readyT == 0, "a fight begun below half health: what was ready, from its start")
 end
@@ -279,6 +280,44 @@ if not G.FOREVER then
     "a hundred kept: the oldest close call goes, a death stays"
   )
 end
+
+-- ── what I had ───────────────────────────────────────────────────────────────
+debriefs = life()
+G.state.book = {
+  ["Shield Wall"] = {},
+  ["Retaliation"] = { ready = GetTime() + 600 },
+  ["Intimidating Shout"] = { usable = false },
+  ["Disarm"] = { ready = GetTime() + 1 },
+}
+G.state.bags = { [929] = { count = 2 }, [1710] = { count = 1, usable = false }, [1251] = { count = 5 } }
+G.state.auras = { [11196] = true }
+local function named(tools)
+  local out = {}
+  for _, t in ipairs(tools or {}) do
+    table.insert(out, t.n)
+  end
+  return table.concat(out, ", ")
+end
+check(
+  named(ns.readyTools()) == "Shield Wall, Disarm, Healing Potion",
+  "what is ready: known, off cooldown (the global one aside), usable; a bandage not just after one"
+)
+local potion = ns.readyTools()[3]
+check(
+  potion.item == 929 and potion.spell == 441 and potion.count == 2 and potion.k == "heal",
+  "… a potion by its item, the spell it casts, how many"
+)
+if not G.FOREVER then
+  G.pull()
+  G.hit({ from = "Ragged Young Wolf", amount = 100 })
+  G.use(929, 441, "Healing Potion")
+  G.hit({ from = "Ragged Young Wolf", amount = 70 })
+  G.leave()
+  local d = only(debriefs, "close")
+  check(d and named(d.ready) == "Shield Wall, Disarm, Healing Potion", "a close call: what was ready below half health")
+  check(named(d.unused) == "Shield Wall, Disarm", "… and what went unused: the potion was drunk")
+end
+G.state.book, G.state.bags, G.state.auras = {}, {}, {}
 
 -- ── the fake game itself: fights as the game sends them ──────────────────────
 life()

@@ -24,6 +24,13 @@ The plan, its research and its decisions: PLAN.md.
     `SW1:p15:c1:t1:d1:h0:a250`): the close call's threshold (10, 15, 20,
     25%), a line in chat, the alert, the debrief after a death, the minimap
     button; the Options page.
+  - `Tools.lua`: what I had for a bad moment: every class's and people's
+    emergency spells by name (every rank; guard, stop, away) and the bag's
+    healing, bandage and escape items by id with the spell their use casts
+    (classic-db and the TBC Anniversary client's ItemSparse/ItemEffect,
+    11 October 2026); `ns.readyTools()` (known, off cooldown but for the
+    global one, usable; a bandage not while Recently Bandaged),
+    `ns.unusedOf(ready, casts, since)`.
   - `Recorder.lua`: each fight as it went (its start: combat or the first
     harm; its end: combat's, a moment later so a death wins, or QUIET seconds
     after a fall), the foes (when each came, hits, misses, damage, level and

@@ -77,8 +77,30 @@ function hooksecurefunc(name, fn)
   end
 end
 function StartDuel() end
+-- The spellbook (by name: { ready = GetTime it is off cooldown, usable }),
+-- the bags (by item: { count, ready, usable }), the auras on me (by spell).
+state.book, state.bags, state.auras = {}, {}, {}
 local SPELLS = {}
-function GetSpellInfo(id) return SPELLS[id] end
+function GetSpellInfo(id)
+  if type(id) == "string" then return state.book[id] and id or nil end
+  return SPELLS[id]
+end
+local function cooldown(x)
+  if not x or not x.ready or x.ready <= uptime then return 0, 0, 1 end
+  return uptime, x.ready - uptime, 1
+end
+function GetSpellCooldown(name) return cooldown(state.book[name]) end
+function IsUsableSpell(name)
+  local s = state.book[name]
+  return s ~= nil and s.usable ~= false, false
+end
+function GetItemCount(item) return state.bags[item] and state.bags[item].count or 0 end
+function GetItemCooldown(item) return cooldown(state.bags[item]) end
+function IsUsableItem(item)
+  local b = state.bags[item]
+  return b ~= nil and b.usable ~= false, false
+end
+C_UnitAuras = { GetPlayerAuraBySpellID = function(id) return state.auras[id] and { spellId = id } or nil end }
 function InCombatLockdown() return state.inCombat end
 
 -- Timers: run when the clock passes them (G.wait).
@@ -400,6 +422,13 @@ function G.cast(spell)
   SPELLS[spell[1]] = spell[2]
   log("SPELL_CAST_SUCCESS", state.guid, state.name, nil, nil, spell[1], spell[2], 1)
   offer("UNIT_SPELLCAST_SUCCEEDED", "player", ("Cast-3-4170-0-1-%d-0001"):format(spell[1]), spell[1])
+end
+-- An item of my bags used: { item, the spell its use casts, its name }.
+function G.use(item, spell, name)
+  local b = state.bags[item]
+  b.count = b.count - 1
+  b.ready = uptime + 60
+  G.cast({ spell, name })
 end
 -- The fight is over: out of combat, a moment passing.
 function G.leave()
