@@ -76,13 +76,15 @@ end
 function ns.factsOf(d)
   local title = d.kind == "death" and "Death" or ("Close call: %d%% health"):format(d.lowPct or 0)
   local place = d.sub and (d.sub .. ", " .. (d.zone or "?")) or d.zone or "?"
-  local unused, used = d.unused or {}, {}
-  local left = {}
-  for _, t in ipairs(unused) do
-    left[t.n] = true
+  local unused, used, left = {}, {}, {}
+  for _, t in ipairs(d.unused or {}) do
+    if type(t) == "table" and t.n then
+      table.insert(unused, t)
+      left[t.n] = true
+    end
   end
   for _, t in ipairs(d.ready or {}) do
-    if type(t) == "table" and not left[t.n] then table.insert(used, t) end
+    if type(t) == "table" and t.n and not left[t.n] then table.insert(used, t) end
   end
   return { title = title, place = place, hits = hits(d), fall = fall(d), used = used, unused = unused }
 end
@@ -198,4 +200,82 @@ function ns.lessonsOf(d)
     out[i] = found[i].text
   end
   return out
+end
+
+-- ── the card ─────────────────────────────────────────────────────────────────
+-- The card's text: its title, the line under it, the lessons, and its
+-- sections ({ heading, lines }); the book draws it (Book.lua), the health
+-- over the fight from d.samples.
+local function plural(n, one, many) return n == 1 and ("1 " .. one) or (n .. " " .. many) end
+local function when(t)
+  t = math.floor((t or 0) + 0.5)
+  if t <= 0 then return "from the start" end
+  return t == 1 and "a second in" or (t .. " seconds in")
+end
+local function foeLine(foe)
+  local about = {}
+  if foe.level and foe.level > 0 then table.insert(about, "level " .. foe.level) end
+  if foe.level == -1 then table.insert(about, "level ??") end
+  if foe.rank and foe.rank ~= "normal" then
+    table.insert(about, foe.rank == "rareelite" and "rare elite" or foe.rank)
+  end
+  if foe.type then table.insert(about, foe.type:lower()) end
+  local who = #about > 0 and ("%s (%s)"):format(foe.name, table.concat(about, ", ")) or foe.name
+  local did = {}
+  if foe.hits and foe.hits > 0 then
+    table.insert(did, plural(foe.hits, "hit", "hits") .. " for " .. (foe.damage or 0))
+  end
+  if foe.misses and foe.misses > 0 then table.insert(did, plural(foe.misses, "miss", "misses")) end
+  local first = foe.first and when(foe.first)
+  return ("%s: %s"):format(who, table.concat(first and { first, unpack(did) } or did, ", "))
+end
+local function names(tools)
+  local out = {}
+  for _, t in ipairs(tools) do
+    table.insert(out, t.count and t.count > 1 and ("%s (%d)"):format(t.n, t.count) or t.n)
+  end
+  return table.concat(out, ", ")
+end
+
+function ns.cardOf(d)
+  local f = ns.factsOf(d)
+  local sub = { f.place }
+  if d.level then table.insert(sub, "level " .. d.level) end
+  if d.length then table.insert(sub, d.length == 1 and "a second" or (d.length .. " seconds")) end
+  if d.at then table.insert(sub, date("%d %b %H:%M", d.at)) end
+  local card = { title = f.title, sub = table.concat(sub, " · "), lessons = ns.lessonsOf(d), sections = {} }
+  local function section(heading, lines)
+    if #lines > 0 then table.insert(card.sections, { heading = heading, lines = lines }) end
+  end
+  if d.kind == "death" and d.killer and d.killer.name then
+    local k = d.killer
+    local blow = k.spell and ("%s's %s"):format(k.name, k.spell) or k.name
+    local extra = k.overkill and k.overkill > 0 and (" (%d more than you had)"):format(k.overkill) or ""
+    section("The killing blow", { ("%s, %d%s"):format(blow, k.amount or 0, extra) })
+  end
+  local foes = {}
+  for _, foe in ipairs(d.foes or {}) do
+    table.insert(foes, foeLine(foe))
+  end
+  section("Foes", foes)
+  local mattered = {}
+  for _, h in ipairs(f.hits) do
+    local what = h.spell and (h.crit and (h.spell .. ", critical,") or (h.spell .. ","))
+      or (h.crit and "a critical blow," or "a blow,")
+    local before = h.before
+      and (h.before < 0.5 and "at the low point" or ("%.1f s before the low point"):format(h.before))
+    table.insert(mattered, ("%d: %s from %s%s"):format(h.amount, what, h.src, before and (", " .. before) or ""))
+  end
+  section("The hits that mattered", mattered)
+  local heals = {}
+  for _, h in ipairs(d.heals or {}) do
+    table.insert(heals, h.name == "you" and ("Your own: %d"):format(h.amount) or ("%s: %d"):format(h.name, h.amount))
+  end
+  section("Heals", heals)
+  local had = {}
+  if #f.unused > 0 then table.insert(had, "Ready, unused: " .. names(f.unused)) end
+  if #f.used > 0 then table.insert(had, "Used: " .. names(f.used)) end
+  if d.ready and #d.ready == 0 then table.insert(had, "Nothing of the kind was ready.") end
+  section("What you had", had)
+  return card
 end

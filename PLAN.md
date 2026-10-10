@@ -102,6 +102,15 @@ Done as planned, with what the build showed:
 - On Forever, the player's health is secret in a fight: no close call there
   (step 5 tries the damage meter); a death is told from the game's recap.
 
+## Step 3, the debrief (11 October 2026)
+
+Done as planned, in three parts: the tools (`Tools.lua`: every class's and
+people's emergency spells by name, the bag's healing, bandage and escape
+items by id with the spell their use casts, checked against classic-db and
+the TBC Anniversary client's tables), the facts and lessons (`Debrief.lua`:
+pure, the two weightiest lessons told), and the card in the book with its
+chat link and the game's alert.
+
 ## Decided (11 October 2026)
 
 The user took the four recommendations: a close call below 15% by default; the

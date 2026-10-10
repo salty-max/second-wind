@@ -47,10 +47,15 @@ The plan, its research and its decisions: PLAN.md.
     went in hurt, a potion ready, a guard unused, three foes or more, one
     late, a hold or a way out unused, a blow that took a third, half health
     to the low in three seconds, an elite or a foe two levels up, mostly
-    magic).
-  - `Book.lua`: the theme (frost steel) and the window, its tabs (Debriefs,
-    Patterns); until the card, the debriefs a line each, and a line in chat
-    when one is written (`ns.debriefed`).
+    magic); `ns.cardOf(d)`: the card's text (title, the line under it, the
+    lessons, sections: the killing blow, foes, the hits that mattered,
+    heals, what you had).
+  - `Book.lua`: the theme (frost steel) and the window, its tabs: the
+    Debriefs (the list, newest first; the open one's card, my health drawn
+    as bars against the threshold), the Patterns (step 4). A debrief written
+    (`ns.debriefed`): a line in chat with a link (`|Hsecondwind:debrief:<at>|h`),
+    the game's alert (the new recipe's), the book opened at a death's
+    (`ns.openDebrief(at)`; settings).
   - `Welcome.lua`: the kit's welcome page, once per character.
   - `Minimap.lua`: the button.
 - `addon/test/game.lua`: the fake game: the API the addon calls, its events,

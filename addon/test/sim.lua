@@ -400,6 +400,105 @@ check(
   "… what was used and what wasn't"
 )
 
+-- ── the card ─────────────────────────────────────────────────────────────────
+local function headings(c)
+  local out = {}
+  for _, sec in ipairs(c.sections) do
+    table.insert(out, sec.heading)
+  end
+  return table.concat(out, ", ")
+end
+local function lastLink()
+  for i = #G.printed, 1, -1 do
+    local l = G.printed[i]:match("(|Hsecondwind:[^|]+|h%[[^]]+%]|h)")
+    if l then return l end
+  end
+end
+local book = ns.window()
+book:Hide()
+if not G.FOREVER then
+  debriefs = life()
+  G.state.book = { ["Shield Wall"] = {} }
+  G.sight("Rockjaw Trogg", { level = 9, type = "Humanoid" })
+  G.pull()
+  G.wait(1)
+  G.hit({ from = "Ragged Young Wolf", amount = 50 })
+  G.wait(2)
+  G.hit({ from = "Rockjaw Trogg", amount = 60, spell = { 9053, "Fireball", 4 }, crit = true })
+  G.hit({ from = "Ragged Young Wolf", amount = 50 })
+  G.heal({ from = "Brother Paxton", amount = 60, spell = { 2061, "Flash Heal" } })
+  G.leave()
+  G.state.book = {}
+  local d = only(debriefs, "close")
+  local c = ns.cardOf(d)
+  check(
+    c.title == "Close call: 11% health" and c.sub:find("^Coldridge Valley, Dun Morogh · level 8 · 3 seconds · "),
+    "the card: its title and the line under it"
+  )
+  check(headings(c) == "Foes, The hits that mattered, Heals, What you had", "… its sections")
+  check(
+    c.sections[1].lines[2] == "Rockjaw Trogg (level 9, humanoid): 3 seconds in, 1 hit for 60",
+    "… a foe: what the game told of it, when it came, what it did"
+  )
+  check(
+    c.sections[2].lines[1] == "60: Fireball, critical, from Rockjaw Trogg, at the low point",
+    "… the hits that mattered"
+  )
+  check(
+    c.sections[4].lines[1] == "Ready, unused: Shield Wall" and c.lessons[1] == "Shield Wall was ready and went unused.",
+    "… what you had, and the lesson"
+  )
+  local link = lastLink()
+  check(link and link:find("|Hsecondwind:debrief:" .. d.at .. "|h%[Debrief%]"), "the chat line links to the debrief")
+  check(not book:IsShown(), "a close call: the book stays closed")
+  G.click(link)
+  check(
+    book:IsShown() and book.open == d.at and book.cardShown.title == "Close call: 11% health",
+    "… the link opens it at the card"
+  )
+  local t = G.toasted[#G.toasted]
+  check(
+    t and t.Title:GetText() == "Close call: 11%" and t.Name:GetText() == "Coldridge Valley",
+    "the game's alert: the close call and where"
+  )
+  book:Hide()
+  t.scripts.OnClick(t, "LeftButton")
+  check(book:IsShown() and book.open == d.at, "… a click on it opens the card")
+  book:Hide()
+end
+
+debriefs = life()
+G.pull()
+G.hit({ from = "Ragged Young Wolf", amount = 60 })
+G.wait(1)
+G.hit({ from = "Rockjaw Trogg", amount = 150, spell = { 9053, "Fireball", 4 } })
+G.die()
+G.wait(1.5)
+local death = only(debriefs, "death")
+check(book:IsShown() and book.open == death.at, "a death: the book opens at its debrief on its own")
+check(
+  book.cardShown.title == "Death" and book.cardShown.sections[1].heading == "The killing blow",
+  "… the card: the killing blow first"
+)
+check(
+  book.cardShown.sections[1].lines[1]
+    == "Rockjaw Trogg" .. (G.FOREVER and "" or "'s Fireball") .. ", 150 (30 more than you had)",
+  "… by whom, with what, by how much"
+)
+book:Hide()
+ns.setOption("openAfterDeath", false)
+G.state.dead, G.state.health = false, G.state.maxHealth
+G.pull()
+G.hit({ from = "Ragged Young Wolf", amount = 200 })
+G.die()
+check(not book:IsShown(), "… not with the setting off")
+ns.setOption("openAfterDeath", true)
+ns.openDebrief(death.at)
+check(book.rows[1]:IsShown() and book.rows[2]:IsShown() and book.rows[1].at ~= death.at, "the list: the newest first")
+book.rows[2].scripts.OnClick(book.rows[2])
+check(book.open == death.at and book.cardShown.title == "Death", "… a row clicked: its card")
+book:Hide()
+
 -- ── the fake game itself: fights as the game sends them ──────────────────────
 life()
 local seen = {}

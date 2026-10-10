@@ -23,7 +23,7 @@ end
 
 -- ── a fake game ──────────────────────────────────────────────────────────────
 local clock, uptime = 1790900000, 1000
-function time() return clock end
+function time() return math.floor(clock) end
 function GetTime() return uptime end
 date = os.date
 local state = {
@@ -451,6 +451,28 @@ C_DeathRecap = {
   GetRecapMaxHealth = function() return state.maxHealth end,
 }
 
+-- The game's alerts and chat links: keep what the addon hands them.
+local toasted, linkHandlers = {}, {}
+AlertFrame = {
+  AddQueuedAlertFrameSubSystem = function(_, _, setUp)
+    return {
+      AddAlert = function(_, data)
+        local frame = ui()
+        frame.Icon, frame.Title, frame.Name = ui(), ui(), ui()
+        setUp(frame, data)
+        table.insert(toasted, frame)
+      end,
+    }
+  end,
+}
+LinkUtil = { RegisterLinkHandler = function(kind, fn) linkHandlers[kind] = fn end }
+LinkProcessorResponse = { Handled = 2 }
+local G_click = function(link)
+  local kind = link:match("|H([^:|]+):") or link:match("^([^:]+):")
+  local inner = link:match("|H([^|]+)|h") or link
+  return linkHandlers[kind] and linkHandlers[kind](inner)
+end
+
 -- ── load the addon ───────────────────────────────────────────────────────────
 -- The files in the order of the game's own TOC.
 local ns = {}
@@ -469,6 +491,7 @@ function G.reload()
   offer("PLAYER_ENTERING_WORLD", false, true)
 end
 G.ns, G.state, G.panel, G.printed, G.wait, G.offer, G.FOREVER = ns, state, panel, printed, wait, offer, FOREVER
+G.toasted, G.click = toasted, G_click
 G.secret = function(v) return secrets[v] == true end
 G.line = function() return line end
 function G.slash(msg) SlashCmdList.SECONDWIND(msg) end

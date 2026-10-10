@@ -3,6 +3,12 @@
 base: lua51
 name: wow
 globals:
+  AlertFrame:
+    any: true
+  AlertFrame_OnClick:
+    any: true
+  AlertFrame_SetDuration:
+    any: true
   ButtonFrameTemplate_HideButtonBar:
     any: true
   C_Container:
@@ -65,6 +71,10 @@ globals:
     any: true
   IsUsableSpell:
     any: true
+  LinkProcessorResponse:
+    any: true
+  LinkUtil:
+    any: true
   MenuUtil:
     any: true
   Minimap:
@@ -80,6 +90,8 @@ globals:
   SecondWindChar:
     any: true
   SecondWindSettings:
+    any: true
+  SetItemRef:
     any: true
   Settings:
     any: true
