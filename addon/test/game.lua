@@ -45,6 +45,14 @@ local state = {
 }
 local printed = {}
 function print(msg) table.insert(printed, msg) end
+-- The game's error handler: an error reported is raised again, so a check
+-- fails on it (state.errors: kept instead, for a check of its own).
+function geterrorhandler()
+  return function(e)
+    if state.errors then return table.insert(state.errors, e) end
+    error(e, 0)
+  end
+end
 function strtrim(s) return (s:gsub("^%s+", ""):gsub("%s+$", "")) end
 function GetRealZoneText() return state.zone end
 function GetSubZoneText() return state.sub end

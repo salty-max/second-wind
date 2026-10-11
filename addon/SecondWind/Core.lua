@@ -29,11 +29,17 @@ function ns.record() return char end
 local frame = CreateFrame("Frame")
 local listeners = {}
 
+-- (one listener's error is reported, and the others still hear the event)
+local function run(fn, ...)
+  local ok, err = pcall(fn, ...)
+  if not ok then geterrorhandler()(err) end
+end
+
 frame:SetScript("OnEvent", function(_, event, ...)
   if event == "PLAYER_LOGIN" then ns.login() end
   if not char then return end
   for _, fn in ipairs(listeners[event] or {}) do
-    fn(...)
+    run(fn, ...)
   end
 end)
 frame:RegisterEvent("PLAYER_LOGIN")
@@ -55,7 +61,7 @@ function ns.onUnit(event, unit, fn)
     f:SetScript("OnEvent", function(_, e, ...)
       if not char then return end
       for _, listener in ipairs(f.listeners[e]) do
-        listener(...)
+        run(listener, ...)
       end
     end)
     units[unit] = f

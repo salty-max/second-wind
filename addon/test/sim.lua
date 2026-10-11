@@ -70,6 +70,18 @@ G.offer("PLAYER_ENTERING_WORLD", true, false)
 G.wait(5)
 check(not ns.welcome.frame:IsShown(), "… once only")
 
+-- ── one listener's error ─────────────────────────────────────────────────────
+G.state.errors = {}
+local heard = false
+ns.on("SW_TEST_EVENT", function() error("a listener's fault") end)
+ns.on("SW_TEST_EVENT", function() heard = true end)
+G.offer("SW_TEST_EVENT")
+check(
+  heard and G.state.errors[1] and G.state.errors[1]:find("a listener's fault"),
+  "a listener's error is reported, the next still runs"
+)
+G.state.errors = nil
+
 -- ── the book and the commands ────────────────────────────────────────────────
 G.slash("")
 local book = ns.window()

@@ -73,6 +73,8 @@ globals:
     any: true
   GetCVarBool:
     any: true
+  geterrorhandler:
+    any: true
   GetInventoryItemCooldown:
     any: true
   GetInventoryItemID:
