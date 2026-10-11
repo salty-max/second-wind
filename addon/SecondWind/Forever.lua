@@ -91,7 +91,8 @@ end
 -- ── /wind probe ──────────────────────────────────────────────────────────────
 -- Armed, it watches the next fight and says, once it is over, what the game
 -- let an addon read: the combat log, my health and my casts in the fight, the
--- notice before combat's restrictions, the damage meter.
+-- notice before combat's restrictions, the damage meter, losing control (a
+-- stun, a fear: the game's account of it, or only that I had).
 local probe
 
 function ns.probeArm()
@@ -109,6 +110,13 @@ local function report()
     "your health in the fight: " .. (p.healthSecret and "hidden" or said(p.healthRead, "readable", "no change seen")),
     "your casts in the fight: " .. (p.castSecret and "hidden" or said(p.castRead, "readable", "none cast")),
     "the notice before combat's restrictions: " .. said(p.notice, "seen", "not seen"),
+    "losing control: "
+      .. (
+        p.loc and ("told by the game (%s)"):format(p.loc)
+        or p.locSecret and "its account hidden" .. said(p.lost, ", but you had lost it", "")
+        or p.lost and "only that you had lost it"
+        or "not lost in this fight"
+      ),
     "the damage meter: "
       .. (
         taken and ("%d of the spells that hit you read"):format(#taken)
@@ -124,6 +132,26 @@ end
 ns.on("ADDON_RESTRICTION_STATE_CHANGED", function()
   if probe then probe.notice = true end
 end)
+-- (control lost: whether the game says what, by which spell)
+local function controlSeen()
+  if not (probe and probe.inFight) then return end
+  if HasFullControl then
+    local full = HasFullControl()
+    if not ns.secret(full) and full == false then probe.lost = true end
+  end
+  local L = C_LossOfControl
+  if not (L and L.GetActiveLossOfControlDataByUnit) then return end
+  local e = L.GetActiveLossOfControlDataByUnit("player", 1)
+  if not e or e.displayText == nil then return end
+  if ns.secret(e.displayText) then
+    probe.locSecret = true
+  else
+    probe.loc = e.displayText .. (spellName(e.spellID) and (", " .. spellName(e.spellID)) or "")
+  end
+end
+for _, e in ipairs({ "PLAYER_CONTROL_LOST", "LOSS_OF_CONTROL_ADDED" }) do
+  ns.on(e, controlSeen)
+end
 ns.onUnit("UNIT_HEALTH", "player", function()
   if not (probe and probe.inFight) then return end
   if ns.secret(UnitHealth("player")) then

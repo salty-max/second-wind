@@ -55,6 +55,11 @@ check(
   ns.welcome.frame and ns.welcome.frame:IsShown(),
   "a new character: the welcome page, a few seconds after its login"
 )
+local unseen = false
+for _, text in ipairs(G.shown) do
+  if text:find("one you recover from before then goes unseen") then unseen = true end
+end
+check(unseen == G.FOREVER, "… on Forever, saying what the game hides: a close call recovered from before the end")
 ns.welcome.frame:Hide()
 G.reload()
 G.offer("PLAYER_ENTERING_WORLD", true, false)
@@ -650,6 +655,99 @@ ns.showTab(ns.TAB.debriefs)
 check(book.card:IsShown() and not book.patterns:IsShown(), "back to the debriefs: the card again")
 book:Hide()
 
+-- ── control lost, and time for a bandage ─────────────────────────────────────
+local function sectionOf(c, heading)
+  for _, sec in ipairs(c.sections) do
+    if sec.heading == heading then return table.concat(sec.lines, " | ") end
+  end
+end
+if not G.FOREVER then
+  debriefs = life()
+  G.state.bags = { [929] = { count = 2 } }
+  G.pull()
+  G.hit({ from = "Defias Footpad", amount = 95 })
+  G.stun({ seconds = 3, spell = { 1833, "Cheap Shot" } })
+  G.wait(1)
+  G.hit({ from = "Defias Footpad", amount = 30 })
+  G.wait(1)
+  G.hit({ from = "Defias Footpad", amount = 35 })
+  G.wait(1.5)
+  G.leave()
+  local d = only(debriefs, "close")
+  check(
+    d and #d.held == 1 and d.held[1].what == "Stunned" and d.held[1].spell == "Cheap Shot" and d.held[1].to == 3,
+    "control lost: the game's account of it, kept (what, by which spell, until when)"
+  )
+  check(
+    lessons(d):find("^Stunned the whole way down to 11%% %(Cheap Shot%)%.") and not lessons(d):find("Healing Potion"),
+    "… held the whole way down: told, and the potion not called a lesson"
+  )
+  local c = ns.cardOf(d)
+  check(
+    sectionOf(c, "Out of your control") == "Stunned (Cheap Shot): 3.0 s, from the start"
+      and sectionOf(c, "What you had") == "Ready, but you were stunned: Healing Potion (2)",
+    "… the card: the stretch held, and what was ready but out of reach"
+  )
+  check(ns.traitsOf(d).held and ns.helpless(d), "… a trait for the patterns, nothing called left unused")
+
+  debriefs = life()
+  G.state.bags = { [929] = { count = 2 } }
+  G.pull()
+  G.hit({ from = "Defias Footpad", amount = 95 })
+  G.wait(2)
+  G.hit({ from = "Defias Footpad", amount = 20 })
+  G.stun({ seconds = 2, untold = true })
+  G.wait(1)
+  G.hit({ from = "Defias Footpad", amount = 20 })
+  G.wait(1)
+  G.hit({ from = "Defias Footpad", amount = 25 })
+  G.leave()
+  d = only(debriefs, "close")
+  check(
+    lessons(d)
+      == "Out of your control for two seconds on the way down to 11%. | A Healing Potion was in your bags, ready.",
+    "control lost for part of the way, the game saying only that: told, and the potion still a lesson"
+  )
+
+  debriefs = life()
+  G.state.bags = { [1251] = { count = 5 } }
+  G.pull()
+  G.hit({ from = "Defias Footpad", amount = 95 })
+  G.wait(1)
+  G.hit({ from = "Defias Footpad", amount = 30 })
+  G.wait(1)
+  G.hit({ from = "Defias Footpad", amount = 35 })
+  G.leave()
+  d = only(debriefs, "close")
+  check(d and #d.ready == 0, "a bandage under blow after blow: no time to use it, not counted")
+  debriefs = life()
+  G.pull()
+  G.hit({ from = "Defias Footpad", amount = 95 })
+  G.wait(4)
+  G.hit({ from = "Defias Footpad", amount = 65 })
+  G.leave()
+  d = only(debriefs, "close")
+  check(d and named(d.ready) == "Linen Bandage", "… with four seconds without harm, counted")
+  G.state.bags = {}
+else
+  debriefs = life()
+  G.pull()
+  G.hit({ from = "Defias Footpad", amount = 60 })
+  G.stun({ seconds = 3, spell = { 1833, "Cheap Shot" } })
+  G.wait(3.5)
+  G.hit({ from = "Defias Footpad", amount = 100 })
+  G.leave()
+  local d = only(debriefs, "close")
+  check(
+    d and #d.held == 1 and not d.held[1].what and d.held[1].to == 3,
+    "Forever: the game's account of a stun hidden, only that I had lost control"
+  )
+  check(
+    lessons(d):find("^Out of your control for three seconds of the fight%."),
+    "… told by the fight, my health hidden"
+  )
+end
+
 -- ── Forever: what the game hides, and its damage meter ───────────────────────
 if G.FOREVER then
   debriefs = life()
@@ -695,6 +793,7 @@ if G.FOREVER then
   d = only(debriefs, "close")
   check(d and d.castsHidden and d.unused == nil, "Forever: my casts hidden, nothing called unused")
   check(not lessons(d):find("unused"), "… nor in a lesson")
+  check(sectionOf(ns.cardOf(d), "What you had") == "Ready: Shield Wall", "… nor used: what was ready, no more")
 
   debriefs = life()
   G.pull()
@@ -714,10 +813,19 @@ G.slash("probe")
 check(said("the probe is armed"), "/wind probe: armed for the next fight")
 G.pull()
 G.hit({ from = "Ragged Young Wolf", amount = 30 })
+G.stun({ seconds = 1, spell = { 1833, "Cheap Shot" } })
+G.wait(1)
 G.cast({ 6673, "Battle Shout" })
 G.leave()
 G.wait(1)
 check(said("the probe's report"), "… its report once the fight is over")
+check(
+  said(
+    G.FOREVER and "losing control: its account hidden, but you had lost it"
+      or "losing control: told by the game %(Stunned, Cheap Shot%)"
+  ),
+  "… what it could tell of a stun"
+)
 if G.FOREVER then
   check(
     said("the combat log: closed") and said("your health in the fight: hidden"),

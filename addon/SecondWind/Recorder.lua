@@ -15,6 +15,11 @@
 --   my health in percent over the fight (where the game doesn't keep it
 --     secret: Forever, in a fight), its lowest point
 --   my casts (UNIT_SPELLCAST_SUCCEEDED: Forever too)
+--   the stretches I had lost control (stunned, feared, charmed...): the
+--     game's own account where it gives it (C_LossOfControl: what, by which
+--     spell), else only that I had (HasFullControl, readable on Forever too)
+--   the longest stretch without harm once my health fell below half (time
+--     for a bandage, or not)
 --   what was ready when my health first fell below half (ns.readyTools,
 --     Tools.lua), and at the end what of it went unused (ns.unusedOf)
 -- A death takes the game's recap too (C_DeathRecap: every client), read a
@@ -25,7 +30,9 @@
 --     maxHealth, grouped, hardcore, startPct, lowPct, lowT, env, ready, readyT,
 --     readyFrom ("start": what was ready as the fight began, my health being
 --     hidden), unused, blind (my health hidden in the fight: Forever),
---     lowAtEnd (its low point read at its end), spells (Forever.lua)
+--     lowAtEnd (its low point read at its end), spells (Forever.lua),
+--     held = { { t, to, what, spell } } (control lost: what as the game
+--     says it, "Stunned"; none where it only said I had lost control)
 --     (tools: Tools.lua), killer = { name, spell,
 --     amount, overkill }, foes = { { name, npc, first, hits, misses, damage,
 --     level, rank, type, player } }, heals = { { name, amount } }, casts = {
@@ -156,6 +163,64 @@ local function copy(rows)
   return out
 end
 
+-- ── control lost ─────────────────────────────────────────────────────────────
+-- Stunned, feared, asleep, charmed...: nothing could be used then (the game's
+-- kinds of it, as its LOSS_OF_CONTROL events name them). Read at each harm,
+-- each change of my health and each of the game's notices, kept as stretches.
+local HELD = {
+  STUN = true,
+  STUN_MECHANIC = true,
+  FEAR = true,
+  FEAR_MECHANIC = true,
+  CONFUSE = true,
+  SLEEP = true,
+  CHARM = true,
+  POSSESS = true,
+}
+
+-- The game's account of it, where it gives one: { what, spell, left }.
+local function lossOfControl()
+  local L = C_LossOfControl
+  if not (L and L.GetActiveLossOfControlDataCountByUnit and L.GetActiveLossOfControlDataByUnit) then return nil end
+  local n = L.GetActiveLossOfControlDataCountByUnit("player")
+  if not n or ns.secret(n) then return nil end
+  for i = 1, n do
+    local e = L.GetActiveLossOfControlDataByUnit("player", i)
+    if e and not ns.secret(e.locType) and HELD[e.locType] then
+      local left = e.timeRemaining
+      return {
+        what = not ns.secret(e.displayText) and e.displayText or nil,
+        spell = spellName(e.spellID),
+        left = left and not ns.secret(left) and left or nil,
+      }
+    end
+  end
+end
+
+local function control(f)
+  local now = tenth(GetTime() - f.t0)
+  local told = lossOfControl()
+  local full = HasFullControl and HasFullControl()
+  if ns.secret(full) then full = nil end
+  local open = f.held and f.held[#f.held]
+  if open and open.to then open = nil end
+  if told or full == false then
+    if not open then
+      open = { t = now }
+      f.held = f.held or {}
+      table.insert(f.held, open)
+    end
+    if told then
+      open.what, open.spell = open.what or told.what, open.spell or told.spell
+      if told.left then open.ends = tenth(now + told.left) end
+    end
+  elseif open then
+    -- (back in control: when the game said it would end, if it said)
+    open.to = open.ends and math.min(now, open.ends) or now
+    open.ends = nil
+  end
+end
+
 -- My health changed: a sample, perhaps a new low (the run-up kept), perhaps
 -- below half for the first time (what was ready noted).
 local function health()
@@ -169,6 +234,7 @@ local function health()
     lastPct, lastAt = p, GetTime()
   end
   if not f or not p then return end
+  control(f)
   sample(f, p)
   if not f.low or p < f.low then
     f.low, f.lowT = p, tenth(GetTime() - f.t0)
@@ -249,6 +315,7 @@ local function written(f, death)
     ready = f.ready,
     readyT = f.readyT,
     readyFrom = f.readyFrom,
+    held = f.held,
     -- (my casts hidden: no telling what went unused)
     unused = not f.castsHidden and ns.unusedOf and ns.unusedOf(f.ready, f.casts, f.readyT) or nil,
     events = rows(death and buffer or f.window or buffer),
@@ -343,8 +410,23 @@ local function finish(death)
   if f.blind and not f.ready and f.startReady then
     f.ready, f.readyT, f.readyFrom = f.startReady, 0, "start"
   end
-  -- (what was ready that counted here: no fire protection against wolves)
-  if f.ready and ns.relevantTools then f.ready = ns.relevantTools(f.ready, { schools = f.schools, env = f.env }) end
+  -- (still held at the end: until the end, or when the game said it would end)
+  local open = f.held and f.held[#f.held]
+  if open and not open.to then
+    local now = tenth(GetTime() - f.t0)
+    open.to, open.ends = open.ends and math.min(now, open.ends) or now, nil
+  end
+  -- (the stretch without harm at the end counts while combat was still on;
+  -- harm from the world alone: no time for a bandage)
+  if f.harmed and f.readyT and f.ended then
+    f.lull = math.max(f.lull or 0, f.ended - math.max(f.last, f.t0 + f.readyT))
+  end
+  if f.env and #f.order == 0 then f.lull = 0 end
+  -- (what was ready that counted here: no fire protection against wolves, no
+  -- bandage without time to use one)
+  if f.ready and ns.relevantTools then
+    f.ready = ns.relevantTools(f.ready, { schools = f.schools, env = f.env, lull = f.lull })
+  end
   if not death and not (f.low and f.low < ns.option("threshold")) then return end
   local d = written(f, death)
   if ns.meterFill then ns.meterFill(d) end
@@ -362,7 +444,11 @@ local function quietly(f)
 end
 
 local function harmed(f)
-  f.last = GetTime()
+  local now = GetTime()
+  -- (the longest stretch without harm since my health fell below half)
+  if f.readyT then f.lull = math.max(f.lull or 0, now - math.max(f.last, f.t0 + f.readyT)) end
+  f.last, f.harmed = now, true
+  control(f)
   if not UnitAffectingCombat("player") then quietly(f) end
 end
 
@@ -445,6 +531,7 @@ local SETTLE = 0.3
 ns.on("PLAYER_REGEN_ENABLED", function()
   local f = fight
   if not f then return end
+  f.ended = GetTime()
   C_Timer.After(SETTLE, function()
     if fight == f and not UnitIsDeadOrGhost("player") then finish() end
   end)
@@ -457,6 +544,12 @@ ns.on("PLAYER_DEAD", function()
   end
 end)
 ns.onUnit("UNIT_HEALTH", "player", health)
+-- (control lost or back: the game's notices)
+for _, e in ipairs({ "PLAYER_CONTROL_LOST", "PLAYER_CONTROL_GAINED", "LOSS_OF_CONTROL_ADDED", "LOSS_OF_CONTROL_UPDATE" }) do
+  ns.on(e, function()
+    if fight then control(fight) end
+  end)
+end
 ns.onUnit("UNIT_SPELLCAST_SUCCEEDED", "player", function(_, _, id)
   local f = fight
   if not f then return end

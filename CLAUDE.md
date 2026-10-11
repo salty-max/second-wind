@@ -35,28 +35,32 @@ The plan, its research and its decisions: PLAN.md.
     the cloaking device, Insignias...; swim and slow-fall ones only in the
     water or a fall); worn ones (head, feet, trinkets) counted only worn.
     `ns.readyTools()` (known, off cooldown but for the global one, usable;
-    a bandage not while Recently Bandaged), `ns.relevantTools(ready, fight)`,
+    a bandage not while Recently Bandaged), `ns.relevantTools(ready, fight)`
+    (a bandage only with LULL seconds without harm below half health),
     `ns.unusedOf(ready, casts, since)`.
   - `Forever.lua`: where the combat log tells nothing (Forever): the game's
     damage meter (`C_DamageMeter`, readable once out of combat) for the foes
     and the harm by spell (`ns.meterFill`, never for a fall); `/wind probe`,
     which says after the next fight what the game let the addon read (the
     combat log, my health and casts, the notice before combat's
-    restrictions, the meter).
+    restrictions, the meter, losing control).
   - `Recorder.lua`: each fight as it went (its start: combat or the first
     harm; its end: combat's, a moment later so a death wins, or QUIET seconds
     after a fall), the foes (when each came, hits, misses, damage, level and
     rank where the game can tell), the log's last 20 seconds copied at each
     new low point, my health over it, my casts, what was ready when my health
-    first fell below half (`ns.readyTools`, the card's); a debrief kept for a
-    close call (below the threshold) or a death (with the game's recap, read
-    a moment later), never for a duel or a battleground; a hundred kept, a
-    death always. Its schema in its header. `ns.summaryOf(d)`: a line.
+    first fell below half (`ns.readyTools`, the card's), the stretches I had
+    lost control (`held`: stunned, feared, charmed...: the game's account,
+    `C_LossOfControl`, where it gives it, else `HasFullControl`, readable on
+    Forever), the longest stretch without harm below half (a bandage's
+    time); a debrief kept for a close call (below the threshold) or a death
+    (with the game's recap, read a moment later), never for a duel or a
+    battleground; a hundred kept, a death always. Its schema in its header. `ns.summaryOf(d)`: a line.
     Forever: the fight begins at the notice before combat's restrictions
     (`ADDON_RESTRICTION_STATE_CHANGED`, Activating: my health and cooldowns
     still readable); my health hidden in it, its low point is read at its
     end (`lowAtEnd`) and what was ready at its start stands in (`readyFrom`);
-    my casts hidden, nothing is called unused (`castsHidden`).
+    my casts hidden, nothing is called used or unused (`castsHidden`).
   - `Debrief.lua`: a debrief read, pure: `ns.factsOf(d)` (its title, place,
     the three largest hits and how long before the low point, the fall from
     half health, what was used and what wasn't), `ns.lessonsOf(d)` (rules
@@ -64,10 +68,12 @@ The plan, its research and its decisions: PLAN.md.
     went in hurt, a potion ready, a guard unused, three foes or more, one
     late, a hold or a way out unused, a blow that took a third, half health
     to the low in three seconds, an elite or a foe two levels up, mostly
-    magic); `ns.cardOf(d)`: the card's text (title, the line under it, the
-    lessons, sections: the killing blow, foes, the hits that mattered,
-    heals, what you had); `ns.traitsOf(d)`: a fight's traits, the lessons'
-    tests as yes or no, for the patterns.
+    magic, control lost on the way down; held all of it (`ns.helpless`),
+    nothing ready is a lesson); `ns.cardOf(d)`: the card's text (title, the
+    line under it, the lessons, sections: the killing blow, foes, the hits
+    that mattered, out of your control, heals, what you had: used and unused
+    only where my casts were seen); `ns.traitsOf(d)`: a fight's traits, the
+    lessons' tests as yes or no, for the patterns.
   - `Patterns.lua`: what the close calls share, pure: `ns.patternsOf(debriefs)`
     from three debriefs on (counts, never advice): the commonest trait said
     above when it marks half of them, the traits marking a third and twice
@@ -85,9 +91,11 @@ The plan, its research and its decisions: PLAN.md.
   - `Minimap.lua`: the button.
 - `addon/test/game.lua`: the fake game: the API the addon calls, its events,
   a character, and fights to replay (`G.pull`, `G.hit`, `G.miss`, `G.heal`,
-  `G.debuff`, `G.cast`, `G.env` (a fall, the water), `G.leave`, `G.die`;
+  `G.debuff`, `G.cast`, `G.env` (a fall, the water), `G.stun` (control
+  lost: the game's account hidden in a fight on Forever), `G.leave`, `G.die`;
   `G.sight` a creature the game can name, `G.duel`, `state.instance`,
-  `state.castsSecret`): the combat log as `COMBAT_LOG_EVENT_UNFILTERED` on
+  `state.castsSecret`; `G.shown`: every text the pages set): the combat log
+  as `COMBAT_LOG_EVENT_UNFILTERED` on
   Classic only, the health with it (a secret value in a fight on Forever),
   Forever's notices around combat, the damage meter (secret in combat on
   Forever), the game's death recap (`C_DeathRecap`, killing blow first),

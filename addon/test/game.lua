@@ -139,7 +139,9 @@ local function wait(seconds)
   clock, uptime = clock + (stop - uptime), stop
 end
 
--- UI: any method works and returns something sensible, scripts are kept.
+-- UI: any method works and returns something sensible, scripts are kept;
+-- every text set, in shown (G.shown: what the page said).
+local shown = {}
 local function ui()
   local o = { shown = false, scripts = {} }
   return setmetatable(o, {
@@ -184,7 +186,10 @@ local function ui()
         return function(self) return self.shown end
       end
       if k == "SetText" then
-        return function(self, v) self.text = v end
+        return function(self, v)
+          self.text = v
+          if type(v) == "string" then table.insert(shown, v) end
+        end
       end
       if k == "GetText" then
         return function(self) return rawget(self, "text") or "" end
@@ -459,6 +464,47 @@ function G.miss(m) log("SWING_MISSED", creature(m.from), m.from, state.guid, sta
 function G.debuff(d)
   log("SPELL_AURA_APPLIED", creature(d.from), d.from, state.guid, state.name, d.spell[1], d.spell[2], 1, "DEBUFF")
 end
+-- Control lost (a stun, a fear): HasFullControl, and the game's account of
+-- it (C_LossOfControl: what, by which spell, how long), hidden in a fight on
+-- Forever (SecretWhenLossOfControlInfoRestricted). state.held while it lasts.
+function HasFullControl() return state.held == nil end
+C_LossOfControl = {
+  GetActiveLossOfControlDataCountByUnit = function() return state.held and not state.held.untold and 1 or 0 end,
+  GetActiveLossOfControlDataByUnit = function(_, i)
+    local h = state.held
+    if not h or h.untold or i ~= 1 then return nil end
+    if FOREVER and state.inCombat then
+      return { locType = secret(), displayText = secret(), spellID = secret(), timeRemaining = secret() }
+    end
+    return {
+      locType = h.type,
+      displayText = h.text,
+      spellID = h.id,
+      timeRemaining = h.ends - uptime,
+      duration = h.seconds,
+    }
+  end,
+}
+-- I lose control: { seconds, type ("STUN"), text ("Stunned"), spell = { id,
+-- name }, untold = true: the game says only that I had lost it }.
+function G.stun(s)
+  if s.spell then SPELLS[s.spell[1]] = s.spell[2] end
+  state.held = {
+    type = s.type or "STUN",
+    text = s.text or "Stunned",
+    id = s.spell and s.spell[1],
+    seconds = s.seconds,
+    ends = uptime + s.seconds,
+    untold = s.untold,
+  }
+  offer("LOSS_OF_CONTROL_ADDED", "player", 1)
+  offer("PLAYER_CONTROL_LOST")
+  C_Timer.After(s.seconds, function()
+    state.held = nil
+    offer("LOSS_OF_CONTROL_UPDATE", "player")
+    offer("PLAYER_CONTROL_GAINED")
+  end)
+end
 -- Time passes (the clock and the timers).
 G.wait = wait
 -- A duel asked of me, and its end.
@@ -541,6 +587,7 @@ function G.reload()
   offer("PLAYER_ENTERING_WORLD", false, true)
 end
 G.ns, G.state, G.panel, G.printed, G.wait, G.offer, G.FOREVER = ns, state, panel, printed, wait, offer, FOREVER
+G.shown = shown
 G.toasted, G.click = toasted, G_click
 G.secret = function(v) return secrets[v] == true end
 G.line = function() return line end

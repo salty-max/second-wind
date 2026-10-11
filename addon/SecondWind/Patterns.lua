@@ -16,6 +16,7 @@ local TRAITS = {
   { "low", "you went in below 60% health" },
   { "many", "three foes or more at once" },
   { "late", "a foe joined after the start" },
+  { "held", "you were stunned, feared or the like on the way down" },
   { "fast", "from half health to the low point in three seconds or less" },
   { "blow", "one blow took a third of your health or more" },
   { "elite", "an elite" },
@@ -69,7 +70,8 @@ function ns.patternsOf(debriefs)
       end
     end
     local left = {}
-    for _, t in ipairs(d.unused or {}) do
+    -- (held the whole way down: nothing could have been used)
+    for _, t in ipairs(not ns.helpless(d) and d.unused or {}) do
       if type(t) == "table" and t.n and not left[t.n] then
         left[t.n] = true
         count(unused, t.n)

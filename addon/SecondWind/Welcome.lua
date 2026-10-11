@@ -8,6 +8,10 @@
 local _, ns = ...
 local K = ns.kit
 
+-- (Forever hides my health in a fight: said before it surprises)
+local FOREVER = "\n\nOn World of Warcraft: Forever, the game hides your health during a fight: a close call "
+  .. "is seen by your health when the fight ends, so one you recover from before then goes unseen."
+
 local W = K.welcome({
   name = "SecondWindWelcome",
   title = "Welcome to Second Wind",
@@ -19,7 +23,8 @@ local W = K.welcome({
     .. "once the fight is over: how it went, the hits that mattered, what you had ready and didn't use, and "
     .. "what to take from it.\n\n"
     .. "Nothing shows during a fight. Over time, the book shows what your close calls have in common.\n\n"
-    .. "On Hardcore, the debrief of a death is the life's last page.",
+    .. "On Hardcore, the debrief of a death is the life's last page."
+    .. (ns.forever and FOREVER or ""),
   profiles = ns.profiles,
   choices = function()
     local thresholds = {}

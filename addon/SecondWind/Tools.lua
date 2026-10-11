@@ -379,7 +379,10 @@ end
 
 -- Of the tools ready, those that counted in this fight: a protection against
 -- a school of harm that came (schools: the ones seen, by their bits; none
--- seen, none of those), what helps in a fall or the water in one.
+-- seen, none of those), what helps in a fall or the water in one, a bandage
+-- only with LULL seconds without harm to use it in (lull: the longest such
+-- stretch once my health fell below half; unknown, it counts).
+local LULL = 3
 local function sharesSchool(schools, school)
   for s in pairs(schools or {}) do
     if bit and bit.band then
@@ -402,6 +405,7 @@ function ns.relevantTools(ready, fight)
         if e == fight.env then fits = true end
       end
     end
+    if type(t) == "table" and t.k == "bandage" and fight.lull and fight.lull < LULL then fits = false end
     if fits then table.insert(out, t) end
   end
   return out

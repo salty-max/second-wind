@@ -2,7 +2,9 @@
 -- two, each a rule over the facts, never invented). Pure: nothing here asks
 -- the game; the recorder kept what it needs (Recorder.lua's schema).
 --   ns.factsOf(d) = { title, place, hits = { { src, spell, amount, crit,
---     share, before } }, fall = { from, seconds }, used, unused }
+--     share, before } }, fall = { from, seconds }, used, unused (my casts
+--     hidden: both empty, the tools in ready alone), ready, held = {
+--     seconds, span, all, what, spell } (control lost on the way down) }
 --   ns.lessonsOf(d) = { text, text }
 local _, ns = ...
 
@@ -28,6 +30,34 @@ local function list(names)
   return table.concat(names, ", ", 1, #names - 1) .. " and " .. names[#names]
 end
 local AFFLICTION = { Poison = "poison", Disease = "a disease", Curse = "a curse", Magic = "magic" }
+local HELD_MIN = 1.5 -- seconds of control lost that a lesson tells
+
+-- Control lost on the way down (stunned, feared...): from what was ready (half
+-- my health, or the start) to the low point (or the death), the seconds it
+-- covered, the stretch's length, all of it or not, the longest one's what and
+-- spell; nil if none.
+local function heldOf(d)
+  if not d.held then return nil end
+  local from = d.readyT or 0
+  local to = d.lowT or d.length or from
+  local secs, longest = 0, nil
+  for _, h in ipairs(d.held) do
+    local a, b = math.max(from, h.t or 0), math.min(to, h.to or to)
+    if b > a then
+      secs = secs + (b - a)
+      if not longest or b - a > longest.len then longest = { len = b - a, what = h.what, spell = h.spell } end
+    end
+  end
+  if secs <= 0 then return nil end
+  local span = to - from
+  return { seconds = secs, span = span, all = secs >= 0.9 * span, what = longest.what, spell = longest.spell }
+end
+-- Held the whole way down: nothing could have been used, nothing called unused.
+local function helpless(d)
+  local h = heldOf(d)
+  return h and h.all and h.seconds >= HELD_MIN or false
+end
+ns.helpless = helpless
 local function above(foe, d) return foe.level and d.level and foe.level > 0 and foe.level - d.level or 0 end
 local ELITE = { elite = true, rareelite = true, worldboss = true }
 -- Harm from the world: what it is among the hits, and its lesson.
@@ -95,7 +125,7 @@ end
 function ns.factsOf(d)
   local title = d.kind == "death" and "Death" or ("Close call: %d%% health"):format(d.lowPct or 0)
   local place = d.sub and (d.sub .. ", " .. (d.zone or "?")) or d.zone or "?"
-  local unused, used, left = {}, {}, {}
+  local unused, used, ready, left = {}, {}, {}, {}
   for _, t in ipairs(d.unused or {}) do
     if type(t) == "table" and t.n then
       table.insert(unused, t)
@@ -103,9 +133,22 @@ function ns.factsOf(d)
     end
   end
   for _, t in ipairs(d.ready or {}) do
-    if type(t) == "table" and t.n and not left[t.n] then table.insert(used, t) end
+    if type(t) == "table" and t.n then
+      table.insert(ready, t)
+      -- (what went unused unknown, my casts hidden: none called used either)
+      if d.unused and not left[t.n] then table.insert(used, t) end
+    end
   end
-  return { title = title, place = place, hits = hits(d), fall = fall(d), used = used, unused = unused }
+  return {
+    title = title,
+    place = place,
+    hits = hits(d),
+    fall = fall(d),
+    used = used,
+    unused = unused,
+    ready = ready,
+    held = heldOf(d),
+  }
 end
 
 -- ── lessons ──────────────────────────────────────────────────────────────────
@@ -123,14 +166,27 @@ local RULES = {
       return 90, ("You went in at %d%% health."):format(d.startPct)
     end
   end,
+  -- stunned, feared...: on the way down, for a while or all of it
+  function(d)
+    local h = heldOf(d)
+    if not h or h.seconds < HELD_MIN then return end
+    local what = h.what or "Out of your control"
+    local by = h.spell and (" (" .. h.spell .. ")") or ""
+    if d.blind then return 88, ("%s for %s of the fight%s."):format(what, seconds(h.seconds), by) end
+    local low = d.kind == "death" and "your death" or ((d.lowPct or 0) .. "%")
+    if h.all then return 88, ("%s the whole way down to %s%s."):format(what, low, by) end
+    return 88, ("%s for %s on the way down to %s%s."):format(what, seconds(h.seconds), low, by)
+  end,
   -- a healing potion, a healthstone, ready in the bags
   function(d)
+    if helpless(d) then return end
     for _, t in ipairs(d.unused or {}) do
       if t.k == "heal" then return 85, ("A %s was in your bags, ready."):format(t.n) end
     end
   end,
   -- a spell that guards, ready
   function(d)
+    if helpless(d) then return end
     local names = {}
     for _, t in ipairs(d.unused or {}) do
       if t.k == "guard" then table.insert(names, t.n) end
@@ -140,6 +196,7 @@ local RULES = {
   end,
   -- a cure, ready, while what it cures was on me
   function(d)
+    if helpless(d) then return end
     for _, t in ipairs(d.unused or {}) do
       if type(t) == "table" and t.k == "cure" and t.against then
         return 78, ("%s was ready, with %s on you."):format(t.n, AFFLICTION[t.against] or t.against:lower())
@@ -161,6 +218,7 @@ local RULES = {
   end,
   -- a spell that holds a foe, or gets me out, ready
   function(d)
+    if helpless(d) then return end
     local names = {}
     for _, t in ipairs(d.unused or {}) do
       if t.k == "stop" or t.k == "away" then table.insert(names, t.n) end
@@ -223,6 +281,8 @@ function ns.traitsOf(d)
   end
   local f = fall(d)
   t.fast = f and f.seconds <= 3 and d.kind ~= "death" or nil
+  local h = heldOf(d)
+  t.held = h and h.seconds >= HELD_MIN or nil
   for _, tool in ipairs(d.unused or {}) do
     if type(tool) == "table" and tool.k == "heal" then t.potion = true end
     if type(tool) == "table" and tool.k == "guard" then t.guard = true end
@@ -321,6 +381,15 @@ function ns.cardOf(d)
     table.insert(mattered, ("%d: %s from %s%s"):format(h.amount, what, h.src, before and (", " .. before) or ""))
   end
   section("The hits that mattered", mattered)
+  local lost = {}
+  for _, h in ipairs(d.held or {}) do
+    local len = (h.to or d.length or h.t) - h.t
+    if len >= 0.5 then
+      local by = h.spell and (" (" .. h.spell .. ")") or ""
+      table.insert(lost, ("%s%s: %.1f s, %s"):format(h.what or "Control lost", by, len, when(h.t)))
+    end
+  end
+  section("Out of your control", lost)
   -- (no combat log: the game's damage meter, by spell, totals)
   if #f.hits == 0 then
     local harm = {}
@@ -336,8 +405,15 @@ function ns.cardOf(d)
   end
   section("Heals", heals)
   local had = {}
-  if #f.unused > 0 then table.insert(had, "Ready, unused: " .. names(f.unused)) end
+  if #f.unused > 0 then
+    local held = helpless(d) and f.held
+    local head = not held and "Ready, unused: "
+      or (held.what and ("Ready, but you were %s: "):format(held.what:lower()) or "Ready, but out of your control: ")
+    table.insert(had, head .. names(f.unused))
+  end
   if #f.used > 0 then table.insert(had, "Used: " .. names(f.used)) end
+  -- (my casts hidden: what was ready, no more said)
+  if not d.unused and #f.ready > 0 then table.insert(had, "Ready: " .. names(f.ready)) end
   if d.ready and #d.ready == 0 then table.insert(had, "Nothing of the kind was ready.") end
   section("What you had", had)
   return card

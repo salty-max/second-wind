@@ -29,6 +29,8 @@ globals:
     any: true
   C_Item:
     any: true
+  C_LossOfControl:
+    any: true
   C_Spell:
     any: true
   C_Timer:
@@ -86,6 +88,8 @@ globals:
   GetTime:
     any: true
   hard:
+    any: true
+  HasFullControl:
     any: true
   hooksecurefunc:
     any: true

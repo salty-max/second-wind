@@ -162,3 +162,27 @@ harm of its school, a slow fall in a fall, a worn item worn.
 The user took the four recommendations: a close call below 15% by default; the
 card opens on its own after a death, on a click after a close call; the
 pre-pull warning later, not in 0.1.0; frost steel for its colour.
+
+## A review (11 October 2026, after 0.1.0)
+
+Another model read the code and the page. Its points, and what was done:
+
+- On Forever, with the casts hidden, the card listed every ready tool as
+  "Used" (the used ones were taken as the ready less the unused, and nothing
+  was unused): fixed, the card says "Ready" alone there.
+- "Ready" is evidence, "would have saved you" isn't; above all when the
+  player couldn't act. The recorder now keeps the stretches control was lost
+  (stunned, feared, charmed...: `C_LossOfControl` on every client, its
+  account hidden in a fight on Forever; `HasFullControl` else, readable on
+  Forever): a lesson says it ("Stunned the whole way down to 11% (Cheap
+  Shot).") and, held the whole way, nothing ready is a lesson, the card shows
+  it as out of reach, the patterns don't count it as left unused.
+- A bandage under blow after blow is noise: it counts only with three
+  seconds without harm below half health.
+- Forever misses a close call recovered from before the fight's end: the
+  welcome (on Forever) and the page say so.
+
+Next, from the same review, once real fights have been read: the health
+graph marked with the hits that mattered, the foes' arrivals and what I used;
+the patterns against every fight's (how many fights in all had three foes,
+not only the close calls), so a count says something of danger.

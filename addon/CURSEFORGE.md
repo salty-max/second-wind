@@ -23,13 +23,14 @@ A fight you survive below 15% health (or 10, 20, 25: your choice) is a close cal
 - **The hits that mattered**: the three largest, and how long before your lowest point each landed.
 - **Your health over the fight**, drawn against your threshold.
 - **The heals**, yours and others'.
+- **Out of your control**: when a stun or a fear held you, how long and by what. Held the whole way down, what you had is shown as out of reach, never as a lesson.
 - **What you had**: what was ready when your health first fell below half, what you used, and what went unused.
 
 ## What you had ready
 
 Every class's and people's emergency spells (every rank: Divine Shield, Ice Block, Vanish, Feign Death, Frost Nova, Intimidating Shout, Last Stand, Escape Artist, Will of the Forsaken, Stoneform...) and 172 items players carry for the worst moments, read from the Hardcore guides:
 
-- **Heals and bandages**: potions, healthstones, Whipper Root Tubers, Night Dragon's Breath; a bandage not while Recently Bandaged.
+- **Heals and bandages**: potions, healthstones, Whipper Root Tubers, Night Dragon's Breath; a bandage only when the blows paused long enough to use one, and not while Recently Bandaged.
 - **Cures**: Anti-Venom, Elixir of Poison Resistance, Restorative Potion..., counted only while what they cure is on you.
 - **Guards**: Free Action, Limited Invulnerability, Living Action, the protection potions, counted only when harm of their school came.
 - **Holds**: grenades, nets, target dummies, Magic Dust.
@@ -44,7 +45,7 @@ From your third debrief on, a second page counts what your close calls share: *"
 
 The same file for Classic Era (Hardcore, Season of Discovery), TBC Anniversary and World of Warcraft: Forever: each game loads its own part.
 
-World of Warcraft: Forever closes the combat log to addons and hides your health and casts during a fight. Second Wind reads what the game still allows: the fight's foes and its harm by spell from the game's damage meter once the fight is over, your health at its end for its lowest point, and what you had ready as it began. A card says what the game hid, and with your casts hidden, nothing is called unused. `/wind probe` reports, after your next fight, what the game let it read.
+World of Warcraft: Forever closes the combat log to addons and hides your health and casts during a fight. Second Wind reads what the game still allows: the fight's foes and its harm by spell from the game's damage meter once the fight is over, your health at its end for its lowest point, what you had ready as it began, and when you lost control. So on Forever, a close call is seen by your health when the fight ends: one you recover from before then goes unseen. Deaths are always debriefed. A card says what the game hid, and with your casts hidden, nothing is called used or unused. `/wind probe` reports, after your next fight, what the game let it read.
 
 Duels and battlegrounds are never debriefed.
 
