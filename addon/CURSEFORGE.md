@@ -21,7 +21,7 @@ A fight you survive below 15% health (or 10, 20, 25: your choice) is a close cal
 - **The killing blow**, from the game's own death recap: who, with what, and how much more than you had.
 - **The foes**, each with its portrait (the creature as its unit frame shows it, a player's class crest), its name in the colour of its level against yours, its rank on its ring: when it came in, its hits and misses, its share of the harm.
 - **The hits that mattered**: the three largest, each with its spell's icon, and how long before your lowest point each landed.
-- **Your health over the fight**, drawn against your threshold and marked: the hits that mattered, each foe joining, what you used, the stretches out of your control.
+- **Your health over the fight**, as a chart: your threshold a red danger zone, your lowest point marked, and under it a timeline of what happened (the icon of each thing you used, each foe's portrait as it joined, the hits that mattered, the stretches out of your control). Hover it for the moment's health and events.
 - **The heals**, yours and others'.
 - **Out of your control**: when a stun or a fear held you, how long and by what. Held the whole way down, what you had is shown as out of reach, never as a lesson.
 - **What you had**: what was ready when your health first fell below half, what you used, and what went unused, as icons (hover one for the game's tooltip).
@@ -67,7 +67,7 @@ World of Warcraft: Forever hides your health from addons, in a fight and out of 
 - **The foes and the harm by spell** come from the game's damage meter once the fight is over.
 - **What you had** is what was ready as the fight began; what you used is told by your casts, and by what a use leaves behind (one fewer potion in your bags, a cooldown begun).
 
-A card says what the game hid. `/wind probe` reports, after your next fight, what the game let Second Wind read.
+`/wind probe` reports, after your next fight, what the game let Second Wind read.
 
 Duels and battlegrounds are never debriefed.
 

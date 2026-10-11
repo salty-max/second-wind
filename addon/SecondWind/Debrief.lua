@@ -437,40 +437,6 @@ function ns.cardOf(d)
     table.insert(foeRows, { kind = "foe", foe = foe, level = d.level, share = total > 0 and (foe.damage or 0) / total })
   end
   section("Foes", foes, foeRows)
-  -- what Forever hid (its health and casts in a fight), said plainly
-  local hidden = {}
-  if d.rebuilt then
-    local from = d.rebuilt == "death" and "counted back from your death"
-      or d.rebuilt == "end" and "counted back from your health at the fight's end"
-      or "counted from the game's own low-health warning (35%)"
-    local range = d.lowRange and (": the lowest point between %d%% and %d%%"):format(d.lowRange[1], d.lowRange[2]) or ""
-    table.insert(
-      hidden,
-      ("Forever hides your health from addons: it was rebuilt from each blow and heal the game told, %s%s."):format(
-        from,
-        range
-      )
-    )
-  elseif d.lowAtEnd then
-    table.insert(
-      hidden,
-      "Forever hides your health in a fight: the lowest point here is your health at its end; a dip before may "
-        .. "have gone lower."
-    )
-  elseif d.blind and d.kind == "death" then
-    table.insert(hidden, "Forever hides your health from addons: the blows before your death are the game's own recap.")
-  end
-  if d.readyFrom == "start" then table.insert(hidden, "What you had is what was ready when the fight began.") end
-  if d.castsHidden and d.traced then
-    table.insert(
-      hidden,
-      "Forever hid your casts: what you used is told by what a use leaves behind (one fewer in your bags, "
-        .. "a cooldown begun); a spell without a cooldown leaves none."
-    )
-  elseif d.castsHidden then
-    table.insert(hidden, "Forever hid your casts: what went unused can't be told.")
-  end
-  section("What the game hid", hidden, nil, true)
   local mattered, hitRows = {}, {}
   for _, h in ipairs(f.hits) do
     -- (who dealt it, where the game said: not on Forever, several foes)

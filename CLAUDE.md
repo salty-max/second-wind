@@ -136,7 +136,13 @@ The plan, its research and its decisions: PLAN.md.
   - `Page.lua`: the theme (frost steel) and the pages' renderer
     (`ns.newPage`, `page:draw(c, d, keep)`): a header (a round portrait: the
     foe that did the most harm, `ns.faceOf`; the title, the line under it, a
-    rule), the lessons (an accent bar beside each), the graph for a card,
+    rule), the lessons (an accent bar beside each), the chart for a card
+    (`Page.newGraph`: a dark plot, 100% and 50% lines, the threshold a red
+    danger zone tinting the fill, my health a stepped line (red below the
+    threshold) over an opaque fill on whole pixels, the low point a dot and
+    `ns.lowOf`, a death a skull; a lane under it of `ns.marksOf`: tools'
+    icons, joining foes' portraits, hits' red ticks, control lost's purple
+    bars; the time; hovered: the moment's health and marks),
     then sections, each line drawn by its row (`sections[i].rows`, beside the
     `lines` the copy and the tests read): `foe` (the creature's still
     portrait, `SetPortraitTextureFromCreatureDisplayID`, its display

@@ -44,7 +44,6 @@ local T = K.T
 local label, rule = K.label, K.rule
 
 local HEADER_H, PORTRAIT = 84, 64
-local GRAPH_H = 60
 ns.DEATH = { 0.86, 0.45, 0.42 } -- a death's title, its ring, the bar at its end
 local DEATH = ns.DEATH
 local HEAL = { 0.45, 0.86, 0.52 }
@@ -313,19 +312,7 @@ function ns.newPage(parent, name, x, width, withGraph)
   local line = rule(p.child)
   line:SetPoint("TOPLEFT", 0, -(HEADER_H - 8))
   line:SetPoint("TOPRIGHT", 0, -(HEADER_H - 8))
-  if withGraph then
-    local g = CreateFrame("Frame", nil, p.child)
-    g:SetSize(width, GRAPH_H)
-    g.bars, g.marks = {}, {}
-    g.legend = label(p.child, K.BODY_FONT, 11, T.soft)
-    g.legend:SetWidth(width)
-    g.threshold = g:CreateTexture(nil, "OVERLAY")
-    g.threshold:SetColorTexture(T.accent[1], T.accent[2], T.accent[3], 0.5)
-    local base = rule(g)
-    base:SetPoint("BOTTOMLEFT")
-    base:SetWidth(width)
-    p.graph = g
-  end
+  if withGraph then p.graph = Page.newGraph(p.child, width) end
   return p
 end
 
@@ -648,93 +635,290 @@ function DRAW.text(p, r, size, colour)
 end
 
 -- ── the graph ────────────────────────────────────────────────────────────────
--- A mark of the graph (reused from one drawing to the next).
-local function mark(g, i)
-  local m = g.marks[i]
-  if not m then
-    m = g:CreateTexture(nil, "OVERLAY")
-    g.marks[i] = m
+-- My health over the fight, by time, as a chart: a dark plot, its 100% and
+-- 50% lines, the threshold's danger zone in red; my health a stepped line
+-- (it changes at each blow and heal) over a soft fill, red where it fell into
+-- the danger zone; the lowest point a dot and its value, a death a skull at
+-- the end. Under it, a lane of what happened, by time: the icon of each tool I
+-- used, the portrait of each foe as it joined, a red tick for each hit that
+-- mattered, a purple bar for each stretch out of my control (a band in the
+-- plot too); then the time. Hovered: the moment's time, my health, what
+-- happened then.
+local PLOT_H, LANE_H, AXIS_W = 100, 18, 30
+local MASK = "Interface\\CharacterFrame\\TempPortraitAlphaMask"
+local DANGER = { 0.88, 0.32, 0.28 }
+-- (the fill under my health: the bar's blue, and the danger's red, a fifth
+-- over the plot's dark)
+local FILL, FILL_LOW = { 0.14, 0.19, 0.25 }, { 0.23, 0.12, 0.12 }
+
+function Page.newGraph(parent, width)
+  local g = CreateFrame("Frame", nil, parent)
+  g:SetSize(width, PLOT_H + LANE_H + 18)
+  g.width, g.plotW = width, width - AXIS_W - 2
+  g.plot = CreateFrame("Frame", nil, g)
+  g.plot:SetPoint("TOPLEFT", AXIS_W, 0)
+  g.plot:SetSize(g.plotW, PLOT_H)
+  g.lane = CreateFrame("Frame", nil, g)
+  g.lane:SetPoint("TOPLEFT", g.plot, "BOTTOMLEFT", 0, -3)
+  g.lane:SetSize(g.plotW, LANE_H)
+  g.pieces, g.icons, g.labels = {}, {}, {}
+  g.legend = label(parent, K.BODY_FONT, 11, T.soft)
+  g.legend:SetWidth(width)
+  -- (the moment under the mouse)
+  g.cursor = g.plot:CreateTexture(nil, "OVERLAY", nil, 7)
+  g.cursor:SetColorTexture(1, 1, 1, 0.35)
+  g.cursor:SetWidth(1)
+  g.cursor:Hide()
+  g.plot:EnableMouse(true)
+  g.plot:SetScript("OnEnter", function(self)
+    self:SetScript("OnUpdate", function() g:hover() end)
+  end)
+  g.plot:SetScript("OnLeave", function(self)
+    self:SetScript("OnUpdate", nil)
+    g.cursor:Hide()
+    GameTooltip:Hide()
+  end)
+  for k, v in pairs(Page.graphMethods) do
+    g[k] = v
   end
-  m:ClearAllPoints()
-  m:Show()
-  return m
+  return g
 end
 
--- My health over the fight, by time: a step for each sample, from it to the
--- next; the threshold a line; the marks (the hits that mattered a red line,
--- a foe joining an amber one from below, what I used a green square above,
--- control lost a band), their words under it.
+local G = {}
+Page.graphMethods = G
+
+-- A piece of the chart (a texture, reused from one drawing to the next),
+-- on the plot or the lane, at a layer.
+function G:piece(on, layer, sub)
+  self.n = self.n + 1
+  local t = self.pieces[self.n]
+  if not t then
+    t = self.plot:CreateTexture(nil, "ARTWORK")
+    self.pieces[self.n] = t
+  end
+  t:SetParent(on)
+  t:SetDrawLayer(layer, sub or 0)
+  t:SetVertexColor(1, 1, 1, 1)
+  t:ClearAllPoints()
+  t:Show()
+  return t
+end
+function G:rect(on, layer, sub, colour, alpha, x, y, w, h)
+  local t = self:piece(on, layer, sub)
+  t:SetColorTexture(colour[1], colour[2], colour[3], alpha)
+  t:SetPoint("BOTTOMLEFT", on, "BOTTOMLEFT", x, y)
+  t:SetSize(math.max(1, w), math.max(1, h))
+  return t
+end
+function G:text(i, size, colour)
+  local l = self.labels[i]
+  if not l then
+    l = label(self, K.BODY_FONT, size, colour)
+    self.labels[i] = l
+  end
+  l:SetFont(K.BODY_FONT, size, "")
+  l:SetTextColor(unpack(colour))
+  l:ClearAllPoints()
+  l:Show()
+  return l
+end
+-- An icon of the lane (a frame: its tooltip), square or round.
+function G:icon(i)
+  local f = self.icons[i]
+  if not f then
+    f = K.roundIcon(self.lane, 14, true)
+    tipFor(f, nil)
+    self.icons[i] = f
+  end
+  f:ClearAllPoints()
+  f:Show()
+  return f
+end
+
+-- What a mark's tool looks like: the tool as the debrief kept it, by name.
+local function toolNamed(d, name)
+  for _, list in ipairs({ d.ready or {}, d.unused or {} }) do
+    for _, t in ipairs(list) do
+      if type(t) == "table" and t.n == name then return t end
+    end
+  end
+  return { n = name }
+end
+
+function G:draw(d, samples, threshold)
+  self.n, self.d = 0, d
+  local plot, lane, w = self.plot, self.lane, self.plotW
+  local span = math.max(d.length or 0, samples[#samples].t or 0, d.lowT or 0, 1)
+  self.span = span
+  -- (on whole pixels: the steps' fills meet without a seam)
+  local function x(t) return math.floor(math.max(0, math.min(1, (t or 0) / span)) * w + 0.5) end
+  local function y(pct) return math.max(0, math.min(100, pct or 0)) / 100 * PLOT_H end
+  -- the plot, its lines, the danger zone (over the fill: a tint)
+  self:rect(plot, "BACKGROUND", 0, { 0, 0, 0 }, 0.4, 0, 0, w, PLOT_H)
+  self:rect(plot, "ARTWORK", 2, DANGER, 0.13, 0, 0, w, y(threshold))
+  self:rect(plot, "ARTWORK", 3, DANGER, 0.55, 0, y(threshold), w, 1)
+  for _, pct in ipairs({ 50, 100 }) do
+    self:rect(plot, "ARTWORK", 3, { 1, 1, 1 }, 0.08, 0, y(pct) - 1, w, 1)
+  end
+  self:rect(plot, "ARTWORK", 3, { 1, 1, 1 }, 0.18, 0, 0, w, 1)
+  local nl = 0
+  local function axis(text, pct, colour)
+    nl = nl + 1
+    local l = self:text(nl, 10, colour)
+    l:SetPoint("RIGHT", plot, "BOTTOMLEFT", -4, y(pct))
+    l:SetText(text)
+  end
+  axis("100%", 100, T.soft)
+  axis("50%", 50, T.soft)
+  axis(threshold .. "%", threshold, DANGER)
+  -- out of my control: a band over the fill
+  for _, h in ipairs(d.held or {}) do
+    if h.to and h.to > h.t then self:rect(plot, "ARTWORK", 1, MARK.held, 0.22, x(h.t), 0, x(h.to) - x(h.t), PLOT_H) end
+  end
+  -- my health: a fill and a stepped line, red in the danger zone
+  for i, s in ipairs(samples) do
+    local from = x(s.t)
+    local to = samples[i + 1] and x(samples[i + 1].t) or w
+    local low = s.pct < threshold
+    -- (the fill opaque, each step a pixel over the next: no seam between)
+    self:rect(plot, "ARTWORK", 0, low and FILL_LOW or FILL, 1, from, 0, to - from + 1, y(s.pct))
+    self:rect(plot, "OVERLAY", 0, low and DANGER or T.bar, 1, from, y(s.pct) - 1, to - from + 1, 2)
+    local nextPct = samples[i + 1] and samples[i + 1].pct
+    if nextPct and nextPct ~= s.pct then
+      local a, b = math.min(s.pct, nextPct), math.max(s.pct, nextPct)
+      self:rect(plot, "OVERLAY", 0, nextPct < threshold and DANGER or T.bar, 1, to - 1, y(a) - 1, 2, y(b) - y(a) + 2)
+    end
+  end
+  -- the lowest point: a dot and its value; a death: a skull at its end
+  local lowS
+  for _, s in ipairs(samples) do
+    if not lowS or s.pct < lowS.pct then lowS = s end
+  end
+  if d.kind == "death" then
+    local skull = self:piece(plot, "OVERLAY", 3)
+    skull:SetTexture(SKULL)
+    skull:SetTexCoord(0, 1, 0, 1)
+    skull:SetSize(16, 16)
+    skull:SetPoint("BOTTOM", plot, "BOTTOMLEFT", math.min(w - 8, x(d.length or span)), 2)
+  elseif lowS then
+    local dot = self:piece(plot, "OVERLAY", 3)
+    dot:SetTexture(MASK)
+    dot:SetTexCoord(0, 1, 0, 1)
+    dot:SetVertexColor(1, 1, 1, 1)
+    dot:SetSize(9, 9)
+    dot:SetPoint("CENTER", plot, "BOTTOMLEFT", x(lowS.t), y(lowS.pct))
+    nl = nl + 1
+    local l = self:text(nl, 11, { 1, 1, 1 })
+    local right = x(lowS.t) > w - 70
+    l:SetPoint(right and "RIGHT" or "LEFT", plot, "BOTTOMLEFT", x(lowS.t) + (right and -8 or 8), y(lowS.pct) + 8)
+    l:SetText(ns.lowOf(d))
+  end
+  -- the lane: what happened, by time
+  self:rect(lane, "BACKGROUND", 0, { 0, 0, 0 }, 0.25, 0, 0, w, LANE_H)
+  local marks, kinds, ni, last = ns.marksOf(d), {}, 0, -100
+  for _, m in ipairs(marks) do
+    kinds[m.kind] = true
+    if m.kind == "held" then
+      self:rect(lane, "ARTWORK", 0, MARK.held, 0.9, x(m.t), LANE_H / 2 - 2, x(m.to) - x(m.t), 4)
+    elseif m.kind == "hit" then
+      self:rect(lane, "ARTWORK", 1, MARK.hit, 1, x(m.t) - 1, 2, 2, LANE_H - 4)
+    else
+      ni = ni + 1
+      local f = self:icon(ni)
+      -- (side by side when two came at once)
+      local at = math.max(7, math.min(w - 7, math.max(x(m.t), last + 16)))
+      last = at
+      f:SetPoint("CENTER", lane, "LEFT", at, 0)
+      if m.kind == "foe" then
+        local foe = ns.foeNamed(d, m.text)
+        portrait(f, foe)
+        f.ring:SetVertexColor(unpack(MARK.foe))
+        f.tip = { title = m.text, text = ("joined %d seconds in"):format(math.floor(m.t + 0.5)) }
+      else
+        local t = toolNamed(d, m.text)
+        icon(f.tex, ns.toolIcon(t))
+        f.tex:SetDesaturated(false)
+        f.ring:SetVertexColor(unpack(MARK.used))
+        f.tip = toolTip(t)
+      end
+    end
+  end
+  for i = ni + 1, #self.icons do
+    self.icons[i]:Hide()
+  end
+  -- the time
+  for i, t in ipairs({ 0, span / 2, span }) do
+    nl = nl + 1
+    local l = self:text(nl, 10, T.soft)
+    local where = i == 1 and "LEFT" or i == 2 and "CENTER" or "RIGHT"
+    l:SetPoint(
+      "TOP" .. (where == "CENTER" and "" or where),
+      lane,
+      "BOTTOM" .. (where == "CENTER" and "" or where),
+      0,
+      -3
+    )
+    l:SetText(("%d s"):format(math.floor(t + 0.5)))
+  end
+  for i = self.n + 1, #self.pieces do
+    self.pieces[i]:Hide()
+  end
+  for i = nl + 1, #self.labels do
+    self.labels[i]:Hide()
+  end
+  self.shownMarks = marks -- (for the tests)
+  return kinds
+end
+
+-- The moment under the mouse: a line through it, and the tooltip.
+function G:hover()
+  local d, plot = self.d, self.plot
+  if not d or not plot:GetLeft() then return end
+  local cx = GetCursorPosition() / plot:GetEffectiveScale() - plot:GetLeft()
+  local t = math.max(0, math.min(1, cx / self.plotW)) * self.span
+  local pct
+  for _, s in ipairs(d.samples or {}) do
+    if s.t <= t then pct = s.pct end
+  end
+  self.cursor:ClearAllPoints()
+  self.cursor:SetPoint("TOP", plot, "TOPLEFT", math.max(0, math.min(self.plotW, cx)), 0)
+  self.cursor:SetHeight(PLOT_H)
+  self.cursor:Show()
+  GameTooltip:SetOwner(plot, "ANCHOR_CURSOR")
+  local health = pct and ((d.rebuilt and "about " or "") .. pct .. "% health") or ""
+  GameTooltip:AddLine(("%d s   %s"):format(math.floor(t + 0.5), health), 1, 1, 1)
+  local near = math.max(1, self.span / 40)
+  for _, m in ipairs(ns.marksOf(d)) do
+    local to = m.to or m.t
+    if t >= m.t - near and t <= to + near then
+      local c = MARK[m.kind]
+      GameTooltip:AddLine(m.text, c[1], c[2], c[3], true)
+    end
+  end
+  GameTooltip:Show()
+end
+
+-- The chart on a page, at its place; its legend under it.
 function Page:graphOf(d)
-  local g, y = self.graph, self.y
+  local g = self.graph
   local samples = d.samples or {}
   g:ClearAllPoints()
-  g:SetPoint("TOPLEFT", self.child, "TOPLEFT", 0, -y)
+  g:SetPoint("TOPLEFT", self.child, "TOPLEFT", 0, -self.y)
   g:SetShown(#samples > 1)
   g.legend:SetShown(false)
   if #samples <= 1 then return end
-  local width = self.width
-  local span = math.max(d.length or 0, samples[#samples].t or 0, d.lowT or 0, 1)
-  local function x(t) return math.max(0, math.min(1, (t or 0) / span)) * (width - 2) end
-  for i, s in ipairs(samples) do
-    local bar = g.bars[i]
-    if not bar then
-      bar = g:CreateTexture(nil, "ARTWORK")
-      g.bars[i] = bar
-    end
-    local from, to = x(s.t), samples[i + 1] and x(samples[i + 1].t) or (width - 2)
-    bar:ClearAllPoints()
-    bar:SetPoint("BOTTOMLEFT", from, 0)
-    bar:SetSize(math.max(1, to - from - (to - from > 3 and 1 or 0)), math.max(1, GRAPH_H * s.pct / 100))
-    local low = s.pct == d.lowPct
-    local colour = low and (d.kind == "death" and DEATH or T.accent) or T.bar
-    bar:SetColorTexture(colour[1], colour[2], colour[3], low and 1 or 0.6)
-    bar:Show()
-  end
-  for i = #samples + 1, #g.bars do
-    g.bars[i]:Hide()
-  end
-  g.threshold:ClearAllPoints()
-  g.threshold:SetPoint("BOTTOMLEFT", 0, GRAPH_H * ns.option("threshold") / 100)
-  g.threshold:SetSize(width, 1)
-  local marks, kinds = ns.marksOf(d), {}
-  for i, m in ipairs(marks) do
-    local t, c = mark(g, i), MARK[m.kind]
-    kinds[m.kind] = true
-    if m.kind == "held" then
-      t:SetDrawLayer("BACKGROUND")
-      t:SetColorTexture(c[1], c[2], c[3], 0.28)
-      t:SetPoint("BOTTOMLEFT", x(m.t), 0)
-      t:SetSize(math.max(2, x(m.to) - x(m.t)), GRAPH_H)
-    elseif m.kind == "used" then
-      t:SetDrawLayer("OVERLAY")
-      t:SetColorTexture(c[1], c[2], c[3], 1)
-      t:SetPoint("BOTTOMLEFT", math.max(0, x(m.t) - 3), GRAPH_H - 6)
-      t:SetSize(6, 6)
-    else
-      t:SetDrawLayer("OVERLAY")
-      t:SetColorTexture(c[1], c[2], c[3], 0.9)
-      t:SetPoint("BOTTOMLEFT", x(m.t), 0)
-      t:SetSize(2, m.kind == "hit" and GRAPH_H or GRAPH_H * 0.4)
-    end
-  end
-  for i = #marks + 1, #g.marks do
-    g.marks[i]:Hide()
-  end
-  g.shownMarks = marks -- (for the tests)
-  local words = {}
+  local threshold = ns.option("threshold")
+  local kinds = g:draw(d, samples, threshold)
+  self.y = self.y + g:GetHeight() + 8
+  local words = { K.hex(DANGER) .. ("below %d%%, your threshold"):format(threshold) .. "|r" }
   for _, l in ipairs(LEGEND) do
     if kinds[l[1]] then table.insert(words, K.hex(MARK[l[1]]) .. l[2] .. "|r") end
-  end
-  self.y = y + GRAPH_H + 8
-  if #words == 0 then
-    self.y = self.y + 6
-    return
   end
   g.legend:ClearAllPoints()
   g.legend:SetPoint("TOPLEFT", self.child, "TOPLEFT", 0, -self.y)
   g.legend:SetText(table.concat(words, "   "))
   g.legend:Show()
-  self.y = self.y + g.legend:GetStringHeight() + 10
+  self.y = self.y + g.legend:GetStringHeight() + 12
 end
 
 -- ── a page drawn ─────────────────────────────────────────────────────────────

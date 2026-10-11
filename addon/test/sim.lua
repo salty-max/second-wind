@@ -146,14 +146,11 @@ if G.FOREVER then
     ns.cardOf(d).title == "Close call: about 11% health" and #d.samples == 5,
     "… its card, my health over the fight"
   )
-  local hid = ""
+  local hid = false
   for _, sec in ipairs(ns.cardOf(d).sections) do
-    if sec.heading == "What the game hid" then hid = table.concat(sec.lines, " ") end
+    if sec.heading == "What the game hid" then hid = true end
   end
-  check(
-    hid:find("counted from the game's own low%-health warning %(35%%%): the lowest point between 7%% and 11%%%."),
-    "… saying so, and within what"
-  )
+  check(not hid, '… the game\'s secrets kept off the card (its lowest point says "about")')
 else
   local d = only(debriefs, "close")
   check(d and d.lowPct == 11 and d.startPct == 100, "a fight survived at 11%: a close call, from full health")
@@ -864,15 +861,10 @@ if G.FOREVER then
     "… what was ready at its start, and went unused: no cooldown begun"
   )
   local c = ns.cardOf(d)
-  local hid, harm
+  local harm
   for _, sec in ipairs(c.sections) do
-    if sec.heading == "What the game hid" then hid = table.concat(sec.lines, " ") end
     if sec.heading == "The harm, by spell" then harm = sec.lines[1] end
   end
-  check(
-    hid and hid:find("rebuilt from each blow and heal") and hid:find("ready when the fight began"),
-    "… the card says what the game hid"
-  )
   check(harm == "100 in all: Attack from Ragged Young Wolf", "… and shows the harm by spell")
 
   debriefs = life()
@@ -1184,6 +1176,18 @@ if not G.FOREVER then
   check(
     #g.shownMarks == 7 and g.legend:IsShown() and g.legend:GetText():find("what you used"),
     "… drawn on the graph, their words under it"
+  )
+  local shown, texts = 0, {}
+  for _, f in ipairs(g.icons) do
+    if f:IsShown() then shown = shown + 1 end
+  end
+  for _, l in ipairs(g.labels) do
+    if l:IsShown() then texts[l:GetText()] = true end
+  end
+  check(shown == 3, "… under it, a lane: the tools used and the foe that joined, by their pictures")
+  check(
+    texts["100%"] and texts["50%"] and texts["15%"] and texts["8%"] and texts["0 s"] and texts["3 s"],
+    "… the scale, the threshold, the lowest point and the time, labelled"
   )
   local text = ns.textOf(d)
   check(
