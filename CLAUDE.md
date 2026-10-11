@@ -149,7 +149,7 @@ The plan, its research and its decisions: PLAN.md.
 
 ```bash
 bun run check        # lint, the simulation on both games, the TOCs
-bun run package      # dist/SecondWind.zip, for a test in the game
+bun run package      # dist/SecondWind-<version>.zip (git describe), for a test in the game
 bun run format:lua
 bun run kit:sync     # after changing ~/code/addon-kit
 scripts/release.sh [--version X.Y.Z] [--hold] NOTES.md   # tag, push; Actions publish

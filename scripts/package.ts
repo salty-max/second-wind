@@ -8,11 +8,11 @@
  * (and a game's own files, should one come), every one of them there, every
  * Lua file of the folder loaded.
  *
- *   bun scripts/package.ts           dist/SecondWind and dist/SecondWind.zip
+ *   bun scripts/package.ts           dist/SecondWind and dist/SecondWind-<version>.zip
  *   bun scripts/package.ts --no-zip  the folder only (to copy into a game)
  *   bun scripts/package.ts --check   the TOCs only
  */
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
 
@@ -74,10 +74,14 @@ for (const f of files) {
 }
 let out = `dist/${NAME}`;
 if (!process.argv.includes("--no-zip")) {
-  const zip = join(DIST, `${NAME}.zip`);
-  if (existsSync(zip)) rmSync(zip);
-  const r = spawnSync("zip", ["-qr", zip, NAME], { cwd: DIST, stdio: "inherit" });
+  // (its version in its name, as the release's: the tag, or for a build
+  // between two, git's account of it, v0.7.3-2-g7406ae1, -dirty if changed)
+  const described = spawnSync("git", ["describe", "--tags", "--always", "--dirty"], { cwd: ROOT, encoding: "utf8" });
+  const version = described.status === 0 ? described.stdout.trim() : "dev";
+  const zipName = `${NAME}-${version}.zip`;
+  for (const f of readdirSync(DIST)) if (f.startsWith(NAME) && f.endsWith(".zip")) rmSync(join(DIST, f));
+  const r = spawnSync("zip", ["-qr", join(DIST, zipName), NAME], { cwd: DIST, stdio: "inherit" });
   if (r.status !== 0) fail("zip failed");
-  out += `, dist/${NAME}.zip`;
+  out += `, dist/${zipName}`;
 }
 console.log(`✓ ${out} (${GAMES.map((g) => `${g.toc} ${g.interface}`).join(", ")})`);

@@ -21,7 +21,7 @@ every game (unzip it into `Interface/AddOns`). The plan and its decisions:
 
 ```bash
 bun run check      # lint, the simulation on Classic Era and Forever, the TOCs
-bun run package    # dist/SecondWind.zip: one package for every game
+bun run package    # dist/SecondWind-<version>.zip: one package for every game
 ```
 
 ## License
