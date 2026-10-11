@@ -166,7 +166,7 @@ end)
 
 -- ── /secondwind ──────────────────────────────────────────────────────────────
 local USAGE = "/secondwind (or /wind) opens the book; /wind settings; /wind minimap shows or hides the button; "
-  .. "/wind copy gives the open debrief as text; /wind carry shows what you carry for the worst moments; "
+  .. "/wind copy gives the open debrief as text; /wind lifelines shows what you carry for the worst moments; "
   .. "/wind welcome shows the welcome page again; /wind export gives this character's settings as a code, "
   .. "/wind import CODE takes them; /wind reset forgets this character's debriefs; /wind probe says, after "
   .. "the next fight, what the game let Second Wind read of it."
@@ -198,7 +198,7 @@ SlashCmdList.SECONDWIND = function(msg)
     ns.probeArm()
   elseif msg == "copy" then
     if not ns.copyDebrief() then print(PREFIX .. "no debrief to copy yet.") end
-  elseif msg == "carry" or msg == "kit" then
+  elseif msg == "lifelines" or msg == "carry" or msg == "kit" then
     ns.openTab(ns.TAB.carry)
   elseif msg == "minimap" then
     ns.setOption("minimapHidden", not ns.option("minimapHidden"))

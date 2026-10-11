@@ -31,7 +31,7 @@
 --     readyFrom ("start": what was ready as the fight began, my health being
 --     hidden), unused, blind (my health hidden in the fight: Forever),
 --     lowAtEnd (its low point read at its end), spells (Forever.lua),
---     held = { { t, to, what, spell } } (control lost: what as the game
+--     held = { { t, to, what, spell, icon } } (control lost: what as the game
 --     says it, "Stunned"; none where it only said I had lost control),
 --     traced (Forever: what went unused told by what a use leaves behind,
 --     Tools.lua's ns.tracesOf), untold (the tools whose use leaves none),
@@ -43,12 +43,13 @@
 -- health before and after a fight is read only should a build allow it. The
 -- death recap, my casts and control lost (the player's own: never secret)
 -- are read as on Classic.
---     (tools: Tools.lua), killer = { name, spell,
+--     (tools: Tools.lua), killer = { name, spell, id,
 --     amount, overkill }, foes = { { name, npc, first, hits, misses, damage,
---     level, rank, type, player } }, heals = { { name, amount } }, casts = {
+--     level, rank, type, player, class, display (its portrait's, found
+--     when the book first shows it) } }, heals = { { name, amount } }, casts = {
 --     { t, id, name } }, events = { { t, k, src, spell, id,
 --     amount, over, crit, school, what } }, samples = { { t, pct } }, recap =
---     { { t, amount, overkill, hp, src, school, spell } }, recapHidden = {
+--     { { t, amount, overkill, hp, src, school, spell, id } }, recapHidden = {
 --     the recap's fields the game kept secret } }
 --   (times t: seconds from the fight's start, or before the death for the
 --   recap; k: hit, miss, heal, debuff)
@@ -142,6 +143,11 @@ local function foeOf(f, guid, name)
   foe = { name = name, first = tenth(GetTime() - f.t0), hits = 0, misses = 0, damage = 0 }
   if guid:find("^Player") then
     foe.player = true
+    -- (a player's class, for the portrait: the class's crest)
+    if GetPlayerInfoByGUID then
+      local _, class = GetPlayerInfoByGUID(guid)
+      if class and not ns.secret(class) then foe.class = class end
+    end
   else
     foe.npc = tonumber(guid:match("^%a+%-%d+%-%d+%-%d+%-%d+%-(%d+)%-"))
   end
@@ -204,6 +210,7 @@ local function lossOfControl()
       return {
         what = not ns.secret(e.displayText) and e.displayText or nil,
         spell = spellName(e.spellID),
+        icon = not ns.secret(e.iconTexture) and e.iconTexture or nil,
         left = left and not ns.secret(left) and left or nil,
       }
     end
@@ -225,6 +232,7 @@ local function control(f)
     end
     if told then
       open.what, open.spell = open.what or told.what, open.spell or told.spell
+      open.icon = open.icon or told.icon
       if told.left then open.ends = tenth(now + told.left) end
     end
   elseif open then
@@ -304,7 +312,9 @@ end
 local function lastHit(list)
   for i = #list, 1, -1 do
     local r = list[i]
-    if r.k == "hit" then return { name = r.src, spell = r.spell, amount = r.amount, overkill = r.over } end
+    if r.k == "hit" then
+      return { name = r.src, spell = r.spell, id = r.id, what = r.what, amount = r.amount, overkill = r.over }
+    end
   end
 end
 
@@ -431,6 +441,7 @@ local function recapOf(d)
       src = not field(e, "hideCaster") and field(e, "sourceName") or nil,
       school = field(e, "school"),
       spell = spellName(field(e, "spellId")),
+      id = field(e, "spellId"),
     })
   end
   d.recap = recap
@@ -462,7 +473,8 @@ local function recapOf(d)
     table.sort(d.recapHidden)
   end
   if not d.killer and recap[1] then
-    d.killer = { name = recap[1].src, spell = recap[1].spell, amount = recap[1].amount, overkill = recap[1].overkill }
+    local r = recap[1]
+    d.killer = { name = r.src, spell = r.spell, id = r.id, amount = r.amount, overkill = r.overkill }
   end
   if #d.foes == 0 then
     local byName = {}

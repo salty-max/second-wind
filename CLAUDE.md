@@ -24,7 +24,7 @@ The plan, its research and its decisions: PLAN.md.
     login), `ns.record()` this character's, `ns.debriefsOf(every)`,
     `ns.whose(d)`, `ns.fightsOf(every)`; the events (`ns.on`, `ns.onUnit` for one
     unit's), the login, `/secondwind` and `/wind` (`/sw` is the game's
-    stopwatch; `/wind copy`, `/wind carry`).
+    stopwatch; `/wind copy`, `/wind lifelines` (or `carry`, `kit`)).
   - `Settings.lua`: each character's settings (the kit's profiles, code
     `SW1:p15:c1:t1:d1:w1:h0:a250`): the close call's threshold (10, 15, 20,
     25%), a line in chat, the alert after a death, the debrief after a death, the word
@@ -46,7 +46,7 @@ The plan, its research and its decisions: PLAN.md.
     what a use left, read after the fight: one fewer in my
     bags, a cooldown begun, its start the moment; a spell without a cooldown
     leaves none, `untold`), `ns.toolOfCast(c)`; what I carry now,
-    `ns.carried()` and its page `ns.carryPage(list)` (by kind, ready or how
+    `ns.carried()` and its page, the Lifelines, `ns.carryPage(list)` (by kind, ready or how
     long until, the kinds I carry none of).
   - `Debrief.lua`'s `ns.lowOf(d)`: how low, in words ("11%", "below 35%").
   - `Forever.lua`: where the combat log tells nothing (Forever): the game's
@@ -125,16 +125,29 @@ The plan, its research and its decisions: PLAN.md.
     or when I'm hurt and they mostly began so, a line in chat with the
     counts; never in a fight, a name not again for five minutes, never at a
     critter. `ns.wordBefore(counts, foe, me)`, pure.
-  - `Book.lua`: the theme (frost steel) and the window, its tabs: the
+  - `Page.lua`: the theme (frost steel) and the pages' renderer
+    (`ns.newPage`, `page:draw(c, d, keep)`): a header (a round portrait: the
+    foe that did the most harm, `ns.faceOf`; the title, the line under it, a
+    rule), the lessons (an accent bar beside each), the graph for a card,
+    then sections, each line drawn by its row (`sections[i].rows`, beside the
+    `lines` the copy and the tests read): `foe` (the creature's still
+    portrait, `SetPortraitTextureFromCreatureDisplayID`, its display found
+    once by a hidden model and kept on the foe as the Field Journal does; a
+    player's class crest; else its kind's icon; its ring by rank, its name
+    in the colour of its level against mine), `blow` (a spell's icon by id,
+    a heal's, the world's; its amount; a bar of the share), `held`, `tools`
+    (an icon strip, its frame by state: unused, used, held, untold),
+    `tool` (a lifeline: its state, dimmed while not ready; an empty slot for
+    a kind I carry none of), `share` (a bar, every fight's rate a mark),
+    `text`; a `note` section small. Icons hovered: the game's tooltip.
+  - `Book.lua`: the window, its tabs: the
     Debriefs (the list, newest first, this character's or every character's
     at the select above, `book.every`, each row and card then naming whose it
     is; the open one's card, my health over
     the fight by time against the threshold, marked (`ns.marksOf`, their
     words under it), "Copy as text" (`ns.showCopy`: a box to copy from)),
-    the Patterns (the whole sheet), What you carry (Tools.lua's page, drawn
-    again as bags and cooldowns change). Pages are drawn by one renderer
-    (`drawPage`: title, the line under it, lessons, the graph for a card,
-    sections). A debrief written
+    the Patterns (the whole sheet), the Lifelines (Tools.lua's page, drawn
+    again as bags and cooldowns change). A debrief written
     (`ns.debriefed`): a line in chat with its weightiest lesson and a link
     (`|Hsecondwind:debrief:<at>|h`), every close call; after a death only, the
     game's alert (the new recipe's) and the book opened at it

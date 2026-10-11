@@ -12,7 +12,7 @@ every game (unzip it into `Interface/AddOns`). The plan and its decisions:
 ## Use
 
 - `/secondwind` or `/wind` (or the button by the minimap) opens the book.
-- `/wind copy` (the open debrief as text), `/wind carry` (what you carry for
+- `/wind copy` (the open debrief as text), `/wind lifelines` (what you carry for
   the worst moments), `/wind probe` (what the game lets Second Wind read).
 - `/wind settings`, `/wind minimap`, `/wind welcome`, `/wind export`,
   `/wind import CODE`, `/wind reset`.

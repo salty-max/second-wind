@@ -52,6 +52,7 @@ function ns.meterTaken()
         or nil
       table.insert(out, {
         spell = spellName(sp.spellID),
+        id = clear(sp.spellID) and sp.spellID or nil,
         src = who ~= "" and who or nil,
         amount = sp.totalAmount,
         overkill = clear(sp.overkillAmount) and sp.overkillAmount > 0 and sp.overkillAmount or nil,

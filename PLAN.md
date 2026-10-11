@@ -237,7 +237,7 @@ healing (and whom it names) since 11 October. Then, by what it says:
 
 All five built: the graph by time, marked (`ns.marksOf`); every fight
 tallied (`record.fights`) and each trait set against it from twenty on; the
-third tab, What you carry (`ns.carried`, `ns.carryPage`); Copy as text
+third tab, the Lifelines (`ns.carried`, `ns.carryPage`; first named What you carry); Copy as text
 (`ns.textOf`, `/wind copy`); the word before a pull (Pull.lua, on by default,
 "A word before a pull" in the settings). And, asked the same evening, what
 went unused on Forever: told by what a use leaves behind, read after the

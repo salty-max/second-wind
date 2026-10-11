@@ -231,3 +231,13 @@ globals:
     any: true
   UnitTokenFromGUID:
     any: true
+  CLASS_ICON_TCOORDS:
+    any: true
+  GetItemIcon:
+    any: true
+  GetPlayerInfoByGUID:
+    any: true
+  GetSpellTexture:
+    any: true
+  SetPortraitTextureFromCreatureDisplayID:
+    any: true

@@ -82,6 +82,8 @@ local function hits(d)
       table.insert(out, {
         src = r.src or (r.what and ENV[r.what]) or "?",
         spell = r.spell,
+        id = r.id,
+        what = r.what,
         amount = r.amount,
         crit = r.crit,
         share = d.maxHealth and d.maxHealth > 0 and r.amount / d.maxHealth or nil,
@@ -368,27 +370,73 @@ local function names(tools)
   return table.concat(out, ", ")
 end
 
+-- A foe of the fight by its name (the killer's, for its portrait), else one
+-- made of the name alone.
+function ns.foeNamed(d, name)
+  for _, foe in ipairs(d.foes or {}) do
+    if foe.name == name then return foe end
+  end
+  return name and { name = name } or nil
+end
+
+-- The debrief's face, at the head of its card: the foe that did the most
+-- harm (its portrait), else the world's harm (a fall, the water...).
+function ns.faceOf(d)
+  local top
+  for _, foe in ipairs(d.foes or {}) do
+    if not top or (foe.damage or 0) > (top.damage or 0) then top = foe end
+  end
+  if top then return { foe = top } end
+  if d.env then return { env = d.env } end
+  return nil
+end
+
 function ns.cardOf(d)
   local f = ns.factsOf(d)
   local sub = { f.place }
   if d.level then table.insert(sub, "level " .. d.level) end
   if d.length then table.insert(sub, d.length == 1 and "a second" or (d.length .. " seconds")) end
   if d.at then table.insert(sub, date("%d %b %H:%M", d.at)) end
-  local card = { title = f.title, sub = table.concat(sub, " · "), lessons = ns.lessonsOf(d), sections = {} }
-  local function section(heading, lines)
-    if #lines > 0 then table.insert(card.sections, { heading = heading, lines = lines }) end
+  local card = {
+    title = f.title,
+    sub = table.concat(sub, " · "),
+    lessons = ns.lessonsOf(d),
+    sections = {},
+    death = d.kind == "death",
+    face = ns.faceOf(d),
+  }
+  -- (rows: what the book draws for each line, its pictures; a note: told
+  -- small, as an aside)
+  local function section(heading, lines, rows, note)
+    if #lines > 0 then table.insert(card.sections, { heading = heading, lines = lines, rows = rows, note = note }) end
   end
   if d.kind == "death" and d.killer and d.killer.name then
     local k = d.killer
     local blow = k.spell and ("%s's %s"):format(k.name, k.spell) or k.name
     local extra = k.overkill and k.overkill > 0 and (" (%d more than you had)"):format(k.overkill) or ""
-    section("The killing blow", { ("%s, %d%s"):format(blow, k.amount or 0, extra) })
+    section("The killing blow", { ("%s, %d%s"):format(blow, k.amount or 0, extra) }, {
+      {
+        kind = "blow",
+        death = true,
+        foe = ns.foeNamed(d, k.name),
+        spell = k.spell,
+        id = k.id,
+        what = k.what,
+        amount = k.amount or 0,
+        title = blow,
+        detail = k.overkill and k.overkill > 0 and ("%d more than you had"):format(k.overkill) or nil,
+      },
+    })
   end
-  local foes = {}
+  local foes, foeRows, total = {}, {}, 0
+  for _, foe in ipairs(d.foes or {}) do
+    total = total + (foe.damage or 0)
+  end
   for _, foe in ipairs(d.foes or {}) do
     table.insert(foes, foeLine(foe))
+    table.insert(foeRows, { kind = "foe", foe = foe, level = d.level, share = total > 0 and (foe.damage or 0) / total })
   end
-  section("Foes", foes)
+  section("Foes", foes, foeRows)
   -- what Forever hid (its health and casts in a fight), said plainly
   local hidden = {}
   if d.rebuilt then
@@ -422,8 +470,8 @@ function ns.cardOf(d)
   elseif d.castsHidden then
     table.insert(hidden, "Forever hid your casts: what went unused can't be told.")
   end
-  section("What the game hid", hidden)
-  local mattered = {}
+  section("What the game hid", hidden, nil, true)
+  local mattered, hitRows = {}, {}
   for _, h in ipairs(f.hits) do
     -- (who dealt it, where the game said: not on Forever, several foes)
     local parts =
@@ -433,47 +481,85 @@ function ns.cardOf(d)
       table.insert(parts, h.before < 0.5 and "at the low point" or ("%.1f s before the low point"):format(h.before))
     end
     table.insert(mattered, ("%d: %s"):format(h.amount, table.concat(parts, ", ")))
+    table.insert(hitRows, {
+      kind = "blow",
+      spell = h.spell,
+      id = h.id,
+      what = h.what,
+      crit = h.crit,
+      amount = h.amount,
+      share = h.share,
+      title = parts[1]:gsub("^%l", string.upper),
+      detail = table.concat(parts, ", ", 2),
+    })
   end
-  section("The hits that mattered", mattered)
-  local lost = {}
+  section("The hits that mattered", mattered, hitRows)
+  local lost, lostRows = {}, {}
   for _, h in ipairs(d.held or {}) do
     local len = (h.to or d.length or h.t) - h.t
     if len >= 0.5 then
       local by = h.spell and (" (" .. h.spell .. ")") or ""
       table.insert(lost, ("%s%s: %.1f s, %s"):format(h.what or "Control lost", by, len, when(h.t)))
+      table.insert(lostRows, {
+        kind = "held",
+        icon = h.icon,
+        spell = h.spell,
+        title = (h.what or "Control lost") .. by,
+        detail = ("%.1f seconds, %s"):format(len, when(h.t)),
+      })
     end
   end
-  section("Out of your control", lost)
+  section("Out of your control", lost, lostRows)
   -- (Forever: the game's damage meter, by spell and who cast it, totals; the
   -- blows above, rebuilt, don't name their dealers)
   if d.spells and #d.spells > 0 then
-    local harm = {}
-    for _, sp in ipairs(d.spells or {}) do
+    local harm, harmRows, all = {}, {}, 0
+    for _, sp in ipairs(d.spells) do
+      all = all + (sp.amount or 0)
+    end
+    for _, sp in ipairs(d.spells) do
       local what = sp.spell and sp.src and (sp.spell .. " from " .. sp.src) or sp.spell or sp.src or "?"
       table.insert(harm, ("%d in all: %s"):format(sp.amount, what))
+      table.insert(harmRows, {
+        kind = "blow",
+        spell = sp.spell,
+        id = sp.id,
+        amount = sp.amount,
+        share = all > 0 and sp.amount / all or nil,
+        title = sp.spell or "?",
+        detail = sp.src and ("from " .. sp.src) or nil,
+      })
     end
-    section("The harm, by spell", harm)
+    section("The harm, by spell", harm, harmRows)
   end
-  local heals = {}
+  local heals, healRows = {}, {}
   for _, h in ipairs(d.heals or {}) do
     -- ("received": the heals the game told, not who cast them: Forever)
     local who = h.name == "you" and "Your own" or h.name == "received" and "In all" or h.name
     table.insert(heals, ("%s: %d"):format(who, h.amount))
+    table.insert(healRows, { kind = "blow", heal = true, amount = h.amount, title = who })
   end
-  section("Heals", heals)
-  local had = {}
+  section("Heals", heals, healRows)
+  local had, hadRows = {}, {}
+  local function tools(head, these, state)
+    table.insert(had, head .. ": " .. names(these))
+    table.insert(hadRows, { kind = "tools", label = head, tools = these, state = state })
+  end
   if #f.unused > 0 then
     local held = helpless(d) and f.held
-    local head = not held and "Ready, unused: "
-      or (held.what and ("Ready, but you were %s: "):format(held.what:lower()) or "Ready, but out of your control: ")
-    table.insert(had, head .. names(f.unused))
+    local head = not held and "Ready, unused"
+      or (held.what and ("Ready, but you were %s"):format(held.what:lower()) or "Ready, but out of your control")
+    tools(head, f.unused, held and "held" or "unused")
   end
-  if #f.used > 0 then table.insert(had, "Used: " .. names(f.used)) end
-  if #f.untold > 0 then table.insert(had, "Ready, no trace either way: " .. names(f.untold)) end
+  if #f.used > 0 then tools("Used", f.used, "used") end
+  if #f.untold > 0 then tools("Ready, no trace either way", f.untold, "untold") end
   -- (my casts hidden: what was ready, no more said)
-  if not d.unused and #f.ready > 0 then table.insert(had, "Ready: " .. names(f.ready)) end
-  if d.ready and #d.ready == 0 then table.insert(had, "Nothing of the kind was ready.") end
-  section("What you had", had)
+  if not d.unused and #f.ready > 0 then tools("Ready", f.ready, "ready") end
+  if d.ready and #d.ready == 0 then
+    table.insert(had, "Nothing of the kind was ready.")
+    table.insert(hadRows, { kind = "text", text = "Nothing of the kind was ready." })
+  end
+  section("What you had", had, hadRows)
   return card
 end
 

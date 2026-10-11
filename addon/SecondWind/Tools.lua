@@ -9,7 +9,8 @@
 -- my bags, a cooldown begun in the fight (its start: when). ns.carried() and
 -- ns.carryPage(): what I carry now, the book's third tab.
 --   a tool: { n = name, k = guard | stop | away | heal | bandage | cure,
---     item, spell (an item's: what its use casts), count, worn (its slot) }
+--     item, spell (an item's: what its use casts), count, worn (its slot),
+--     icon }
 --   guard: lessens the harm or heals; stop: holds a foe; away: gets me out
 local _, ns = ...
 
@@ -383,13 +384,45 @@ local function bandaged()
     and C_UnitAuras.GetPlayerAuraBySpellID(RECENTLY_BANDAGED) ~= nil
 end
 
+-- Pictures, as the game draws them: a spell's icon (by its id, or by its name
+-- for one I know), an item's; nil where the game can't tell.
+function ns.spellIcon(spell)
+  if not spell or ns.secret(spell) then return nil end
+  local get = C_Spell and C_Spell.GetSpellTexture or GetSpellTexture
+  local ok, icon = pcall(get, spell)
+  if ok and icon and not ns.secret(icon) then return icon end
+end
+function ns.itemIcon(item)
+  if not item then return nil end
+  local get = C_Item and C_Item.GetItemIconByID or GetItemIcon
+  local ok, icon = pcall(get, item)
+  if ok and icon and not ns.secret(icon) then return icon end
+end
+-- A spell's id by its name, for one I know (its tooltip).
+function ns.spellIdOf(name)
+  if not name then return nil end
+  local id
+  if C_Spell and C_Spell.GetSpellInfo then
+    local info = C_Spell.GetSpellInfo(name)
+    id = info and info.spellID
+  elseif GetSpellInfo then
+    id = select(7, GetSpellInfo(name))
+  end
+  if id and not ns.secret(id) then return id end
+end
+-- A tool's picture (kept on it when noted: another character's debrief shows
+-- it too).
+function ns.toolIcon(t) return t.icon or (t.item and ns.itemIcon(t.item)) or ns.spellIcon(t.n) end
+
 -- The tools ready now: known, off cooldown and usable (an item in my bags,
 -- usable at my level; one worn, in its slot; a bandage unless I was bandaged
 -- a moment ago; a cure while what it cures is on me).
 function ns.readyTools()
   local ready = {}
   for _, t in ipairs(SPELLS) do
-    if known(t[1]) and spellReady(t[1]) and spellUsable(t[1]) then table.insert(ready, { n = t[1], k = t[2] }) end
+    if known(t[1]) and spellReady(t[1]) and spellUsable(t[1]) then
+      table.insert(ready, { n = t[1], k = t[2], icon = ns.spellIcon(t[1]) })
+    end
   end
   local wrapped, on = bandaged(), afflictions()
   local had = {}
@@ -409,6 +442,7 @@ function ns.readyTools()
       had[it.id] = true
       tool.n, tool.k, tool.item, tool.spell = it.n, it.k, it.id, it.spell
       tool.against, tool.school, tool.env = cured, it.school, it.env
+      tool.icon = ns.itemIcon(it.id)
       table.insert(ready, tool)
     end
   end
@@ -518,7 +552,9 @@ end
 function ns.carried()
   local out, byName = {}, {}
   for _, t in ipairs(SPELLS) do
-    if known(t[1]) then table.insert(out, { n = t[1], k = t[2], left = leftAfter(spellCooldown(t[1])) }) end
+    if known(t[1]) then
+      table.insert(out, { n = t[1], k = t[2], left = leftAfter(spellCooldown(t[1])), icon = ns.spellIcon(t[1]) })
+    end
   end
   local wrapped
   if C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID then
@@ -539,6 +575,7 @@ function ns.carried()
       same.count = (same.count or 0) + (tool.count or 0)
     elseif tool then
       tool.n, tool.k, tool.cures, tool.school, tool.env = it.n, it.k, it.cures, it.school, it.env
+      tool.item, tool.icon = it.id, ns.itemIcon(it.id)
       if it.k == "bandage" then tool.wrapped = wrapped end
       byName[it.n] = tool
       table.insert(out, tool)
@@ -583,33 +620,49 @@ local function forWhat(t)
   return out
 end
 
--- The page of what I carry (the book's third tab): a section a kind, then
--- the kinds I carry none of. Counts and states, never advice.
+-- The lifelines (the book's third tab): what I carry for the worst moments,
+-- a section a kind, then the kinds I carry none of. Counts and states, never
+-- advice.
 function ns.carryPage(list)
   local page = {
-    title = "What you carry",
-    sub = "For the worst moments, now: ready, or how long until it is. Out of a fight, as the game tells it.",
+    title = "Your lifelines",
+    sub = "What you carry for the worst moments, now: ready, or how long until it is.",
     lessons = {},
     sections = {},
+    face = { icon = "Interface\\AddOns\\SecondWind\\Media\\Logo" },
   }
   local has = {}
   for _, kind in ipairs(KINDS) do
-    local lines = {}
+    local lines, rows = {}, {}
     for _, t in ipairs(list) do
       if t.k == kind[1] then
         has[t.k] = true
         local n = t.count and t.count > 1 and ("%s (%d)"):format(t.n, t.count) or t.n
         table.insert(lines, ("%s: %s%s"):format(n, stateOf(t), forWhat(t)))
+        local ready = t.left ~= nil and t.left <= 0 and t.worn ~= "bags" and not (t.wrapped and t.wrapped > 0)
+        local about = forWhat(t):gsub("^, ", "")
+        table.insert(rows, {
+          kind = "tool",
+          tool = t,
+          title = t.n,
+          value = stateOf(t),
+          ready = ready,
+          detail = about ~= "" and about or nil,
+        })
       end
     end
-    if #lines > 0 then table.insert(page.sections, { heading = kind[2], lines = lines }) end
+    if #lines > 0 then table.insert(page.sections, { heading = kind[2], lines = lines, rows = rows }) end
   end
-  local none = {}
-  if not has.heal then table.insert(none, "Something that heals at once: a healing potion, a healthstone") end
-  if not has.bandage then table.insert(none, "A bandage") end
-  if not has.cure then table.insert(none, "A cure: an anti-venom, a restorative potion") end
-  if not has.stop and not has.away then table.insert(none, "Anything that holds a foe or gets you out") end
-  if #none > 0 then table.insert(page.sections, { heading = "None of these", lines = none }) end
+  local none, rows = {}, {}
+  local function lack(text)
+    table.insert(none, text)
+    table.insert(rows, { kind = "tool", missing = true, title = text })
+  end
+  if not has.heal then lack("Something that heals at once: a healing potion, a healthstone") end
+  if not has.bandage then lack("A bandage") end
+  if not has.cure then lack("A cure: an anti-venom, a restorative potion") end
+  if not has.stop and not has.away then lack("Anything that holds a foe or gets you out") end
+  if #none > 0 then table.insert(page.sections, { heading = "None of these", lines = none, rows = rows }) end
   if #page.sections == 0 then page.lessons = { "Nothing of the kind, as yet." } end
   return page
 end

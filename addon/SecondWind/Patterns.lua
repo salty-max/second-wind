@@ -4,7 +4,7 @@
 -- unused most often. Counts, never advice. Pure, as Debrief.lua: the book
 -- draws it (Book.lua's Patterns tab).
 --   ns.patternsOf(debriefs, fights) = { enough, count, title, sub, lessons = {
---     a headline }, sections = { { heading, lines } } }; fights: every
+--     a headline }, sections = { { heading, lines, rows } } }; fights: every
 --     fight's tally (Recorder.lua), each trait set against it once there
 --     are FIGHTS of them
 --   ns.countsOf(debriefs): the counts themselves, for the word before a pull
@@ -49,6 +49,8 @@ end
 
 local function counted(debriefs)
   local traits, places, foes, unused, firstSeen, order = {}, {}, {}, {}, {}, 0
+  -- (each name's record, the latest: a foe's portrait, a tool's icon)
+  local foeOf, toolOf = {}, {}
   local deaths, since = 0, nil
   local function count(map, name)
     map[name] = (map[name] or 0) + 1
@@ -70,6 +72,7 @@ local function counted(debriefs)
       if foe.name and not met[foe.name] then
         met[foe.name] = true
         count(foes, foe.name)
+        foeOf[foe.name] = foe
       end
     end
     local left = {}
@@ -78,6 +81,7 @@ local function counted(debriefs)
       if type(t) == "table" and t.n and not left[t.n] then
         left[t.n] = true
         count(unused, t.n)
+        toolOf[t.n] = t
       end
     end
   end
@@ -90,6 +94,8 @@ local function counted(debriefs)
     firstSeen = firstSeen,
     deaths = deaths,
     since = since,
+    foeOf = foeOf,
+    toolOf = toolOf,
   }
 end
 function ns.countsOf(debriefs) return counted(debriefs) end
@@ -126,25 +132,55 @@ function ns.patternsOf(debriefs, fights)
     local of = deaths > 0 and "close calls and deaths" or "close calls"
     table.insert(page.lessons, ("In %d of your %d %s, %s."):format(often[1].n, total, of, often[1].phrase))
   end
-  local function section(heading, list, line)
+  -- (line: its text, for the copy and the tests; row: what the book draws)
+  local function section(heading, list, line, row)
     if #list == 0 then return end
-    local lines = {}
+    local lines, rows = {}, {}
     for i = 1, math.min(ROWS, #list) do
       table.insert(lines, line(list[i]))
+      table.insert(rows, row(list[i]))
     end
-    table.insert(page.sections, { heading = heading, lines = lines })
+    table.insert(page.sections, { heading = heading, lines = lines, rows = rows })
   end
+  local of = ("of your %d"):format(total)
   -- (against every fight's, once enough are tallied: how common it is at all)
-  section("Most often", often, function(t)
-    local all = base and (" (%d of your %d fights)"):format(base.traits[t.key] or 0, base.n) or ""
-    return ("%d of %d: %s%s"):format(t.n, total, t.phrase, all)
-  end)
-  section("Where", ranked(places, firstSeen), function(p) return ("%s: %d"):format(p.name, p.n) end)
-  section("Foes met more than once", ranked(foes, firstSeen), function(f) return ("%s: in %d"):format(f.name, f.n) end)
+  section(
+    "Most often",
+    often,
+    function(t)
+      local all = base and (" (%d of your %d fights)"):format(base.traits[t.key] or 0, base.n) or ""
+      return ("%d of %d: %s%s"):format(t.n, total, t.phrase, all)
+    end,
+    function(t)
+      return {
+        kind = "share",
+        share = t.n / total,
+        title = t.phrase:gsub("^%l", string.upper),
+        value = ("%d %s"):format(t.n, of),
+        base = base and (base.traits[t.key] or 0) / base.n or nil,
+        detail = base and ("in %d of your %d fights"):format(base.traits[t.key] or 0, base.n) or nil,
+      }
+    end
+  )
+  section(
+    "Where",
+    ranked(places, firstSeen),
+    function(p) return ("%s: %d"):format(p.name, p.n) end,
+    function(p) return { kind = "share", share = p.n / total, title = p.name, value = ("%d %s"):format(p.n, of) } end
+  )
+  section(
+    "Foes met more than once",
+    ranked(foes, firstSeen),
+    function(f) return ("%s: in %d"):format(f.name, f.n) end,
+    function(f) return { kind = "foe", foe = c.foeOf[f.name], detail = ("in %d %s"):format(f.n, of) } end
+  )
   section(
     "Left unused most often",
     ranked(unused, firstSeen),
-    function(t) return ("%s: %d times"):format(t.name, t.n) end
+    function(t) return ("%s: %d times"):format(t.name, t.n) end,
+    function(t)
+      return { kind = "tool", tool = c.toolOf[t.name], title = t.name, detail = ("unused in %d %s"):format(t.n, of) }
+    end
   )
   return page
 end

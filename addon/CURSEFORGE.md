@@ -15,22 +15,22 @@ For Classic Era (Hardcore, Season of Discovery), TBC Anniversary and World of Wa
 
 ## The debrief
 
-A fight you survive below 15% health (or 10, 20, 25: your choice) is a close call; a fight that kills you is a death. Once the fight is over, a line in chat gives the main lesson with a link to the debrief; after a death, the game's alert too, and the card opens on its own. Each gets a card:
+A fight you survive below 15% health (or 10, 20, 25: your choice) is a close call; a fight that kills you is a death. Once the fight is over, a line in chat gives the main lesson with a link to the debrief; after a death, the game's alert too, and the card opens on its own. Each gets a card, headed by the foe that did the most harm:
 
 - **The lessons**: one or two, by rule over what was recorded, never invented: *"A Major Healing Potion was in your bags, ready."* *"Three foes at once."* *"Defias Pillager joined six seconds in."* *"From half your health to 9% in two seconds."*
 - **The killing blow**, from the game's own death recap: who, with what, and how much more than you had.
-- **The foes**: when each came in, their hits and misses, their level and rank where the game tells.
-- **The hits that mattered**: the three largest, and how long before your lowest point each landed.
+- **The foes**, each with its portrait (the creature as its unit frame shows it, a player's class crest), its name in the colour of its level against yours, its rank on its ring: when it came in, its hits and misses, its share of the harm.
+- **The hits that mattered**: the three largest, each with its spell's icon, and how long before your lowest point each landed.
 - **Your health over the fight**, drawn against your threshold and marked: the hits that mattered, each foe joining, what you used, the stretches out of your control.
 - **The heals**, yours and others'.
 - **Out of your control**: when a stun or a fear held you, how long and by what. Held the whole way down, what you had is shown as out of reach, never as a lesson.
-- **What you had**: what was ready when your health first fell below half, what you used, and what went unused.
+- **What you had**: what was ready when your health first fell below half, what you used, and what went unused, as icons (hover one for the game's tooltip).
 
 **Copy as text** puts the debrief in a box to copy, for your guild's channel or a Discord (`/wind copy`).
 
-## What you carry
+## Lifelines
 
-A third page lists what you carry for the worst moments right now, by kind: each potion, bandage, cure, guard and way out, how many, and whether it's ready or how long until it is. Under it, the kinds you carry none of. Handy before a dungeon (`/wind carry`).
+A third page, the Lifelines, lists what you carry for the worst moments right now, by kind: each potion, bandage, cure, guard and way out with its icon, how many, and whether it's ready or how long until it is. Under it, the kinds you carry none of. Handy before a dungeon (`/wind lifelines`).
 
 ## What you had ready
 

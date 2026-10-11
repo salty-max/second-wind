@@ -21,6 +21,7 @@ Recorder.lua
 Debrief.lua
 Patterns.lua
 Pull.lua
+Page.lua
 Book.lua
 Welcome.lua
 Minimap.lua

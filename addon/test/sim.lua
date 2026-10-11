@@ -522,6 +522,11 @@ local function lastLink()
 end
 local book = ns.window()
 book:Hide()
+-- A page's block of a kind, as drawn (Page.lua's pools: the i-th shown).
+local function drawn(page, kind, i)
+  local pool = page.pools[kind]
+  return pool and i <= pool.n and pool[i] or nil
+end
 if not G.FOREVER then
   debriefs = life()
   G.state.book = { ["Shield Wall"] = {} }
@@ -562,6 +567,38 @@ if not G.FOREVER then
     book:IsShown() and book.open == d.at and book.cardShown.title == "Close call: 11% health",
     "… the link opens it at the card"
   )
+  -- (the card drawn: the foe that did the most harm at its head, each foe in
+  -- its row, each blow with its amount and spell, the tools' icons)
+  check(
+    c.face and c.face.foe and c.face.foe.name == "Ragged Young Wolf",
+    "… its face: the foe that did the most harm"
+  )
+  local foe1, foe2 = drawn(book.card, "foe", 1), drawn(book.card, "foe", 2)
+  check(
+    foe1 and foe1.name.text == "Ragged Young Wolf" and foe2 and foe2.name.text == "Rockjaw Trogg",
+    "… the foes drawn, each in its row"
+  )
+  check(foe2.about.text == "level 9 · humanoid" and foe2.did.text:find("1 hit for 60"), "… what each was, and did")
+  local blow = drawn(book.card, "blow", 1)
+  check(
+    blow
+      and blow.amount.text == "60"
+      and blow.title.text == "Fireball, critical"
+      and blow.detail.text == "from Rockjaw Trogg, at the low point",
+    "… a blow: its amount, its spell, from whom and when"
+  )
+  local heal = drawn(book.card, "blow", 4)
+  check(heal and heal.amount.text == "60" and heal.title.text == "Brother Paxton", "… a heal, as a blow is")
+  local tools = drawn(book.card, "tools", 1)
+  local icons = 0
+  for _, icon in ipairs(tools and tools.icons or {}) do
+    if icon:IsShown() then icons = icons + 1 end
+  end
+  check(tools and tools.label.text == "Ready, unused" and icons == 1, "… what you had: the tools, an icon each")
+  check(
+    drawn(book.card, "lesson", 1).text.text == "Shield Wall was ready and went unused.",
+    "… the lesson, set apart"
+  )
   local last = G.toasted[#G.toasted]
   check(not (last and last.Title:GetText():find("^Close call")), "a close call: no alert, its line in chat enough")
   check(
@@ -587,6 +624,14 @@ check(
 check(
   book.cardShown.sections[1].lines[1] == "Rockjaw Trogg's Fireball, 150 (30 more than you had)",
   "… by whom, with what, by how much"
+)
+local killing = drawn(book.card, "blow", 1)
+check(
+  killing
+    and killing.amount.text == "150"
+    and killing.title.text == "Rockjaw Trogg's Fireball"
+    and killing.detail.text == "30 more than you had",
+  "… drawn: the blow's amount, by whom, the overkill"
 )
 local t = G.toasted[#G.toasted]
 check(
@@ -687,6 +732,8 @@ for _, d in ipairs(five) do
 end
 ns.refresh()
 check(not book.empty:IsShown() and book.patterns.shown.title == "What your close calls share", "… then the patterns")
+local share = drawn(book.patterns, "share", 1)
+check(share and share.value.text:find("^%d+ of your %d+$"), "… a trait drawn: its bar, how many of the close calls")
 check(not book.card:IsShown() and not book.left:IsShown(), "… over the whole page, the list put away")
 ns.showTab(ns.TAB.debriefs)
 check(book.card:IsShown() and not book.patterns:IsShown(), "back to the debriefs: the card again")
@@ -1170,8 +1217,14 @@ check(
   carried("None of these") == "A cure: an anti-venom, a restorative potion | Anything that holds a foe or gets you out",
   "… and the kinds I carry none of"
 )
-G.slash("carry")
-check(book:IsShown() and book.carry.shown.title == "What you carry", "/wind carry: the book at that page")
+-- (drawn: a row a tool, its state; the kinds I carry none of, an empty slot)
+ns.openTab(ns.TAB.carry)
+local first = drawn(book.carry, "tool", 1)
+check(first and first.title.text == "Healing Potion" and first.value.text == "ready", "… drawn: a tool, its state")
+check(first.icon.count.text == "2", "… its count on its icon")
+book:Hide()
+G.slash("lifelines")
+check(book:IsShown() and book.carry.shown.title == "Your lifelines", "/wind lifelines: the book at that page")
 book:Hide()
 G.state.book, G.state.bags, G.state.auras = {}, {}, {}
 
