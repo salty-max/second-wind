@@ -12,4 +12,7 @@ a close call survived, with something left to learn.
 - `logo.png`: 512px square export.
 - `logo-master.png`: full-resolution generated master; resize this for future exports.
 - `logo-prompts.json`: the generation prompt and style references.
-- `../addon/SecondWind/Media/Logo.tga`: uncompressed 256px square texture used in game.
+- `../addon/SecondWind/Media/Logo.tga`: uncompressed 256px texture used in game, its corners
+  rounded as the siblings' (radius 34): `magick logo.png -resize 256x256 -alpha off mask.png
+  -compose CopyOpacity -composite -compress none TGA:Logo.tga`, the mask a white
+  `roundrectangle 0,0 255,255 34,34` on black.
