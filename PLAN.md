@@ -257,7 +257,9 @@ posts, and a beta test write-up (wowforeverbuilds, build 1.60.1.69913).
 
 | | On Forever | Source | Sure |
 |---|---|---|---|
-| My health | secret during a fight; out of one, most likely readable | every condition Blizzard defines is "when … restrictions are in effect"; its posts lift cooldowns and casts "outside combat"; `HasSecretRestrictions`: tagged APIs only "potentially" return secrets. Against: the wiki calls SecretReturns "unconditional" (its own reading, not Blizzard's), and a beta `/run` test of unknown context | the probe reads it out of a fight; the user, rightly: "hiding health out of fights makes no sense" |
+| My health | secret, in a fight and out of it | measured at rest by Apotheca's maintainer (FOREVER-PROBE.md: a Hunter and a Priest, builds 69977 and 70009: "Health and power are secret even out of combat", max readable; a StatusBar read back secret too); `UnitHealth` SecretReturns with no condition. I had argued the other way from the predicates' wording; the measurement settles it | measured; the probe reads it out of a fight |
+| The hits on me (`UNIT_COMBAT`) | plain amounts (wound, heal, miss; critical; school), no attacker | no secrecy flag on its payload; a developer measured every amount plain in an open-world fight (forever-addon-kit) | docs + one report; the probe counts them |
+| My health through the heal calculator | most likely secret (its health getters lack the ReturnsNeverSecret its other getters carry; `HasSecretValues`) | UnitHealPredictionCalculatorAPI docs | the probe reads it |
 | My max health | readable (secret for units not player-controlled) | SecretWhenUnitHealthMaxRestricted | docs |
 | A health bar's value read back | secret | StatusBar `GetValue`: SecretReturnsForAspect BarValue | docs |
 | The game's low-health warning | Blizzard's code shows `LowHealthFrame` below 35% of my true health (`doNotFlashLowHealthWarning` off, the default); its shown state carries no secret aspect of its own | LowHealthFrame.lua/.xml | unverified: the probe |
@@ -271,11 +273,10 @@ posts, and a beta test write-up (wowforeverbuilds, build 1.60.1.69913).
 | The audio alerts' health | Blizzard's code keeps the last percent on its frame (`lastUnitHealthPercent`), the alerts off by default | Blizzard_CombatAudioAlertManager.lua | unverified, unused |
 | Unwrapping a secret | `secretunwrap` closed to addons | FrameScript docs, API lists | docs |
 
-What changed in the addon: on Forever the low point is my health at the
-fight's end (read before and after it, where the game allows); the game's
-low-health warning, where an addon sees it shown, is the close call
-recovered from before the end ("Close call: below 35% health", and where
-the fight ended); should my health prove secret out of a fight too, the
-warning alone stands for it; deaths from the recap; my own casts tell what I used, the traces adding what they don't;
+What changed in the addon: on Forever the game's low-health warning, where
+an addon sees it shown, is the close call ("Close call: below 35% health"),
+recovered from or not; should a build let my health read out of a fight,
+its end is read too (said "11% or lower": a dip before may have gone lower);
+deaths from the recap; my own casts tell what I used, the traces adding what they don't;
 the welcome and the page say so. Hearthtale's close calls (UnitHealth below
 10%) can't fire on Forever either: the same warning could stand in there.

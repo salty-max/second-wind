@@ -128,6 +128,8 @@ end
 -- keeps my health from addons, "below 35%" (its own warning, Recorder.lua).
 function ns.lowOf(d)
   if d.below and not d.lowPct then return ("below %d%%"):format(d.below) end
+  -- (read at the fight's end: an earlier dip may have gone lower)
+  if d.lowAtEnd then return ("%d%% or lower"):format(d.lowPct or 0) end
   return ("%d%%"):format(d.lowPct or 0)
 end
 
@@ -390,17 +392,18 @@ function ns.cardOf(d)
     table.insert(
       hidden,
       (
-        "Forever hides your health during a fight: this close call is the game's own low-health warning, "
+        "Forever hides your health from addons: this close call is the game's own low-health warning, "
         .. "shown below %d%%%s."
       ):format(d.below, d.endPct and (", and you ended the fight at %d%%"):format(d.endPct) or "")
     )
   elseif d.lowAtEnd then
-    table.insert(hidden, "Forever hides your health during a fight: the lowest point here is your health at its end.")
-  elseif d.blind and d.kind == "death" then
     table.insert(
       hidden,
-      "Forever hides your health during a fight: the blows before your death are the game's own recap."
+      "Forever hides your health in a fight: the lowest point here is your health at its end; a dip before may "
+        .. "have gone lower."
     )
+  elseif d.blind and d.kind == "death" then
+    table.insert(hidden, "Forever hides your health from addons: the blows before your death are the game's own recap.")
   end
   if d.readyFrom == "start" then table.insert(hidden, "What you had is what was ready when the fight began.") end
   if d.castsHidden and d.traced then

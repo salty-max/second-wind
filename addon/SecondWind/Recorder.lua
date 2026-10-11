@@ -37,13 +37,13 @@
 --     Tools.lua's ns.tracesOf), untold (the tools whose use leaves none),
 --     warned (Forever: when the game's low-health warning showed), below
 --     (Forever: the close call is that warning's, below this percent)
--- Forever keeps my health from addons during a fight (UnitHealth: secret
--- while a restriction is in effect; out of a fight it should read, the probe
--- says): my health before the fight and at its end where the game gives it,
--- and the game's own low-health warning (LowHealthFrame, shown by Blizzard's
--- code below 35% from my true health) for a close call recovered from before
--- the end, where an addon sees it shown. The death recap, my casts and
--- control lost (the player's own: never secret) are read as on Classic.
+-- Forever keeps my health from addons, in a fight and out of it (measured at
+-- rest on builds 69977 and 70009: Apotheca's probe): the game's own
+-- low-health warning (LowHealthFrame, shown by Blizzard's code below 35% from
+-- my true health) stands for a close call, where an addon sees it shown; my
+-- health before and after a fight is read only should a build allow it. The
+-- death recap, my casts and control lost (the player's own: never secret)
+-- are read as on Classic.
 --     (tools: Tools.lua), killer = { name, spell,
 --     amount, overkill }, foes = { { name, npc, first, hits, misses, damage,
 --     level, rank, type, player } }, heals = { { name, amount } }, casts = {

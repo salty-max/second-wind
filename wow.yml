@@ -31,6 +31,8 @@ globals:
     any: true
   C_LossOfControl:
     any: true
+  C_Secrets:
+    any: true
   C_Spell:
     any: true
   C_Timer:
@@ -50,6 +52,8 @@ globals:
   confusing:
     any: true
   CreateFrame:
+    any: true
+  CreateUnitHealPredictionCalculator:
     any: true
   date:
     any: true
@@ -202,6 +206,8 @@ globals:
   UnitDebuff:
     any: true
   UnitExists:
+    any: true
+  UnitGetDetailedHealPrediction:
     any: true
   UnitGUID:
     any: true

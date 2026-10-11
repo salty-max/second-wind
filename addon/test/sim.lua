@@ -61,7 +61,7 @@ check(
 )
 local unseen = false
 for _, text in ipairs(G.shown) do
-  if text:find("hides your health from addons during a fight") then unseen = true end
+  if text:find("hides your health from addons, in a fight and out of it") then unseen = true end
 end
 check(unseen == G.FOREVER, "… on Forever, saying what the game keeps from addons, and what stands for it")
 ns.welcome.frame:Hide()
@@ -126,8 +126,8 @@ ns.readyTools = readyTools
 if G.FOREVER then
   local d = only(debriefs, "close")
   check(
-    d and not d.lowPct and d.startPct == 100 and d.below == 35 and d.warned == 4 and d.endPct == 44,
-    "Forever: recovered before the end (44%), the game's own low-health warning stands for the close call"
+    d and not d.lowPct and not d.startPct and not d.endPct and d.below == 35 and d.warned == 4,
+    "Forever: my health secret, in a fight and out of it; the game's own low-health warning stands for the close call"
   )
   check(said("Close call, below 35%% in Coldridge Valley"), "… and a line in chat")
   check(ns.cardOf(d).title == "Close call: below 35% health", "… its card")
@@ -135,7 +135,10 @@ if G.FOREVER then
   for _, sec in ipairs(ns.cardOf(d).sections) do
     if sec.heading == "What the game hid" then hid = table.concat(sec.lines, " ") end
   end
-  check(hid:find("shown below 35%%, and you ended the fight at 44%%%."), "… saying where the fight ended")
+  check(
+    hid:find("hides your health from addons: this close call is the game's own low%-health warning, shown below 35%%%."),
+    "… saying so"
+  )
 else
   local d = only(debriefs, "close")
   check(d and d.lowPct == 11 and d.startPct == 100, "a fight survived at 11%: a close call, from full health")
@@ -194,12 +197,13 @@ G.pull()
 G.hit({ from = "Ragged Young Wolf", amount = 147 })
 G.leave()
 local d18 = only(debriefs, "close")
-check(d18 and d18.lowPct == 18, "at 18%, with a threshold of 20%: a close call")
 if G.FOREVER then
   check(
-    d18.lowAtEnd and d18.blind and not d18.below,
-    "Forever: its low point read at the fight's end, my health hidden in it"
+    d18 and d18.below == 35 and not d18.lowPct,
+    "Forever: the game's warning, whatever the threshold (none can be read)"
   )
+else
+  check(d18 and d18.lowPct == 18, "at 18%, with a threshold of 20%: a close call")
 end
 
 if not G.FOREVER then
@@ -776,10 +780,7 @@ if G.FOREVER then
   G.hit({ from = "Ragged Young Wolf", amount = 50 })
   G.leave()
   local d = only(debriefs, "close")
-  check(
-    d and d.lowPct == 11 and d.lowAtEnd and d.startPct == 100,
-    "Forever: a close call read at the fight's end, its start before combat"
-  )
+  check(d and d.below == 35 and not d.startPct, "Forever: a close call by the game's warning, no health read")
   check(
     #d.foes == 2 and d.foes[1].name == "Ragged Young Wolf" and d.foes[1].damage == 100,
     "… the foes from the game's damage meter"
@@ -799,7 +800,7 @@ if G.FOREVER then
     if sec.heading == "The harm, by spell" then harm = sec.lines[1] end
   end
   check(
-    hid and hid:find("your health at its end") and hid:find("ready when the fight began"),
+    hid and hid:find("game's own low%-health warning") and hid:find("ready when the fight began"),
     "… the card says what the game hid"
   )
   check(harm == "100 in all: Attack from Ragged Young Wolf", "… and shows the harm by spell")
@@ -836,17 +837,27 @@ if G.FOREVER then
   )
   check(lessons(d):find("A Greater Healing Potion was in your bags, ready%."), "… a lesson again")
 
+  -- (should a build let my health read out of a fight)
   debriefs = life()
-  G.state.healthAlwaysSecret = true
+  G.state.healthReadable = true
   G.pull()
   G.hit({ from = "Ragged Young Wolf", amount = 130 })
   G.heal({ from = "Brother Paxton", amount = 60, spell = { 2061, "Flash Heal" } })
   G.leave()
-  G.state.healthAlwaysSecret = nil
   d = only(debriefs, "close")
   check(
-    d and d.below == 35 and not d.lowPct and not d.startPct and not d.endPct,
-    "Forever, should my health be secret out of a fight too: the game's warning alone stands for the close call"
+    d and d.below == 35 and not d.lowPct and d.startPct == 100 and d.endPct == 61,
+    "Forever, my health readable out of a fight: recovered before the end, the warning, and where the fight ended"
+  )
+  debriefs = life()
+  G.pull()
+  G.hit({ from = "Ragged Young Wolf", amount = 160 })
+  G.leave()
+  G.state.healthReadable = nil
+  d = only(debriefs, "close")
+  check(
+    d and d.lowPct == 11 and d.lowAtEnd and ns.cardOf(d).title == "Close call: 11% or lower health",
+    "… ended low: read at the end, an earlier dip maybe lower"
   )
 
   debriefs = life()
@@ -894,6 +905,11 @@ G.cast({ 6673, "Battle Shout" })
 G.leave()
 G.wait(1)
 check(said("the probe's report"), "… its report once the fight is over")
+check(
+  said(G.FOREVER and "the game: 1%.60%.1%.70338, secret values on" or "the game: 1%.15%.9%.70003, secret values off")
+    and said("the hits on you %(UNIT_COMBAT%): 3 heard, 0 with a hidden amount"),
+  "… the build, its secret values, and the hits the game tells unit by unit"
+)
 check(said("losing control: told by the game %(Stunned, Cheap Shot%)"), "… what it could tell of a stun")
 check(
   said("the meter's healing: yours 20 %(its spells name Pippa%)")
@@ -905,8 +921,9 @@ if G.FOREVER then
   check(
     said("the combat log: closed")
       and said("your health in the fight: hidden")
-      and said("your health out of a fight: readable"),
-    "… Forever: the log closed, my health hidden in a fight, read out of it"
+      and said("your health out of a fight: hidden")
+      and said("your health through the heal calculator: hidden"),
+    "… Forever: the log closed, my health hidden in a fight and out of it, the calculator no way round"
   )
   check(
     said("the notice before combat's restrictions: seen") and said("the damage meter: 1 of the spells"),
@@ -1071,10 +1088,14 @@ G.state.health = 80
 G.target({ name = "Rabbit", level = 8, type = "Critter" })
 check(#G.printed == before + 1, "… nor at a critter")
 G.target({ name = "Frostmane Snowstrider", level = 8 })
-check(
-  said("You're at 44%% health; 3 of your 5 close calls and deaths began below 60%%%."),
-  "… my health, before a foe near my level"
-)
+if G.FOREVER then
+  check(#G.printed == before + 1, "… Forever: my health secret, no word on it")
+else
+  check(
+    said("You're at 44%% health; 3 of your 5 close calls and deaths began below 60%%%."),
+    "… my health, before a foe near my level"
+  )
+end
 G.state.health = G.state.maxHealth
 G.target(nil)
 
@@ -1108,6 +1129,9 @@ check(
   #events == 3 and events[1].sourceName == "Ragged Young Wolf" and events[1].overkill == 90,
   "a death: the game's recap, the killing blow first"
 )
-check(UnitHealth("player") == 0 and not InCombatLockdown(), "… out of the fight, dead")
+check(
+  (G.FOREVER and G.secret(UnitHealth("player")) or UnitHealth("player") == 0) and not InCombatLockdown(),
+  "… out of the fight, dead (Forever: my health secret out of it too)"
+)
 
 io.stdout:write(("all good%s: %d checks\n"):format(G.FOREVER and " (Forever)" or "", passed))

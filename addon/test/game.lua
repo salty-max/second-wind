@@ -6,7 +6,10 @@
 -- the player's health a secret value in a fight).
 local DIR = "addon/SecondWind/"
 local FOREVER = os.getenv("FOREVER") == "1"
-function GetBuildInfo() return "1.15.9", "70003", "Oct 1 2026", FOREVER and 16001 or 11509 end
+function GetBuildInfo()
+  if FOREVER then return "1.60.1", "70338", "Oct 10 2026", 16001 end
+  return "1.15.9", "70003", "Oct 1 2026", 11509
+end
 local secrets = {}
 if FOREVER then issecretvalue = function(v) return secrets[v] == true end end
 -- A secret value: a table only issecretvalue knows (comparing it would throw,
@@ -68,11 +71,12 @@ function UnitCreatureType(u) return units[u] and units[u].type or nil end
 function UnitClass(u) return u == "player" and state.class:sub(1, 1) .. state.class:sub(2):lower(), state.class end
 function UnitRace(u) return state.race, state.race end
 function UnitHealthMax(u) return u == "player" and state.maxHealth or 0 end
--- (Forever: secret while combat's restriction is in effect; out of a fight
--- too with state.healthAlwaysSecret, the other reading of its docs)
+-- (Forever: secret, in a fight and out of it, as measured on builds 69977
+-- and 70009 (Apotheca's probe); state.healthReadable: out of a fight it
+-- reads, should a build allow it)
 function UnitHealth(u)
   if u ~= "player" then return 0 end
-  if FOREVER and (state.inCombat or state.healthAlwaysSecret) then return secret() end
+  if FOREVER and (state.inCombat or not state.healthReadable) then return secret() end
   return state.health
 end
 function UnitIsDeadOrGhost(u)
@@ -428,6 +432,18 @@ C_DamageMeter = {
   end,
 }
 
+-- Forever's secret values: on, build-wide; the heal calculator keeps my
+-- health as secret as UnitHealth does.
+if FOREVER then
+  C_Secrets = { HasSecretRestrictions = function() return true end }
+  function CreateUnitHealPredictionCalculator()
+    local calc = {}
+    function calc.GetCurrentHealth() return UnitHealth("player") end
+    return calc
+  end
+  function UnitGetDetailedHealPrediction() end
+end
+
 local G = {}
 -- My target: { name, level, rank ("elite"), dead, player, friendly }; nil:
 -- none.
@@ -500,6 +516,7 @@ function G.hit(h)
     )
   end
   health(state.health - h.amount)
+  offer("UNIT_COMBAT", "player", "WOUND", h.crit and "CRITICAL" or "", h.amount, h.spell and h.spell[3] or 1)
   table.insert(recap, 1, {
     timestamp = clock,
     amount = h.amount,
@@ -531,6 +548,7 @@ function G.heal(h)
     false
   )
   health(state.health + h.amount)
+  offer("UNIT_COMBAT", "player", "HEAL", "", h.amount, 2)
 end
 -- Harm from the world out of a fight: kind ("Falling", "Drowning", "Lava").
 function G.env(kind, amount)
@@ -546,7 +564,10 @@ function G.env(kind, amount)
   })
 end
 -- A blow that missed me: { from, what = "DODGE" | "PARRY" | ... }.
-function G.miss(m) log("SWING_MISSED", creature(m.from), m.from, state.guid, state.name, m.what, false, 0) end
+function G.miss(m)
+  log("SWING_MISSED", creature(m.from), m.from, state.guid, state.name, m.what, false, 0)
+  offer("UNIT_COMBAT", "player", m.what or "MISS", "", 0, 1)
+end
 -- A debuff on me: { from, spell = { id, name } }.
 function G.debuff(d)
   log("SPELL_AURA_APPLIED", creature(d.from), d.from, state.guid, state.name, d.spell[1], d.spell[2], 1, "DEBUFF")

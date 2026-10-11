@@ -121,8 +121,21 @@ local function healingRead()
 end
 
 function ns.probeArm()
-  probe = { armed = true, log = 0 }
+  probe = { armed = true, log = 0, combat = 0, combatSecret = 0 }
   print(ns.PREFIX .. "the probe is armed: the next fight is watched. Fight anything, then read the report here.")
+end
+
+-- My health through the heal-prediction calculator (Forever's), read back
+-- out of a fight: "readable", "hidden", or nil where the client has none.
+local function calculated()
+  if not (CreateUnitHealPredictionCalculator and UnitGetDetailedHealPrediction) then return nil end
+  local ok, h = pcall(function()
+    local calc = CreateUnitHealPredictionCalculator()
+    UnitGetDetailedHealPrediction("player", nil, calc)
+    return calc:GetCurrentHealth()
+  end)
+  if not ok then return "refused" end
+  return ns.secret(h) and "hidden" or "readable"
 end
 
 local function report()
@@ -162,6 +175,17 @@ local function report()
         or said(p.lowWarn, "seen in the fight", "not seen (below 35% in the fight?)")
       ),
   }
+  local build, number = GetBuildInfo()
+  local restricted = C_Secrets and C_Secrets.HasSecretRestrictions and C_Secrets.HasSecretRestrictions()
+  table.insert(lines, 1, ("the game: %s.%s, secret values %s"):format(build, number, restricted and "on" or "off"))
+  table.insert(
+    lines,
+    ("the hits on you (UNIT_COMBAT): %s"):format(
+      p.combat == 0 and "none heard" or ("%d heard, %d with a hidden amount"):format(p.combat, p.combatSecret)
+    )
+  )
+  local calc = calculated()
+  if calc then table.insert(lines, "your health through the heal calculator: " .. calc) end
   print(ns.PREFIX .. "the probe's report:")
   for _, l in ipairs(lines) do
     print("  " .. l)
@@ -196,6 +220,11 @@ end
 for _, e in ipairs({ "PLAYER_CONTROL_LOST", "LOSS_OF_CONTROL_ADDED" }) do
   ns.on(e, controlSeen)
 end
+ns.onUnit("UNIT_COMBAT", "player", function(_, _, _, amount)
+  if not (probe and probe.inFight) then return end
+  probe.combat = probe.combat + 1
+  if ns.secret(amount) then probe.combatSecret = probe.combatSecret + 1 end
+end)
 ns.onUnit("UNIT_HEALTH", "player", function()
   if not (probe and probe.inFight) then return end
   if ns.secret(UnitHealth("player")) then
