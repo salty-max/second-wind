@@ -390,14 +390,17 @@ function ns.cardOf(d)
     table.insert(
       hidden,
       (
-        "Forever keeps your health from addons, in a fight and out of it: this close call is the game's own "
-        .. "low-health warning, shown below %d%%."
-      ):format(d.below)
+        "Forever hides your health during a fight: this close call is the game's own low-health warning, "
+        .. "shown below %d%%%s."
+      ):format(d.below, d.endPct and (", and you ended the fight at %d%%"):format(d.endPct) or "")
     )
   elseif d.lowAtEnd then
     table.insert(hidden, "Forever hides your health during a fight: the lowest point here is your health at its end.")
   elseif d.blind and d.kind == "death" then
-    table.insert(hidden, "Forever keeps your health from addons: the blows before your death are the game's own recap.")
+    table.insert(
+      hidden,
+      "Forever hides your health during a fight: the blows before your death are the game's own recap."
+    )
   end
   if d.readyFrom == "start" then table.insert(hidden, "What you had is what was ready when the fight began.") end
   if d.castsHidden and d.traced then

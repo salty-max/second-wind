@@ -37,12 +37,13 @@
 --     Tools.lua's ns.tracesOf), untold (the tools whose use leaves none),
 --     warned (Forever: when the game's low-health warning showed), below
 --     (Forever: the close call is that warning's, below this percent)
--- Forever keeps my health from addons, in a fight and out of it (UnitHealth:
--- SecretReturns, documented as unconditional): no low point is read; the
--- game's own low-health warning (LowHealthFrame, shown by Blizzard's code
--- below 35% from my true health) stands for a close call, where an addon
--- sees it shown. The death recap, my casts and control lost (the player's
--- own: never secret) are read as on Classic.
+-- Forever keeps my health from addons during a fight (UnitHealth: secret
+-- while a restriction is in effect; out of a fight it should read, the probe
+-- says): my health before the fight and at its end where the game gives it,
+-- and the game's own low-health warning (LowHealthFrame, shown by Blizzard's
+-- code below 35% from my true health) for a close call recovered from before
+-- the end, where an addon sees it shown. The death recap, my casts and
+-- control lost (the player's own: never secret) are read as on Classic.
 --     (tools: Tools.lua), killer = { name, spell,
 --     amount, overkill }, foes = { { name, npc, first, hits, misses, damage,
 --     level, rank, type, player } }, heals = { { name, amount } }, casts = {
@@ -359,13 +360,14 @@ local function written(f, death)
     grouped = f.grouped,
     hardcore = hardcore and true or nil,
     startPct = round(f.startPct),
-    lowPct = death and 0 or round(f.low),
-    lowT = death and tenth(GetTime() - f.t0) or f.lowT or (f.below and f.warned) or nil,
+    lowPct = death and 0 or (not f.below and round(f.low)) or nil,
+    lowT = death and tenth(GetTime() - f.t0) or (f.below and f.warned) or f.lowT,
     warned = f.warned,
     below = not death and f.below or nil,
+    endPct = f.below and round(f.endPct) or nil,
     blind = f.blind or nil,
     castsHidden = f.castsHidden or nil,
-    lowAtEnd = not death and f.lowAtEnd or nil,
+    lowAtEnd = not death and not f.below and f.lowAtEnd or nil,
     env = f.env,
     killer = death and lastHit(buffer) or nil,
     foes = foes,
@@ -460,10 +462,12 @@ local function finish(death)
   local f = fight
   fight = nil
   if not f or (not death and duel(f)) then return end
-  -- my health hidden in the fight (Forever): its end, readable again, stands
-  -- for its low point; what was ready at its start for what was below half
+  -- my health hidden in the fight (Forever): its end, where the game gives
+  -- it, stands for its low point; what was ready at its start for what was
+  -- below half
   if f.blind and not death then
     local p = pct()
+    f.endPct = p
     if p and (not f.low or p < f.low) then
       f.low, f.lowAtEnd, f.lowT = p, true, tenth(GetTime() - f.t0)
     end
@@ -502,8 +506,9 @@ local function finish(death)
     end
     f.traced, f.untold = true, f.castsHidden and untold or nil
   end
-  -- (Forever: no low point to read; the game's warning stands for one)
-  if f.blind and not death and not f.low and f.warned then f.below = WARNING end
+  -- (Forever: the game's warning seen in the fight, and no lower point read
+  -- below the threshold: it stands for the low point, lower than the end)
+  if f.blind and not death and f.warned and not (f.low and f.low < ns.option("threshold")) then f.below = WARNING end
   local d = written(f, death)
   -- (Forever: the foes from the meter, for the tally too)
   if ns.meterFill then ns.meterFill(d) end

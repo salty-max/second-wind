@@ -8,10 +8,10 @@
 local _, ns = ...
 local K = ns.kit
 
--- (Forever keeps my health from addons: said before it surprises)
-local FOREVER = "\n\nOn World of Warcraft: Forever, the game keeps your health from addons: a close call there "
-  .. "is its own low-health warning, the screen's red edge below 35%, so keep it on (Options, Combat). "
-  .. "Deaths are debriefed in full."
+-- (Forever hides my health in a fight: said before it surprises)
+local FOREVER = "\n\nOn World of Warcraft: Forever, the game hides your health from addons during a fight: a "
+  .. "close call there is your health as the fight ends or, when you recover before then, the game's own "
+  .. "low-health warning, the screen's red edge below 35%, so keep it on (Options, Combat)."
 
 local W = K.welcome({
   name = "SecondWindWelcome",

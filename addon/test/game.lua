@@ -68,11 +68,11 @@ function UnitCreatureType(u) return units[u] and units[u].type or nil end
 function UnitClass(u) return u == "player" and state.class:sub(1, 1) .. state.class:sub(2):lower(), state.class end
 function UnitRace(u) return state.race, state.race end
 function UnitHealthMax(u) return u == "player" and state.maxHealth or 0 end
--- (Forever: secret always, in a fight and out of it: SecretReturns, documented
--- as unconditional; a beta test read it so out of combat)
+-- (Forever: secret while combat's restriction is in effect; out of a fight
+-- too with state.healthAlwaysSecret, the other reading of its docs)
 function UnitHealth(u)
   if u ~= "player" then return 0 end
-  if FOREVER then return secret() end
+  if FOREVER and (state.inCombat or state.healthAlwaysSecret) then return secret() end
   return state.health
 end
 function UnitIsDeadOrGhost(u)

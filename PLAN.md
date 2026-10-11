@@ -197,8 +197,8 @@ interface documentation (1.60.1) says:
   restriction is "the player is actively affecting combat", open world
   included; no predicate lets my own health through), my casts while it
   lasts, the combat log closed to addons. (Corrected below, "Forever, what
-  is verified": my health is secret out of a fight too; my own casts are
-  not secret.) So a close call I recover from
+  is verified": my own casts are not secret; out of a fight my health most
+  likely reads.) So a close call I recover from
   before the fight ends can't be seen as such, only its end.
 - What it gives: my health before (the notice before the restrictions) and
   after; the damage meter once out of combat (the harm by spell, each marked
@@ -257,7 +257,7 @@ posts, and a beta test write-up (wowforeverbuilds, build 1.60.1.69913).
 
 | | On Forever | Source | Sure |
 |---|---|---|---|
-| My health | secret, in a fight and out of it | `UnitHealth` SecretReturns ("unconditionally", the wiki); a beta `/run` test read it secret | docs + one test; the probe now reads it out of a fight |
+| My health | secret during a fight; out of one, most likely readable | every condition Blizzard defines is "when … restrictions are in effect"; its posts lift cooldowns and casts "outside combat"; `HasSecretRestrictions`: tagged APIs only "potentially" return secrets. Against: the wiki calls SecretReturns "unconditional" (its own reading, not Blizzard's), and a beta `/run` test of unknown context | the probe reads it out of a fight; the user, rightly: "hiding health out of fights makes no sense" |
 | My max health | readable (secret for units not player-controlled) | SecretWhenUnitHealthMaxRestricted | docs |
 | A health bar's value read back | secret | StatusBar `GetValue`: SecretReturnsForAspect BarValue | docs |
 | The game's low-health warning | Blizzard's code shows `LowHealthFrame` below 35% of my true health (`doNotFlashLowHealthWarning` off, the default); its shown state carries no secret aspect of its own | LowHealthFrame.lua/.xml | unverified: the probe |
@@ -271,9 +271,11 @@ posts, and a beta test write-up (wowforeverbuilds, build 1.60.1.69913).
 | The audio alerts' health | Blizzard's code keeps the last percent on its frame (`lastUnitHealthPercent`), the alerts off by default | Blizzard_CombatAudioAlertManager.lua | unverified, unused |
 | Unwrapping a secret | `secretunwrap` closed to addons | FrameScript docs, API lists | docs |
 
-What changed in the addon: on Forever no low point is read; the game's
+What changed in the addon: on Forever the low point is my health at the
+fight's end (read before and after it, where the game allows); the game's
 low-health warning, where an addon sees it shown, is the close call
-("Close call: below 35% health"), recovered from or not; deaths from the
-recap; my own casts tell what I used, the traces adding what they don't;
+recovered from before the end ("Close call: below 35% health", and where
+the fight ended); should my health prove secret out of a fight too, the
+warning alone stands for it; deaths from the recap; my own casts tell what I used, the traces adding what they don't;
 the welcome and the page say so. Hearthtale's close calls (UnitHealth below
 10%) can't fire on Forever either: the same warning could stand in there.

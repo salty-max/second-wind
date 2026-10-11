@@ -68,12 +68,14 @@ The plan, its research and its decisions: PLAN.md.
     tallied by its traits (`record.fights`). Its schema in its header.
     `ns.summaryOf(d)`: a line. Forever (its 1.60.1 docs and the wiki's
     secret predicates, 11 October 2026; PLAN.md, "Forever, what is
-    verified"): my health secret in a fight and out of it (`UnitHealth`:
-    SecretReturns, unconditional), so no low point is read: the game's own
+    verified"): my health secret during a fight (out of one it should read:
+    the probe says; `state.healthAlwaysSecret` replays the other case): its
+    low point is my health at its end (`lowAtEnd`), and the game's own
     low-health warning (`LowHealthFrame`, shown by Blizzard's code below 35%
-    from my true health; its Show hooked) stands for a close call (`below`,
-    `warned`), recovered from or not; the fight begins at the notice before
-    combat's restrictions (cooldowns still readable: `readyFrom` "start");
+    from my true health; its Show hooked) stands for a close call recovered
+    from before then (`below`, `warned`, `endPct`); the fight begins at the
+    notice before combat's restrictions (health and cooldowns still readable:
+    `startPct`, `readyFrom` "start");
     my own casts and control lost are the player's, never secret; what a use
     leaves (`ns.tracesOf`) adds what the casts didn't tell (`traced`), a use
     with no trace `untold` only should the casts be hidden.
