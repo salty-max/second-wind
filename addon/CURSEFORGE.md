@@ -57,7 +57,8 @@ The same file for Classic Era (Hardcore, Season of Discovery), TBC Anniversary a
 
 World of Warcraft: Forever hides your health from addons, in a fight and out of it, and closes the combat log to them. Your own casts, your stuns and fears, and the game's death recap stay readable. So on Forever:
 
-- **A close call** is the game's own low-health warning (the screen's red edge, below 35% of your health), seen even when you recover before the fight ends. Your threshold can't apply there. Keep that warning on (Options, Combat).
+- **Your health is rebuilt** from each blow and heal the game tells, counted from its own low-health warning (the screen's red edge, below 35% of your health), or back from a death: the graph, the lowest point (within a blow's size, the card says how close) and your threshold work again, even when you recover before the fight ends. Keep that warning on (Options, Combat).
+- **The hits that mattered** come with their size and moment; who dealt them, when there was one foe, or from the game's damage meter.
 - **Deaths** are debriefed in full, from the game's recap.
 - **The foes and the harm by spell** come from the game's damage meter once the fight is over.
 - **What you had** is what was ready as the fight began; what you used is told by your casts, and by what a use leaves behind (one fewer potion in your bags, a cooldown begun).

@@ -10,8 +10,8 @@ local K = ns.kit
 
 -- (Forever hides my health from addons: said before it surprises)
 local FOREVER = "\n\nOn World of Warcraft: Forever, the game hides your health from addons, in a fight and out of "
-  .. "it: a close call there is the game's own low-health warning, the screen's red edge below 35%, so keep it "
-  .. "on (Options, Combat). Deaths are debriefed in full."
+  .. "it: Second Wind rebuilds it from each blow and heal the game tells, counted from its own low-health "
+  .. "warning, the screen's red edge below 35%, so keep that warning on (Options, Combat)."
 
 local W = K.welcome({
   name = "SecondWindWelcome",

@@ -61,7 +61,7 @@ check(
 )
 local unseen = false
 for _, text in ipairs(G.shown) do
-  if text:find("hides your health from addons, in a fight and out of it") then unseen = true end
+  if text:find("rebuilds it from each blow and heal the game tells") then unseen = true end
 end
 check(unseen == G.FOREVER, "… on Forever, saying what the game keeps from addons, and what stands for it")
 ns.welcome.frame:Hide()
@@ -138,18 +138,21 @@ ns.readyTools = readyTools
 if G.FOREVER then
   local d = only(debriefs, "close")
   check(
-    d and not d.lowPct and not d.startPct and not d.endPct and d.below == 35 and d.warned == 4,
-    "Forever: my health secret, in a fight and out of it; the game's own low-health warning stands for the close call"
+    d and d.rebuilt == "warning" and d.lowPct == 11 and d.lowRange[1] == 7 and d.lowRange[2] == 11 and d.warned == 4,
+    "Forever: my health secret, rebuilt from each blow and heal the game told, counted from its low-health warning"
   )
-  check(said("Close call, below 35%% in Coldridge Valley"), "… and a line in chat")
-  check(ns.cardOf(d).title == "Close call: below 35% health", "… its card")
+  check(said("Close call, about 11%% in Coldridge Valley"), "… and a line in chat")
+  check(
+    ns.cardOf(d).title == "Close call: about 11% health" and #d.samples == 5,
+    "… its card, my health over the fight"
+  )
   local hid = ""
   for _, sec in ipairs(ns.cardOf(d).sections) do
     if sec.heading == "What the game hid" then hid = table.concat(sec.lines, " ") end
   end
   check(
-    hid:find("hides your health from addons: this close call is the game's own low%-health warning, shown below 35%%%."),
-    "… saying so"
+    hid:find("counted from the game's own low%-health warning %(35%%%): the lowest point between 7%% and 11%%%."),
+    "… saying so, and within what"
   )
 else
   local d = only(debriefs, "close")
@@ -209,14 +212,8 @@ G.pull()
 G.hit({ from = "Ragged Young Wolf", amount = 147 })
 G.leave()
 local d18 = only(debriefs, "close")
-if G.FOREVER then
-  check(
-    d18 and d18.below == 35 and not d18.lowPct,
-    "Forever: the game's warning, whatever the threshold (none can be read)"
-  )
-else
-  check(d18 and d18.lowPct == 18, "at 18%, with a threshold of 20%: a close call")
-end
+check(d18 and d18.lowPct == 18, "at 18%, with a threshold of 20%: a close call")
+if G.FOREVER then check(d18.rebuilt == "warning", "Forever: rebuilt, the threshold applying again") end
 
 if not G.FOREVER then
   debriefs = life()
@@ -792,7 +789,7 @@ if G.FOREVER then
   G.hit({ from = "Ragged Young Wolf", amount = 50 })
   G.leave()
   local d = only(debriefs, "close")
-  check(d and d.below == 35 and not d.startPct, "Forever: a close call by the game's warning, no health read")
+  check(d and d.rebuilt == "warning" and d.lowPct == 11, "Forever: a close call rebuilt from the blows the game told")
   check(
     #d.foes == 2 and d.foes[1].name == "Ragged Young Wolf" and d.foes[1].damage == 100,
     "… the foes from the game's damage meter"
@@ -820,7 +817,7 @@ if G.FOREVER then
     if sec.heading == "The harm, by spell" then harm = sec.lines[1] end
   end
   check(
-    hid and hid:find("game's own low%-health warning") and hid:find("ready when the fight began"),
+    hid and hid:find("rebuilt from each blow and heal") and hid:find("ready when the fight began"),
     "… the card says what the game hid"
   )
   check(harm == "100 in all: Attack from Ragged Young Wolf", "… and shows the harm by spell")
@@ -864,10 +861,9 @@ if G.FOREVER then
   G.hit({ from = "Ragged Young Wolf", amount = 130 })
   G.heal({ from = "Brother Paxton", amount = 60, spell = { 2061, "Flash Heal" } })
   G.leave()
-  d = only(debriefs, "close")
   check(
-    d and d.below == 35 and not d.lowPct and d.startPct == 100 and d.endPct == 61,
-    "Forever, my health readable out of a fight: recovered before the end, the warning, and where the fight ended"
+    #debriefs == 0,
+    "Forever, my health readable out of a fight: rebuilt exactly from its end, its lowest 28%: no close call"
   )
   debriefs = life()
   G.pull()
@@ -876,8 +872,8 @@ if G.FOREVER then
   G.state.healthReadable = nil
   d = only(debriefs, "close")
   check(
-    d and d.lowPct == 11 and d.lowAtEnd and ns.cardOf(d).title == "Close call: 11% or lower health",
-    "… ended low: read at the end, an earlier dip maybe lower"
+    d and d.lowPct == 11 and d.rebuilt == "end" and ns.cardOf(d).title == "Close call: 11% health",
+    "… ended low: rebuilt exactly, counted back from its end"
   )
 
   debriefs = life()
@@ -909,6 +905,96 @@ if G.FOREVER then
   check(
     d and d.spells and d.spells[1].spell == "Fireball",
     "Forever: a death's harm by spell, read once out of the fight"
+  )
+  check(
+    d.rebuilt == "death" and #d.samples == 3 and d.samples[2].pct == 67 and d.samples[3].pct == 0,
+    "… its health rebuilt, counted back from the death (the killing blow's overkill taken off)"
+  )
+
+  -- A real fight, as the game told it (Forever's beta: the probe's rows of
+  -- the user's paladin, level 20, against a Dark Iron Insurgent), replayed:
+  -- the rebuild finds what was worked out by hand.
+  local REAL = { -- (t, event, amount): the user's paladin, Forever's beta, 11 October 2026
+    { 1.7, "WOUND", 17 },
+    { 3.7, "WOUND", 21 },
+    { 5.6, "WOUND", 19 },
+    { 7.7, "WOUND", 20 },
+    { 9.6, "WOUND", 19 },
+    { 11.6, "WOUND", 18 },
+    { 13.7, "WOUND", 20 },
+    { 15.6, "MISS", 0 },
+    { 17.7, "WOUND", 17 },
+    { 19.7, "WOUND", 22 },
+    { 21.6, "WOUND", 20 },
+    { 23.7, "MISS", 0 },
+    { 28.2, "WOUND", 18 },
+    { 30.3, "WOUND", 18 },
+    { 32.3, "WOUND", 20 },
+    { 34.3, "WOUND", 21 },
+    { 36.3, "WOUND", 22 },
+    { 38.3, "WOUND", 22 },
+    { 40.3, "WOUND", 20 },
+    { 42.3, "WOUND", 23 },
+    { 44.3, "WOUND", 20 },
+    { 46.3, "WOUND", 21 },
+    { 48.3, "WOUND", 20 },
+    { 50.3, "WOUND", 22 },
+    { 52.3, "WOUND", 19 },
+    { 54.2, "WOUND", 21 },
+    { 56.2, "WOUND", 21 },
+    { 58.3, "WOUND", 21 },
+    { 59.5, "WOUND", 19 },
+    { 61.5, "WOUND", 19 },
+    { 63.1, "HEAL", 90 },
+    { 63.5, "WOUND", 19 },
+    { 65.5, "WOUND", 21 },
+    { 67.2, "HEAL", 167 },
+    { 67.5, "WOUND", 21 },
+    { 69.5, "WOUND", 20 },
+    { 71.5, "WOUND", 21 },
+    { 73.5, "WOUND", 18 },
+    { 75.5, "WOUND", 22 },
+    { 76.4, "HEAL", 168 },
+    { 77.5, "WOUND", 22 },
+    { 79.5, "WOUND", 22 },
+  }
+  local function replay(threshold)
+    debriefs = life()
+    ns.setOption("threshold", threshold)
+    G.state.maxHealth, G.state.health = 731, 700
+    G.pull()
+    local now = 0
+    for _, r in ipairs(REAL) do
+      G.wait(r[1] - now)
+      now = r[1]
+      if r[2] == "WOUND" then
+        G.hit({ from = "Dark Iron Insurgent", amount = r[3] })
+      elseif r[2] == "HEAL" then
+        G.heal({ amount = r[3], spell = { 635, "Holy Light" } })
+      else
+        G.miss({ from = "Dark Iron Insurgent", what = r[2] })
+      end
+    end
+    G.leave()
+    G.state.maxHealth, G.state.health = 180, 180
+  end
+  replay(15)
+  check(#debriefs == 0, "Forever, a real fight replayed: its lowest point above 15%, no close call")
+  replay(25)
+  d = only(debriefs, "close")
+  local foe = d and d.foes[1]
+  check(
+    d
+      and d.rebuilt == "warning"
+      and d.lowRange[1] == 19
+      and d.lowRange[2] == 21
+      and d.lowPct == 20
+      and d.lowT == 61.5
+      and foe.name == "Dark Iron Insurgent"
+      and foe.hits == 37
+      and foe.misses == 2
+      and d.heals[1].amount == 425,
+    "Forever, a real fight replayed: its lowest point rebuilt at 19-21% (61.5 s), every blow its foe's"
   )
 
   debriefs = life()

@@ -77,9 +77,17 @@ The plan, its research and its decisions: PLAN.md.
     verified"): my health secret, in a fight and out of it (measured at
     rest on builds 69977 and 70009: Apotheca's probe; `state.healthReadable`
     replays a build that would let it read out of a fight: `lowAtEnd`, "11%
-    or lower", `endPct`): the game's own low-health warning (`LowHealthFrame`,
-    shown by Blizzard's code below 35% from my true health; its Show hooked)
-    stands for a close call (`below`, `warned`), recovered from or not; the
+    or lower", `endPct`): my health rebuilt (`rebuilt`: "warning", "death",
+    "end") from each blow and heal `UNIT_COMBAT` tells (`told`: amounts plain,
+    measured), counted from the game's own low-health warning
+    (`LowHealthFrame`, shown by Blizzard's code below 35% of my true health,
+    its Show hooked: between 35% less the blow that crossed it and 35%, no
+    more than a full start allows, which is then the likeliest: `lowRange`),
+    back from a death (the killing blow's overkill off, from the recap) or
+    from a readable end; the samples, the low point, the blows for the card
+    (one foe the meter names dealt them all), the heals in all; a close call
+    when its lowest could be below the threshold; without blows told, the
+    warning alone (`below`). The
     fight begins at the notice before combat's restrictions (cooldowns still
     readable: `readyFrom` "start");
     my own casts and control lost are the player's, never secret; what a use

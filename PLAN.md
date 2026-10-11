@@ -310,3 +310,13 @@ hit's size), the fight began at 95-98%, its lowest point was 18.6-21.2% at
 61.5 seconds (before the first Holy Light), its end 51-54%. Each hit's size
 and moment, and my health over a fight within about a hit's size, can be
 rebuilt on Forever.
+
+Built the same day (the user: "yes build it"): on Forever, each blow and heal
+on me is kept as UNIT_COMBAT tells it, and my health rebuilt from the
+warning (within the crossing blow, no more than a full start allows), back
+from a death (the overkill off, from the recap a second later) or from a
+readable end: the graph, the low point ("about 20%", its range on the card),
+the hits that mattered, the lessons that need them, the heals in all; the
+threshold applies again (a close call when the lowest could be below it).
+The user's fight, replayed in the sim from its rows: lowest 19-21% at 61.5
+seconds, every blow the Dark Iron Insurgent's; above 15%, no close call.

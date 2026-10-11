@@ -128,6 +128,8 @@ end
 -- keeps my health from addons, "below 35%" (its own warning, Recorder.lua).
 function ns.lowOf(d)
   if d.below and not d.lowPct then return ("below %d%%"):format(d.below) end
+  -- (rebuilt from the game's warning: within a blow's size)
+  if d.lowRange and d.lowRange[1] ~= d.lowRange[2] then return ("about %d%%"):format(d.lowPct or 0) end
   -- (read at the fight's end: an earlier dip may have gone lower)
   if d.lowAtEnd then return ("%d%% or lower"):format(d.lowPct or 0) end
   return ("%d%%"):format(d.lowPct or 0)
@@ -255,8 +257,9 @@ local RULES = {
     for _, h in ipairs(hits(d)) do
       local s = h.share and share(h.share)
       if s and h.share >= 0.3 then
+        local from = h.src ~= "?" and (" from " .. h.src) or ""
         local what = h.spell and (h.crit and ("A critical " .. h.spell) or h.spell)
-          or (h.crit and ("A critical blow from " .. h.src) or ("A blow from " .. h.src))
+          or (h.crit and ("A critical blow" .. from) or ("A blow" .. from))
         return 68, ("%s took %s of your health at once."):format(what, s)
       end
     end
@@ -393,7 +396,19 @@ function ns.cardOf(d)
   section("Foes", foes)
   -- what Forever hid (its health and casts in a fight), said plainly
   local hidden = {}
-  if d.below and not d.lowPct then
+  if d.rebuilt then
+    local from = d.rebuilt == "death" and "counted back from your death"
+      or d.rebuilt == "end" and "counted back from your health at the fight's end"
+      or "counted from the game's own low-health warning (35%)"
+    local range = d.lowRange and (": the lowest point between %d%% and %d%%"):format(d.lowRange[1], d.lowRange[2]) or ""
+    table.insert(
+      hidden,
+      ("Forever hides your health from addons: it was rebuilt from each blow and heal the game told, %s%s."):format(
+        from,
+        range
+      )
+    )
+  elseif d.below and not d.lowPct then
     table.insert(
       hidden,
       (
@@ -423,11 +438,14 @@ function ns.cardOf(d)
   section("What the game hid", hidden)
   local mattered = {}
   for _, h in ipairs(f.hits) do
-    local what = h.spell and (h.crit and (h.spell .. ", critical,") or (h.spell .. ","))
-      or (h.crit and "a critical blow," or "a blow,")
-    local before = h.before
-      and (h.before < 0.5 and "at the low point" or ("%.1f s before the low point"):format(h.before))
-    table.insert(mattered, ("%d: %s from %s%s"):format(h.amount, what, h.src, before and (", " .. before) or ""))
+    -- (who dealt it, where the game said: not on Forever, several foes)
+    local parts =
+      { h.spell and (h.crit and (h.spell .. ", critical") or h.spell) or (h.crit and "a critical blow" or "a blow") }
+    if h.src ~= "?" then table.insert(parts, "from " .. h.src) end
+    if h.before then
+      table.insert(parts, h.before < 0.5 and "at the low point" or ("%.1f s before the low point"):format(h.before))
+    end
+    table.insert(mattered, ("%d: %s"):format(h.amount, table.concat(parts, ", ")))
   end
   section("The hits that mattered", mattered)
   local lost = {}
@@ -439,8 +457,9 @@ function ns.cardOf(d)
     end
   end
   section("Out of your control", lost)
-  -- (no combat log: the game's damage meter, by spell, totals)
-  if #f.hits == 0 then
+  -- (Forever: the game's damage meter, by spell and who cast it, totals; the
+  -- blows above, rebuilt, don't name their dealers)
+  if d.spells and #d.spells > 0 then
     local harm = {}
     for _, sp in ipairs(d.spells or {}) do
       local what = sp.spell and sp.src and (sp.spell .. " from " .. sp.src) or sp.spell or sp.src or "?"
@@ -450,7 +469,9 @@ function ns.cardOf(d)
   end
   local heals = {}
   for _, h in ipairs(d.heals or {}) do
-    table.insert(heals, h.name == "you" and ("Your own: %d"):format(h.amount) or ("%s: %d"):format(h.name, h.amount))
+    -- ("received": the heals the game told, not who cast them: Forever)
+    local who = h.name == "you" and "Your own" or h.name == "received" and "In all" or h.name
+    table.insert(heals, ("%s: %d"):format(who, h.amount))
   end
   section("Heals", heals)
   local had = {}
@@ -477,7 +498,8 @@ function ns.marksOf(d)
   local marks = {}
   for _, h in ipairs(hits(d)) do
     if h.before and d.lowT then
-      local what = h.spell and (h.spell .. " from " .. h.src) or h.src
+      local from = h.src ~= "?" and h.src or nil
+      local what = h.spell and (from and (h.spell .. " from " .. from) or h.spell) or from or "a blow"
       table.insert(marks, { kind = "hit", t = d.lowT - h.before, text = ("%d: %s"):format(h.amount, what) })
     end
   end

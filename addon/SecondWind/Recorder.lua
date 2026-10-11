@@ -366,6 +366,8 @@ local function written(f, death)
     warned = f.warned,
     below = not death and f.below or nil,
     endPct = f.below and round(f.endPct) or nil,
+    rebuilt = f.rebuilt,
+    lowRange = f.rebuilt == "warning" and f.lowRange or nil,
     blind = f.blind or nil,
     castsHidden = f.castsHidden or nil,
     lowAtEnd = not death and not f.below and f.lowAtEnd or nil,
@@ -382,7 +384,7 @@ local function written(f, death)
     unused = unusedOf(f),
     traced = f.traced,
     untold = f.untold and #f.untold > 0 and f.untold or nil,
-    events = rows(death and buffer or f.window or buffer),
+    events = rows((death and #buffer > 0 and buffer) or f.window or buffer),
     samples = thin(f.samples),
   }
 end
@@ -435,6 +437,26 @@ local function recapOf(d)
     })
   end
   d.recap = recap
+  -- (a death rebuilt: the killing blow took no more than I had)
+  local overkill = recap[1] and recap[1].overkill
+  if d.rebuilt == "death" and overkill and overkill > 0 and d.maxHealth then
+    local told = {}
+    for i, row in ipairs(d.events or {}) do
+      told[i] = { k = row.k, t = row.t, amount = row.amount }
+    end
+    for i = #told, 1, -1 do
+      if told[i].k == "hit" then
+        told[i].amount = math.max(0, told[i].amount - overkill)
+        break
+      end
+    end
+    local hp, start = ns.rebuiltFrom(told, d.maxHealth, #told, 0)
+    local samples = { { t = 0, pct = round(start / d.maxHealth * 100) } }
+    for i, row in ipairs(told) do
+      if row.k ~= "miss" then table.insert(samples, { t = row.t, pct = round(hp[i] / d.maxHealth * 100) }) end
+    end
+    d.samples, d.startPct = thin(samples), round(start / d.maxHealth * 100)
+  end
   if next(hidden) then
     d.recapHidden = {}
     for name in pairs(hidden) do
@@ -465,6 +487,97 @@ local function recapOf(d)
   if ns.refresh then ns.refresh() end
 end
 
+-- ── my health rebuilt (Forever) ──────────────────────────────────────────────
+-- My health hidden in a fight, each blow and heal on me as UNIT_COMBAT tells
+-- it (`told`: its amount plain, measured on Forever's beta on 11 October 2026,
+-- the blows summing to the damage meter's own) rebuilds it from a moment it is
+-- known: my death (none left), my health at the fight's end should a build give
+-- it, or the game's own low-health warning (35%: between 35% less the blow
+-- that crossed it and 35%, and no more than a fight begun at full health
+-- allows). Counted both ways from there, kept within 0 and my maximum.
+local function delta(row)
+  if row.k == "hit" then return -row.amount end
+  if row.k == "heal" then return row.amount end
+  return 0
+end
+
+-- My health after each told row, and before the first, from `at` after row k.
+function ns.rebuiltFrom(told, max, k, at)
+  local function clamp(h) return math.max(0, math.min(max, h)) end
+  local hp, h = {}, at
+  for i = k + 1, #told do
+    h = clamp(h + delta(told[i]))
+    hp[i] = h
+  end
+  h = at
+  for i = k, 1, -1 do
+    hp[i] = h
+    h = clamp(h - delta(told[i]))
+  end
+  return hp, h
+end
+
+local function rebuild(f, death)
+  local told, max = f.told, f.max
+  if not (told and #told > 0 and max and not ns.secret(max) and max > 0) then return end
+  local k, lo, hi, how
+  if death then
+    k, lo, hi, how = #told, 0, 0, "death"
+  elseif f.endPct then
+    k, how = #told, "end"
+    lo = f.endPct * max / 100
+    hi = lo
+  elseif f.warned then
+    for i = #told, 1, -1 do
+      if told[i].k == "hit" and told[i].t <= f.warned + 0.1 then
+        k = i
+        break
+      end
+    end
+    if not k then return end
+    hi = max * WARNING / 100
+    lo = math.max(0, hi - told[k].amount)
+    -- (no more than a fight begun at full health allows: then, as fights
+    -- mostly begin, that full start is the likeliest)
+    local net = 0
+    for i = 1, k do
+      net = net - delta(told[i])
+    end
+    if max - net >= lo and max - net < hi then
+      hi = max - net
+      f.fullStart = true
+    end
+    how = "warning"
+  else
+    return
+  end
+  local hp, start = ns.rebuiltFrom(told, max, k, f.fullStart and hi or (lo + hi) / 2)
+  local hpLo, startLo = ns.rebuiltFrom(told, max, k, lo)
+  local hpHi, startHi = ns.rebuiltFrom(told, max, k, hi)
+  local function pc(h) return h / max * 100 end
+  local samples = { { t = 0, pct = round(pc(start)) } }
+  local low, lowT, lowI = start, 0, 0
+  for i, row in ipairs(told) do
+    if row.k ~= "miss" then table.insert(samples, { t = row.t, pct = round(pc(hp[i])) }) end
+    if hp[i] < low then
+      low, lowT, lowI = hp[i], row.t, i
+    end
+  end
+  f.samples = samples
+  f.low, f.lowT = pc(low), lowT
+  f.lowRange = {
+    round(pc(lowI == 0 and startLo or hpLo[lowI])),
+    round(pc(lowI == 0 and startHi or hpHi[lowI])),
+  }
+  f.startPct = f.startPct or pc(start)
+  f.rebuilt, f.lowAtEnd, f.window = how, nil, told
+  local received = 0
+  for _, row in ipairs(told) do
+    if row.k == "heal" then received = received + row.amount end
+  end
+  if received > 0 and not next(f.heals) then f.heals.received = received end
+end
+
 -- The fight is over: a debrief if it was a close call, or a death.
 -- (a duel: one was on when it began, and only players touched me; with no
 -- combat log to tell who did, a duel on is enough)
@@ -491,6 +604,7 @@ local function finish(death)
       f.low, f.lowAtEnd, f.lowT = p, true, tenth(GetTime() - f.t0)
     end
   end
+  if f.blind then rebuild(f, death) end
   if f.blind and not f.ready and f.startReady then
     f.ready, f.readyT, f.readyFrom = f.startReady, 0, "start"
   end
@@ -527,12 +641,29 @@ local function finish(death)
   end
   -- (Forever: the game's warning seen in the fight, and no lower point read
   -- below the threshold: it stands for the low point, lower than the end)
-  if f.blind and not death and f.warned and not (f.low and f.low < ns.option("threshold")) then f.below = WARNING end
+  if f.blind and not death and f.warned and not f.rebuilt and not (f.low and f.low < ns.option("threshold")) then
+    f.below = WARNING
+  end
   local d = written(f, death)
   -- (Forever: the foes from the meter, for the tally too)
   if ns.meterFill then ns.meterFill(d) end
+  -- (rebuilt: one foe named by the meter dealt every blow told)
+  if d.rebuilt and #d.foes == 1 then
+    local foe = d.foes[1]
+    foe.hits, foe.misses = 0, 0
+    for _, row in ipairs(d.events) do
+      if row.k == "hit" then
+        row.src = foe.name
+        foe.hits = foe.hits + 1
+      elseif row.k == "miss" then
+        foe.misses = foe.misses + 1
+      end
+    end
+  end
   tally(d)
-  if not death and not (f.low and f.low < ns.option("threshold")) and not f.below then return end
+  -- (rebuilt: a close call if its lowest point could have gone below the threshold)
+  local lowest = f.lowRange and f.lowRange[1] or f.low
+  if not death and not (lowest and lowest < ns.option("threshold")) and not f.below then return end
   store(d)
   if death then C_Timer.After(1, function() recapOf(d) end) end
   if ns.debriefed then ns.debriefed(d) end
@@ -647,6 +778,42 @@ ns.on("PLAYER_DEAD", function()
   end
 end)
 ns.onUnit("UNIT_HEALTH", "player", health)
+-- (Forever, my health hidden: each blow and heal on me as the game tells it)
+local MISSED = {
+  MISS = true,
+  DODGE = true,
+  PARRY = true,
+  BLOCK = true,
+  RESIST = true,
+  IMMUNE = true,
+  EVADE = true,
+  DEFLECT = true,
+  REFLECT = true,
+  ABSORB = true,
+}
+local TOLD = 400
+ns.onUnit("UNIT_COMBAT", "player", function(_, event, flag, amount, school)
+  local f = fight
+  if not (f and f.blind) or ns.secret(event) or ns.secret(amount) or not amount then return end
+  local row
+  if event == "WOUND" and amount > 0 then
+    row = {
+      k = "hit",
+      amount = amount,
+      crit = (not ns.secret(flag) and flag == "CRITICAL") or nil,
+      school = not ns.secret(school) and school or nil,
+    }
+  elseif event == "HEAL" and amount > 0 then
+    row = { k = "heal", amount = amount }
+  elseif MISSED[event] and amount == 0 then
+    row = { k = "miss", what = event }
+  end
+  if not row then return end
+  row.t = tenth(GetTime() - f.t0)
+  f.told = f.told or {}
+  if #f.told < TOLD then table.insert(f.told, row) end
+  if row.k == "hit" then harmed(f) end
+end)
 -- (control lost or back: the game's notices)
 for _, e in ipairs({ "PLAYER_CONTROL_LOST", "PLAYER_CONTROL_GAINED", "LOSS_OF_CONTROL_ADDED", "LOSS_OF_CONTROL_UPDATE" }) do
   ns.on(e, function()
