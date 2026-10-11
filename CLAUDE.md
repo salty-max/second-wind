@@ -52,7 +52,13 @@ The plan, its research and its decisions: PLAN.md.
     combat log, my health and casts, the notice before combat's
     restrictions, the meter: the harm marked avoidable, my healing and whom
     it names; losing control; the game's own low-health warning at 35%,
-    `LowHealthFrame`, shown by Blizzard's code from my true health).
+    `LowHealthFrame`, shown by Blizzard's code from my true health), each
+    report kept with the rows it was drawn from (each hit and heal as
+    `UNIT_COMBAT` gave it, each cast, each control event, the warning's
+    moment, the meter's spells; a secret as the word "secret") in
+    `SecondWindSettings.probes`, the account's saved file (the last ten): the
+    user hands over the file, not a paste. A death's recap names the fields
+    Forever kept secret (`recapHidden`).
   - `Recorder.lua`: each fight as it went (its start: combat or the first
     harm; its end: combat's, a moment later so a death wins, or QUIET seconds
     after a fall), the foes (when each came, hits, misses, damage, level and

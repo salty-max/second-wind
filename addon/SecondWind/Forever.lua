@@ -99,8 +99,26 @@ end
 -- avoidable or not; my healing, and whom its spells name), losing control (a
 -- stun, a fear: the game's account of it, or only that I had), the game's own
 -- low-health warning (shown at 35% by Blizzard's code from my true health:
--- whether an addon may see it in a fight, my health hidden).
+-- whether an addon may see it in a fight, my health hidden). Each report is
+-- kept with what it was drawn from (each hit and heal as UNIT_COMBAT gave it, each
+-- cast, each loss of control, the warning's moment, the meter's spells; a
+-- secret value as the word "secret") in SecondWindSettings.probes, the
+-- account's saved file, written at /reload or logout: the last KEPT.
 local probe
+local KEPT, ROWS = 10, 80
+
+-- A row of what the probe saw, its time from the fight's start.
+local function noted(kind, row)
+  if not (probe and probe.inFight) or #probe.rows >= ROWS then return end
+  row.t = math.floor((GetTime() - (probe.t0 or GetTime())) * 10 + 0.5) / 10
+  row.k = kind
+  table.insert(probe.rows, row)
+end
+local function plain(v)
+  if v == nil then return nil end
+  if ns.secret(v) then return "secret" end
+  return v
+end
 
 -- My healing in the last fight by the meter, and the names its spells give.
 local function healingRead()
@@ -121,7 +139,14 @@ local function healingRead()
 end
 
 function ns.probeArm()
-  probe = { armed = true, log = 0, combat = 0, combatSecret = 0 }
+  probe = {
+    armed = true,
+    log = 0,
+    combat = 0,
+    combatSecret = 0,
+    rows = {},
+    healthBefore = ns.secret(UnitHealth("player")) and "hidden" or "readable",
+  }
   print(ns.PREFIX .. "the probe is armed: the next fight is watched. Fight anything, then read the report here.")
 end
 
@@ -190,6 +215,29 @@ local function report()
   for _, l in ipairs(lines) do
     print("  " .. l)
   end
+  -- (kept, with what it was drawn from, in the account's saved file)
+  if type(SecondWindSettings) == "table" then
+    SecondWindSettings.probes = SecondWindSettings.probes or {}
+    local kept = SecondWindSettings.probes
+    table.insert(kept, {
+      at = time(),
+      date = date("%Y-%m-%d %H:%M"),
+      build = ("%s.%s"):format(build, number),
+      interface = select(4, GetBuildInfo()),
+      healthBefore = p.healthBefore,
+      lines = lines,
+      rows = p.rows,
+      meter = taken,
+    })
+    while #kept > KEPT do
+      table.remove(kept, 1)
+    end
+    print(
+      "  "
+        .. "kept in SecondWind.lua, the account's saved file (WTF\\Account\\<account>\\SavedVariables), "
+        .. "written at /reload or logout."
+    )
+  end
 end
 
 ns.on("ADDON_RESTRICTION_STATE_CHANGED", function()
@@ -197,11 +245,14 @@ ns.on("ADDON_RESTRICTION_STATE_CHANGED", function()
 end)
 if LowHealthFrame and LowHealthFrame.Show then
   hooksecurefunc(LowHealthFrame, "Show", function()
-    if probe and probe.inFight then probe.lowWarn = true end
+    if probe and probe.inFight then
+      if not probe.lowWarn then noted("warning", {}) end
+      probe.lowWarn = true
+    end
   end)
 end
--- (control lost: whether the game says what, by which spell)
-local function controlSeen()
+-- (control lost: whether the game says what, by which spell; each event noted)
+local function controlSeen(event)
   if not (probe and probe.inFight) then return end
   if HasFullControl then
     local full = HasFullControl()
@@ -211,6 +262,13 @@ local function controlSeen()
   if not (L and L.GetActiveLossOfControlDataByUnit) then return end
   local e = L.GetActiveLossOfControlDataByUnit("player", 1)
   if not e or e.displayText == nil then return end
+  noted("control", {
+    event = event,
+    what = plain(e.displayText),
+    type = plain(e.locType),
+    spell = plain(e.spellID),
+    left = plain(e.timeRemaining),
+  })
   if ns.secret(e.displayText) then
     probe.locSecret = true
   else
@@ -218,12 +276,13 @@ local function controlSeen()
   end
 end
 for _, e in ipairs({ "PLAYER_CONTROL_LOST", "LOSS_OF_CONTROL_ADDED" }) do
-  ns.on(e, controlSeen)
+  ns.on(e, function() controlSeen(e) end)
 end
-ns.onUnit("UNIT_COMBAT", "player", function(_, _, _, amount)
+ns.onUnit("UNIT_COMBAT", "player", function(_, event, flag, amount, school)
   if not (probe and probe.inFight) then return end
   probe.combat = probe.combat + 1
   if ns.secret(amount) then probe.combatSecret = probe.combatSecret + 1 end
+  noted("combat", { event = plain(event), flag = plain(flag), amount = plain(amount), school = plain(school) })
 end)
 ns.onUnit("UNIT_HEALTH", "player", function()
   if not (probe and probe.inFight) then return end
@@ -235,6 +294,7 @@ ns.onUnit("UNIT_HEALTH", "player", function()
 end)
 ns.onUnit("UNIT_SPELLCAST_SUCCEEDED", "player", function(_, _, id)
   if not (probe and probe.inFight) then return end
+  noted("cast", { id = plain(id), name = not ns.secret(id) and spellName(id) or nil })
   if ns.secret(id) then
     probe.castSecret = true
   else
@@ -247,7 +307,9 @@ if not ns.forever then
   end)
 end
 ns.on("PLAYER_REGEN_DISABLED", function()
-  if probe then probe.inFight = true end
+  if probe and not probe.inFight then
+    probe.inFight, probe.t0 = true, GetTime()
+  end
 end)
 ns.on("PLAYER_REGEN_ENABLED", function()
   if probe and probe.inFight then C_Timer.After(0.5, function()

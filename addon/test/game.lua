@@ -529,7 +529,7 @@ function G.hit(h)
     timestamp = clock,
     amount = h.amount,
     overkill = overkill > 0 and overkill or nil,
-    currentHP = state.health,
+    currentHP = state.recapSecret and secret() or state.health,
     sourceName = h.from,
     school = h.spell and h.spell[3] or 1,
     spellId = h.spell and h.spell[1] or nil,

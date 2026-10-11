@@ -49,7 +49,8 @@
 --     level, rank, type, player } }, heals = { { name, amount } }, casts = {
 --     { t, id, name } }, events = { { t, k, src, spell, id,
 --     amount, over, crit, school, what } }, samples = { { t, pct } }, recap =
---     { { t, amount, overkill, hp, src, school, spell } } }
+--     { { t, amount, overkill, hp, src, school, spell } }, recapHidden = {
+--     the recap's fields the game kept secret } }
 --   (times t: seconds from the fight's start, or before the death for the
 --   recap; k: hit, miss, heal, debuff)
 local _, ns = ...
@@ -408,21 +409,39 @@ local function recapOf(d)
   if not (C_DeathRecap and C_DeathRecap.HasRecapEvents and C_DeathRecap.HasRecapEvents()) then return end
   local events = C_DeathRecap.GetRecapEvents() or {}
   local max = C_DeathRecap.GetRecapMaxHealth and C_DeathRecap.GetRecapMaxHealth() or nil
-  local last = events[1] and events[1].timestamp or 0
+  if ns.secret(max) then max = nil end
+  -- (Forever: a field the game keeps secret is left out, and named)
+  local hidden = {}
+  local function field(e, name)
+    local v = e[name]
+    if ns.secret(v) then
+      hidden[name] = true
+      return nil
+    end
+    return v
+  end
+  local last = events[1] and field(events[1], "timestamp") or 0
   local recap = {}
   for _, e in ipairs(events) do
-    local hp = e.currentHP and max and max > 0 and not ns.secret(e.currentHP) and round(e.currentHP / max * 100) or nil
+    local hp, at = field(e, "currentHP"), field(e, "timestamp")
     table.insert(recap, {
-      t = tenth(last - (e.timestamp or last)),
-      amount = e.amount,
-      overkill = e.overkill,
-      hp = hp,
-      src = not e.hideCaster and e.sourceName or nil,
-      school = e.school,
-      spell = spellName(e.spellId),
+      t = tenth(last - (at or last)),
+      amount = field(e, "amount"),
+      overkill = field(e, "overkill"),
+      hp = hp and max and max > 0 and round(hp / max * 100) or nil,
+      src = not field(e, "hideCaster") and field(e, "sourceName") or nil,
+      school = field(e, "school"),
+      spell = spellName(field(e, "spellId")),
     })
   end
   d.recap = recap
+  if next(hidden) then
+    d.recapHidden = {}
+    for name in pairs(hidden) do
+      table.insert(d.recapHidden, name)
+    end
+    table.sort(d.recapHidden)
+  end
   if not d.killer and recap[1] then
     d.killer = { name = recap[1].src, spell = recap[1].spell, amount = recap[1].amount, overkill = recap[1].overkill }
   end

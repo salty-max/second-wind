@@ -902,6 +902,26 @@ if G.FOREVER then
     d and d.spells and d.spells[1].spell == "Fireball",
     "Forever: a death's harm by spell, read once out of the fight"
   )
+
+  debriefs = life()
+  G.state.recapSecret = true
+  G.pull()
+  G.hit({ from = "Ragged Young Wolf", amount = 60 })
+  G.hit({ from = "Rockjaw Trogg", amount = 150, spell = { 9053, "Fireball", 4 } })
+  G.die()
+  G.wait(1.5)
+  G.state.recapSecret = nil
+  d = only(debriefs, "death")
+  check(
+    d
+      and d.recap
+      and #d.recap == 2
+      and not d.recap[1].hp
+      and d.recap[1].amount == 150
+      and d.recapHidden
+      and table.concat(d.recapHidden, ",") == "currentHP",
+    "Forever: a recap's health kept secret: left out, and named (the rest read)"
+  )
 end
 
 debriefs = life()
@@ -923,6 +943,25 @@ check(
   "… the build, its secret values, and the hits the game tells unit by unit"
 )
 check(said("losing control: told by the game %(Stunned, Cheap Shot%)"), "… what it could tell of a stun")
+local kept = SecondWindSettings.probes and SecondWindSettings.probes[#SecondWindSettings.probes]
+local kinds = {}
+for _, row in ipairs(kept and kept.rows or {}) do
+  kinds[row.k] = (kinds[row.k] or 0) + 1
+end
+check(
+  kept
+    and kept.lines[1]:find("^the game: ")
+    and kept.healthBefore
+    and kinds.combat == 3
+    and kinds.cast == 1
+    and kinds.control == 2
+    and kinds.warning == 1
+    and kept.rows[1].k == "combat"
+    and kept.rows[1].event == "WOUND"
+    and kept.rows[1].amount == 30
+    and said("kept in SecondWind.lua"),
+  "… the report kept in the account's saved file, with what it was drawn from (each hit and heal, cast, stun event, the warning)"
+)
 check(
   said("the meter's healing: yours 20 %(its spells name Pippa%)")
     and said("the game's low%-health warning %(35%%%): seen in the fight")
