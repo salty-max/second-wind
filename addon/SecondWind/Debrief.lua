@@ -125,9 +125,8 @@ local function fall(d)
 end
 
 -- How low a close call went, in words: "11%", or on Forever, where the game
--- keeps my health from addons, "below 35%" (its own warning, Recorder.lua).
+-- keeps my health from addons, "about 20%" (rebuilt, within a blow: Recorder.lua).
 function ns.lowOf(d)
-  if d.below and not d.lowPct then return ("below %d%%"):format(d.below) end
   -- (rebuilt from the game's warning: within a blow's size)
   if d.lowRange and d.lowRange[1] ~= d.lowRange[2] then return ("about %d%%"):format(d.lowPct or 0) end
   -- (read at the fight's end: an earlier dip may have gone lower)
@@ -178,11 +177,7 @@ end
 local RULES = {
   -- harm from the world, not from a foe
   function(d)
-    if not d.env or #(d.foes or {}) > 0 then return end
-    if not d.lowPct then
-      local what = (ENV[d.env] or d.env:lower()):gsub("^%l", string.upper)
-      return 100, ("%s took you below %d%% of your health."):format(what, d.below or 35)
-    end
+    if not d.env or #(d.foes or {}) > 0 or not d.lowPct then return end
     local lesson = ENV_LESSON[d.env] or (d.env .. " took %d%% of your health.")
     return 100, lesson:format((d.startPct or 100) - (d.lowPct or 0))
   end,
@@ -407,14 +402,6 @@ function ns.cardOf(d)
         from,
         range
       )
-    )
-  elseif d.below and not d.lowPct then
-    table.insert(
-      hidden,
-      (
-        "Forever hides your health from addons: this close call is the game's own low-health warning, "
-        .. "shown below %d%%%s."
-      ):format(d.below, d.endPct and (", and you ended the fight at %d%%"):format(d.endPct) or "")
     )
   elseif d.lowAtEnd then
     table.insert(

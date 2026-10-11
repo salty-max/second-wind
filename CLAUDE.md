@@ -23,7 +23,7 @@ The plan, its research and its decisions: PLAN.md.
     stopwatch; `/wind copy`, `/wind carry`).
   - `Settings.lua`: each character's settings (the kit's profiles, code
     `SW1:p15:c1:t1:d1:w1:h0:a250`): the close call's threshold (10, 15, 20,
-    25%), a line in chat, the alert, the debrief after a death, the word
+    25%), a line in chat, the alert after a death, the debrief after a death, the word
     before a pull, the minimap button; the Options page.
   - `Tools.lua`: what I had for a bad moment: every class's and people's
     emergency spells by name (every rank; guard, stop, away) and 172 items
@@ -86,8 +86,8 @@ The plan, its research and its decisions: PLAN.md.
     back from a death (the killing blow's overkill off, from the recap) or
     from a readable end; the samples, the low point, the blows for the card
     (one foe the meter names dealt them all), the heals in all; a close call
-    when its lowest could be below the threshold; without blows told, the
-    warning alone (`below`). The
+    when its lowest could be below the threshold; without blows told, none
+    (the warning alone is no close call). The
     fight begins at the notice before combat's restrictions (cooldowns still
     readable: `readyFrom` "start");
     my own casts and control lost are the player's, never secret; what a use
@@ -128,8 +128,9 @@ The plan, its research and its decisions: PLAN.md.
     again as bags and cooldowns change). Pages are drawn by one renderer
     (`drawPage`: title, the line under it, lessons, the graph for a card,
     sections). A debrief written
-    (`ns.debriefed`): a line in chat with a link (`|Hsecondwind:debrief:<at>|h`),
-    the game's alert (the new recipe's), the book opened at a death's
+    (`ns.debriefed`): a line in chat with its weightiest lesson and a link
+    (`|Hsecondwind:debrief:<at>|h`), every close call; after a death only, the
+    game's alert (the new recipe's) and the book opened at it
     (`ns.openDebrief(at)`; settings).
   - `Welcome.lua`: the kit's welcome page, once per character.
   - `Minimap.lua`: the button.

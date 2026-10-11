@@ -35,8 +35,7 @@
 --     says it, "Stunned"; none where it only said I had lost control),
 --     traced (Forever: what went unused told by what a use leaves behind,
 --     Tools.lua's ns.tracesOf), untold (the tools whose use leaves none),
---     warned (Forever: when the game's low-health warning showed), below
---     (Forever: the close call is that warning's, below this percent)
+--     warned (Forever: when the game's low-health warning showed)
 -- Forever keeps my health from addons, in a fight and out of it (measured at
 -- rest on builds 69977 and 70009: Apotheca's probe): the game's own
 -- low-health warning (LowHealthFrame, shown by Blizzard's code below 35% from
@@ -361,16 +360,14 @@ local function written(f, death)
     grouped = f.grouped,
     hardcore = hardcore and true or nil,
     startPct = round(f.startPct),
-    lowPct = death and 0 or (not f.below and round(f.low)) or nil,
-    lowT = death and tenth(GetTime() - f.t0) or (f.below and f.warned) or f.lowT,
+    lowPct = death and 0 or round(f.low),
+    lowT = death and tenth(GetTime() - f.t0) or f.lowT,
     warned = f.warned,
-    below = not death and f.below or nil,
-    endPct = f.below and round(f.endPct) or nil,
     rebuilt = f.rebuilt,
     lowRange = f.rebuilt == "warning" and f.lowRange or nil,
     blind = f.blind or nil,
     castsHidden = f.castsHidden or nil,
-    lowAtEnd = not death and not f.below and f.lowAtEnd or nil,
+    lowAtEnd = not death and f.lowAtEnd or nil,
     env = f.env,
     killer = death and lastHit(buffer) or nil,
     foes = foes,
@@ -639,11 +636,7 @@ local function finish(death)
     end
     f.traced, f.untold = true, f.castsHidden and untold or nil
   end
-  -- (Forever: the game's warning seen in the fight, and no lower point read
-  -- below the threshold: it stands for the low point, lower than the end)
-  if f.blind and not death and f.warned and not f.rebuilt and not (f.low and f.low < ns.option("threshold")) then
-    f.below = WARNING
-  end
+
   local d = written(f, death)
   -- (Forever: the foes from the meter, for the tally too)
   if ns.meterFill then ns.meterFill(d) end
@@ -663,7 +656,7 @@ local function finish(death)
   tally(d)
   -- (rebuilt: a close call if its lowest point could have gone below the threshold)
   local lowest = f.lowRange and f.lowRange[1] or f.low
-  if not death and not (lowest and lowest < ns.option("threshold")) and not f.below then return end
+  if not death and not (lowest and lowest < ns.option("threshold")) then return end
   store(d)
   if death then C_Timer.After(1, function() recapOf(d) end) end
   if ns.debriefed then ns.debriefed(d) end

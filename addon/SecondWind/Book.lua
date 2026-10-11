@@ -471,8 +471,13 @@ local function toast(d)
 end
 
 function ns.debriefed(d)
-  if ns.option("chat") then print(ns.PREFIX .. ns.summaryOf(d) .. ". " .. ns.link(d.at, "Debrief")) end
-  if ns.option("toast") then toast(d) end
+  -- (its weightiest lesson in the line: the gist without opening anything;
+  -- the game's alert after a death only, a close call's line being enough)
+  if ns.option("chat") then
+    local lesson = ns.lessonsOf(d)[1]
+    print(ns.PREFIX .. ns.summaryOf(d) .. (lesson and (": " .. lesson) or ".") .. " " .. ns.link(d.at, "Debrief"))
+  end
+  if d.kind == "death" and ns.option("toast") then toast(d) end
   if d.kind == "death" and ns.option("openAfterDeath") then ns.openDebrief(d.at) end
   if book and book:IsShown() then ns.refresh() end
 end

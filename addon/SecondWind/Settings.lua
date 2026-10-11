@@ -94,8 +94,12 @@ function ns.createSettingsPanel()
     )
     Settings.CreateCheckbox(category, setting, tooltip)
   end
-  checkbox("chat", "A line in chat", "After a close call or a death, a line in chat with a link to its debrief.")
-  checkbox("toast", "An alert", "After a close call or a death, the game's alert; a click opens the debrief.")
+  checkbox(
+    "chat",
+    "A line in chat",
+    "After a close call or a death, a line in chat with its main lesson and a link to its debrief."
+  )
+  checkbox("toast", "An alert after a death", "After a death, the game's alert; a click opens the debrief.")
   checkbox(
     "openAfterDeath",
     "The debrief after a death",

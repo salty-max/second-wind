@@ -562,14 +562,12 @@ if not G.FOREVER then
     book:IsShown() and book.open == d.at and book.cardShown.title == "Close call: 11% health",
     "… the link opens it at the card"
   )
-  local t = G.toasted[#G.toasted]
+  local last = G.toasted[#G.toasted]
+  check(not (last and last.Title:GetText():find("^Close call")), "a close call: no alert, its line in chat enough")
   check(
-    t and t.Title:GetText() == "Close call: 11%" and t.Name:GetText() == "Coldridge Valley",
-    "the game's alert: the close call and where"
+    said("Close call, 11%% in Coldridge Valley, Dun Morogh %(.-%): Shield Wall was ready and went unused%. |c"),
+    "… the line carries its main lesson"
   )
-  book:Hide()
-  t.scripts.OnClick(t, "LeftButton")
-  check(book:IsShown() and book.open == d.at, "… a click on it opens the card")
   book:Hide()
 end
 
@@ -590,6 +588,14 @@ check(
   book.cardShown.sections[1].lines[1] == "Rockjaw Trogg's Fireball, 150 (30 more than you had)",
   "… by whom, with what, by how much"
 )
+local t = G.toasted[#G.toasted]
+check(
+  t and t.Title:GetText() == "Death" and t.Name:GetText() == "Coldridge Valley",
+  "a death: the game's alert, and where"
+)
+book:Hide()
+t.scripts.OnClick(t, "LeftButton")
+check(book:IsShown() and book.open == death.at, "… a click on it opens the card")
 book:Hide()
 ns.setOption("openAfterDeath", false)
 G.state.dead, G.state.health = false, G.state.maxHealth

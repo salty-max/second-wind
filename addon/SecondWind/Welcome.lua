@@ -42,13 +42,13 @@ local W = K.welcome({
       },
       {
         text = "A line in chat",
-        hint = "After a close call or a death, with a link to its debrief.",
+        hint = "After a close call or a death: its main lesson, and a link to its debrief.",
         get = function() return ns.option("chat") end,
         set = function(v) ns.setOption("chat", v) end,
       },
       {
-        text = "An alert",
-        hint = "The game's alert after a close call or a death; a click opens it.",
+        text = "An alert after a death",
+        hint = "The game's alert; a click opens the debrief. A close call has its line in chat.",
         get = function() return ns.option("toast") end,
         set = function(v) ns.setOption("toast", v) end,
       },
