@@ -8,6 +8,7 @@
     "package": "bun scripts/package.ts",
     "lint:lua": "stylua --check addon && selene addon/SecondWind",
     "format:lua": "stylua addon",
+    "creatures": "bun scripts/creatures.ts",
     "kit:sync": "bun ../addon-kit/sync.ts addon/SecondWind",
     "kit:check": "bun ../addon-kit/sync.ts --check addon/SecondWind"
   }

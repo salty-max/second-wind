@@ -5,10 +5,11 @@
 -- as its kind wants. What is drawn: Debrief.lua's card, Patterns.lua's page,
 -- Tools.lua's lifelines, { title, sub, face, lessons, death, sections = { {
 -- heading, lines, rows, note } } }, a row of each line:
---   foe: its portrait (the creature's still one, as its unit frame shows it;
---     a player's class crest; else its kind's picture), its name in the
---     colour of its level against mine, what it was, what it did, its share
---     of the harm
+--   foe: its portrait (the creature's still one, as its unit frame shows
+--     it, from its display: Creatures.lua's, as the Field Journal's, else
+--     found by a hidden model; a player's class crest; else its kind's
+--     picture), its name in the colour of its level against mine, what it
+--     was, what it did, its share of the harm
 --   blow: a spell's icon (a blow's, a heal's, the world's), its amount, what
 --     and from whom, the share of my health it took
 --   held: control lost, with the game's own icon for it
@@ -176,12 +177,15 @@ local function portrait(p, foe)
     p.tex:SetTexCoord(unpack(crest))
     return
   end
-  if foe.display and SetPortraitTextureFromCreatureDisplayID then
+  -- (its display: the data's, as the Field Journal's portraits; else found
+  -- once in the game by a hidden model, kept on the foe)
+  local display = foe.display or (foe.npc and ns.creatures and ns.creatures.models[foe.npc])
+  if display and SetPortraitTextureFromCreatureDisplayID then
     p.tex:SetTexCoord(0, 1, 0, 1)
-    SetPortraitTextureFromCreatureDisplayID(p.tex, foe.display)
+    SetPortraitTextureFromCreatureDisplayID(p.tex, display)
     return
   end
-  if foe.npc and not foe.display then resolve(foe) end
+  if foe.npc and not display then resolve(foe) end
   if foe.level == -1 then return icon(p.tex, SKULL) end
   icon(p.tex, KIND[foe.type] or (foe.player and KIND.Humanoid) or FOE)
 end

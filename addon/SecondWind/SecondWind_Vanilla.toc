@@ -13,6 +13,7 @@
 # Anniversary, _Camelot: Forever), the same but for the interface
 # (scripts/package.ts checks).
 Kit.lua
+Creatures.lua
 Core.lua
 Settings.lua
 Tools.lua

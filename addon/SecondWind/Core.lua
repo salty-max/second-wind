@@ -160,8 +160,9 @@ function ns.seenNamed(name)
   local seen = type(SecondWindAccount) == "table" and SecondWindAccount.seen
   return seen and name and seen[name] or nil
 end
--- A foe made whole from what was seen of its name: its npc id (its portrait),
--- kind and rank where the fight didn't tell them (its level: the fight's own).
+-- A foe made whole from what was seen of its name (its npc id, its kind and
+-- rank where the fight didn't tell them; its level the fight's own), else
+-- from the creatures of the original world (Creatures.lua: its npc id).
 function ns.knownFoe(foe)
   if foe.npc or foe.player or not foe.name then return foe end
   local s = ns.seenNamed(foe.name)
@@ -169,6 +170,8 @@ function ns.knownFoe(foe)
     foe.npc = s.npc
     foe.type = foe.type or s.type
     foe.rank = foe.rank or s.rank
+  else
+    foe.npc = ns.creatures and ns.creatures.names[foe.name] or nil
   end
   return foe
 end

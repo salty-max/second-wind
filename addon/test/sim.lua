@@ -1045,6 +1045,13 @@ if G.FOREVER then
   )
   local older = { name = "Dark Iron Insurgent" }
   check(ns.knownFoe(older).npc == foe.npc, "… and a foe of an older debrief, when the book shows it")
+  -- (one never seen: the creatures of the original world, as the Field
+  -- Journal's portraits)
+  local unseen = ns.knownFoe({ name = "Rockjaw Trogg" })
+  check(
+    unseen.npc == 707 and ns.creatures.models[707] ~= nil and ns.knownFoe({ name = "Nobody Known" }).npc == nil,
+    "… one never seen: its id and portrait from the creatures of the original world"
+  )
   check(
     d
       and d.rebuilt == "warning"
