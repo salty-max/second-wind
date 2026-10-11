@@ -20,6 +20,7 @@ Forever.lua
 Recorder.lua
 Debrief.lua
 Patterns.lua
+Pull.lua
 Book.lua
 Welcome.lua
 Minimap.lua

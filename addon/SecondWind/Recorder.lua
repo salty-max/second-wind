@@ -32,7 +32,9 @@
 --     hidden), unused, blind (my health hidden in the fight: Forever),
 --     lowAtEnd (its low point read at its end), spells (Forever.lua),
 --     held = { { t, to, what, spell } } (control lost: what as the game
---     says it, "Stunned"; none where it only said I had lost control)
+--     says it, "Stunned"; none where it only said I had lost control),
+--     traced (Forever: what went unused told by what a use leaves behind,
+--     Tools.lua's ns.tracesOf), untold (the tools whose use leaves none)
 --     (tools: Tools.lua), killer = { name, spell,
 --     amount, overkill }, foes = { { name, npc, first, hits, misses, damage,
 --     level, rank, type, player } }, heals = { { name, amount } }, casts = {
@@ -280,6 +282,36 @@ local function lastHit(list)
   end
 end
 
+-- What of the tools ready went unused: my casts told it, or what a use leaves
+-- behind (Forever); a tool whose use leaves no trace is never called unused.
+local function unusedOf(f)
+  if (f.castsHidden and not f.traced) or not ns.unusedOf then return nil end
+  local unused = ns.unusedOf(f.ready, f.casts, f.readyT)
+  if not unused or not f.untold then return unused end
+  local silent = {}
+  for _, n in ipairs(f.untold) do
+    silent[n] = true
+  end
+  local out = {}
+  for _, t in ipairs(unused) do
+    if not silent[t.n] then table.insert(out, t) end
+  end
+  return out
+end
+
+-- Every fight, kept or not, counted by its traits (Debrief.lua's
+-- ns.traitsOf): what the close calls share, against what any fight has.
+local function tally(d)
+  local record = ns.record()
+  if not (record and ns.traitsOf) then return end
+  local fights = record.fights or { n = 0, since = d.at, traits = {} }
+  record.fights = fights
+  fights.n = fights.n + 1
+  for key in pairs(ns.traitsOf(d)) do
+    fights.traits[key] = (fights.traits[key] or 0) + 1
+  end
+end
+
 local function written(f, death)
   local foes = {}
   for _, guid in ipairs(f.order) do
@@ -317,7 +349,9 @@ local function written(f, death)
     readyFrom = f.readyFrom,
     held = f.held,
     -- (my casts hidden: no telling what went unused)
-    unused = not f.castsHidden and ns.unusedOf and ns.unusedOf(f.ready, f.casts, f.readyT) or nil,
+    unused = unusedOf(f),
+    traced = f.traced,
+    untold = f.untold and #f.untold > 0 and f.untold or nil,
     events = rows(death and buffer or f.window or buffer),
     samples = thin(f.samples),
   }
@@ -427,9 +461,19 @@ local function finish(death)
   if f.ready and ns.relevantTools then
     f.ready = ns.relevantTools(f.ready, { schools = f.schools, env = f.env, lull = f.lull })
   end
-  if not death and not (f.low and f.low < ns.option("threshold")) then return end
+  -- (Forever: my casts hidden, what a use leaves behind, read now)
+  if ns.forever and f.ready and ns.tracesOf then
+    local casts, untold = ns.tracesOf(f.ready, f.t0)
+    for _, c in ipairs(casts) do
+      table.insert(f.casts, c)
+    end
+    f.traced, f.untold = true, untold
+  end
   local d = written(f, death)
+  -- (Forever: the foes from the meter, for the tally too)
   if ns.meterFill then ns.meterFill(d) end
+  tally(d)
+  if not death and not (f.low and f.low < ns.option("threshold")) then return end
   store(d)
   if death then C_Timer.After(1, function() recapOf(d) end) end
   if ns.debriefed then ns.debriefed(d) end

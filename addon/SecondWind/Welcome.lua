@@ -58,6 +58,12 @@ local W = K.welcome({
         set = function(v) ns.setOption("openAfterDeath", v) end,
       },
       {
+        text = "A word before a pull",
+        hint = "Targeting a foe like those of your close calls, out of a fight: a line in chat, with the counts.",
+        get = function() return ns.option("prepull") end,
+        set = function(v) ns.setOption("prepull", v) end,
+      },
+      {
         text = "The book by the minimap",
         hint = "Click it to open the book; drag it around the minimap.",
         get = function() return not ns.option("minimapHidden") end,

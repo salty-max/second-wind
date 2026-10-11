@@ -4,7 +4,9 @@
 --   ns.factsOf(d) = { title, place, hits = { { src, spell, amount, crit,
 --     share, before } }, fall = { from, seconds }, used, unused (my casts
 --     hidden: both empty, the tools in ready alone), ready, held = {
---     seconds, span, all, what, spell } (control lost on the way down) }
+--     seconds, span, all, what, spell } (control lost on the way down),
+--     untold (ready, its use leaving no trace: Forever) }
+--   ns.marksOf(d): the graph's marks; ns.textOf(d): the card as plain text
 --   ns.lessonsOf(d) = { text, text }
 local _, ns = ...
 
@@ -125,7 +127,11 @@ end
 function ns.factsOf(d)
   local title = d.kind == "death" and "Death" or ("Close call: %d%% health"):format(d.lowPct or 0)
   local place = d.sub and (d.sub .. ", " .. (d.zone or "?")) or d.zone or "?"
-  local unused, used, ready, left = {}, {}, {}, {}
+  local unused, used, ready, left, untold, silent = {}, {}, {}, {}, {}, {}
+  -- (Forever: a tool whose use leaves no trace is neither used nor unused)
+  for _, n in ipairs(d.untold or {}) do
+    silent[n] = true
+  end
   for _, t in ipairs(d.unused or {}) do
     if type(t) == "table" and t.n then
       table.insert(unused, t)
@@ -136,7 +142,11 @@ function ns.factsOf(d)
     if type(t) == "table" and t.n then
       table.insert(ready, t)
       -- (what went unused unknown, my casts hidden: none called used either)
-      if d.unused and not left[t.n] then table.insert(used, t) end
+      if silent[t.n] then
+        table.insert(untold, t)
+      elseif d.unused and not left[t.n] then
+        table.insert(used, t)
+      end
     end
   end
   return {
@@ -147,6 +157,7 @@ function ns.factsOf(d)
     used = used,
     unused = unused,
     ready = ready,
+    untold = untold,
     held = heldOf(d),
   }
 end
@@ -370,7 +381,15 @@ function ns.cardOf(d)
     table.insert(hidden, "Forever hides your health during a fight: the lowest point here is your health as it began.")
   end
   if d.readyFrom == "start" then table.insert(hidden, "What you had is what was ready when the fight began.") end
-  if d.castsHidden then table.insert(hidden, "Forever hid your casts: what went unused can't be told.") end
+  if d.castsHidden and d.traced then
+    table.insert(
+      hidden,
+      "Forever hid your casts: what you used is told by what a use leaves behind (one fewer in your bags, "
+        .. "a cooldown begun); a spell without a cooldown leaves none."
+    )
+  elseif d.castsHidden then
+    table.insert(hidden, "Forever hid your casts: what went unused can't be told.")
+  end
   section("What the game hid", hidden)
   local mattered = {}
   for _, h in ipairs(f.hits) do
@@ -412,9 +431,61 @@ function ns.cardOf(d)
     table.insert(had, head .. names(f.unused))
   end
   if #f.used > 0 then table.insert(had, "Used: " .. names(f.used)) end
+  if #f.untold > 0 then table.insert(had, "Ready, no trace either way: " .. names(f.untold)) end
   -- (my casts hidden: what was ready, no more said)
   if not d.unused and #f.ready > 0 then table.insert(had, "Ready: " .. names(f.ready)) end
   if d.ready and #d.ready == 0 then table.insert(had, "Nothing of the kind was ready.") end
   section("What you had", had)
   return card
+end
+
+-- The graph's marks (Book.lua): the hits that mattered, the foes that joined
+-- after the start, the tools I used (a cast of one, or its trace, when told),
+-- the stretches I had lost control. { kind = hit | foe | used | held, t, to,
+-- text }, in seconds from the fight's start.
+function ns.marksOf(d)
+  local marks = {}
+  for _, h in ipairs(hits(d)) do
+    if h.before and d.lowT then
+      local what = h.spell and (h.spell .. " from " .. h.src) or h.src
+      table.insert(marks, { kind = "hit", t = d.lowT - h.before, text = ("%d: %s"):format(h.amount, what) })
+    end
+  end
+  for _, foe in ipairs(d.foes or {}) do
+    if foe.first and foe.first >= 1 then table.insert(marks, { kind = "foe", t = foe.first, text = foe.name }) end
+  end
+  for _, c in ipairs(d.casts or {}) do
+    local tool = ns.toolOfCast and ns.toolOfCast(c)
+    if tool and c.t then table.insert(marks, { kind = "used", t = c.t, text = tool }) end
+  end
+  for _, h in ipairs(d.held or {}) do
+    if h.to and h.to > h.t then
+      table.insert(marks, { kind = "held", t = h.t, to = h.to, text = h.what or "Control lost" })
+    end
+  end
+  -- (by time; at the same moment, a foe's coming, its blow, the hold, my answer)
+  local ORDER = { foe = 1, hit = 2, held = 3, used = 4 }
+  table.sort(marks, function(a, b)
+    if a.t ~= b.t then return a.t < b.t end
+    if a.kind ~= b.kind then return ORDER[a.kind] < ORDER[b.kind] end
+    return a.text < b.text
+  end)
+  return marks
+end
+
+-- The card as plain text, to copy: for a guild's channel, a Discord.
+function ns.textOf(d)
+  local c = ns.cardOf(d)
+  local out = { "Second Wind: " .. c.title, c.sub }
+  for _, l in ipairs(c.lessons) do
+    table.insert(out, "- " .. l)
+  end
+  for _, s in ipairs(c.sections) do
+    table.insert(out, "")
+    table.insert(out, s.heading .. ":")
+    for _, l in ipairs(s.lines) do
+      table.insert(out, "  " .. l)
+    end
+  end
+  return table.concat(out, "\n")
 end

@@ -6,7 +6,7 @@
 -- welcome page (Welcome.lua) offers them too.
 --
 --   SecondWindSettings.profiles["Name - Realm"] = { threshold, chat, toast,
---     openAfterDeath, minimapHidden, minimapAngle, welcomed }
+--     openAfterDeath, prepull, minimapHidden, minimapAngle, welcomed }
 local _, ns = ...
 local K = ns.kit
 
@@ -19,16 +19,17 @@ local DEFAULTS = {
   chat = true,
   toast = true,
   openAfterDeath = true,
+  prepull = true,
   minimapHidden = false,
   minimapAngle = 250,
   welcomed = false,
 }
-local SHARED = { "threshold", "chat", "toast", "openAfterDeath", "minimapHidden", "minimapAngle" }
+local SHARED = { "threshold", "chat", "toast", "openAfterDeath", "prepull", "minimapHidden", "minimapAngle" }
 ns.THRESHOLDS = { 10, 15, 20, 25 }
 
--- The profiles: a code "SW1:p15:c1:t1:d1:h0:a250" (the threshold, a line in
--- chat, the toast, the card after a death, the minimap button hidden, its
--- angle).
+-- The profiles: a code "SW1:p15:c1:t1:d1:w1:h0:a250" (the threshold, a line
+-- in chat, the toast, the card after a death, the word before a pull, the
+-- minimap button hidden, its angle; an older code without w leaves it).
 local P = K.profiles({
   saved = function()
     if type(SecondWindSettings) ~= "table" then SecondWindSettings = {} end
@@ -41,6 +42,7 @@ local P = K.profiles({
     chat = "c",
     toast = "t",
     openAfterDeath = "d",
+    prepull = "w",
     minimapHidden = "h",
     minimapAngle = "a",
   },
@@ -98,6 +100,11 @@ function ns.createSettingsPanel()
     "openAfterDeath",
     "The debrief after a death",
     "Open the debrief on its own after a death (you aren't playing then). A close call's waits for a click."
+  )
+  checkbox(
+    "prepull",
+    "A word before a pull",
+    "Out of a fight, when you target a foe like those of your close calls (an elite, two levels up, one met before), or you're hurt and that's one of the things they share: a line in chat, with the counts."
   )
   checkbox("minimapHidden", "Minimap button", "The book by the minimap: click to open it, drag to move it.", true)
 

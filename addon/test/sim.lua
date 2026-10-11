@@ -34,9 +34,13 @@ check(
   ns.option("openAfterDeath") and not ns.option("minimapHidden"),
   "the defaults: a death's debrief opens, the button shows"
 )
-check(ns.profiles:export() == "SW1:p15:c1:t1:d1:h0:a250", "the settings as a code")
+check(ns.option("prepull"), "the defaults: a word before a pull")
+check(ns.profiles:export() == "SW1:p15:c1:t1:d1:w1:h0:a250", "the settings as a code")
 check(ns.profiles:import("SW1:p20:c0"), "a code taken")
-check(ns.option("threshold") == 20 and not ns.option("chat"), "… its choices this character's")
+check(
+  ns.option("threshold") == 20 and not ns.option("chat") and ns.option("prepull"),
+  "… its choices this character's (an older code, without the word before a pull, leaves it)"
+)
 check(not ns.profiles:import("FJ1:c1"), "another addon's code refused")
 check(G.panel.name == "Second Wind" and G.panel.settings.SECONDWIND_THRESHOLD, "the Options page, the threshold on it")
 local thresholds = {}
@@ -751,7 +755,7 @@ end
 -- ── Forever: what the game hides, and its damage meter ───────────────────────
 if G.FOREVER then
   debriefs = life()
-  G.state.book = { ["Shield Wall"] = {} }
+  G.state.book = { ["Shield Wall"] = { id = 871, cd = 1800 } }
   G.pull()
   G.hit({ from = "Ragged Young Wolf", amount = 50 })
   G.hit({ from = "Rockjaw Trogg", amount = 60, spell = { 9053, "Fireball", 4 } })
@@ -770,7 +774,10 @@ if G.FOREVER then
     d.spells[1].amount == 100 and d.spells[1].spell == "Attack" and d.spells[2].spell == "Fireball",
     "… the harm by spell"
   )
-  check(d.readyFrom == "start" and named(d.unused) == "Shield Wall", "… what was ready at its start, and went unused")
+  check(
+    d.readyFrom == "start" and d.traced and named(d.unused) == "Shield Wall",
+    "… what was ready at its start, and went unused: no cooldown begun"
+  )
   local c = ns.cardOf(d)
   local hid, harm
   for _, sec in ipairs(c.sections) do
@@ -785,15 +792,35 @@ if G.FOREVER then
 
   debriefs = life()
   G.state.castsSecret = true
+  G.state.book = { ["Shield Wall"] = { id = 871, cd = 1800 }, ["Polymorph"] = { id = 118 } }
+  G.state.bags = { [929] = { count = 2 }, [1710] = { count = 1 } }
   G.pull()
-  G.hit({ from = "Ragged Young Wolf", amount = 170 })
+  G.hit({ from = "Ragged Young Wolf", amount = 100 })
+  G.wait(2)
   G.cast({ 871, "Shield Wall" })
+  G.wait(1)
+  G.use(929, 441, "Healing Potion")
+  G.hit({ from = "Ragged Young Wolf", amount = 100 })
   G.leave()
-  G.state.castsSecret, G.state.book = false, {}
+  G.state.castsSecret, G.state.book, G.state.bags = false, {}, {}
   d = only(debriefs, "close")
-  check(d and d.castsHidden and d.unused == nil, "Forever: my casts hidden, nothing called unused")
-  check(not lessons(d):find("unused"), "… nor in a lesson")
-  check(sectionOf(ns.cardOf(d), "What you had") == "Ready: Shield Wall", "… nor used: what was ready, no more")
+  check(
+    d and d.castsHidden and d.traced and named(d.unused) == "Greater Healing Potion",
+    "Forever: my casts hidden, what went unused told by what a use leaves (a cooldown begun, one fewer)"
+  )
+  local cast = {}
+  for _, c in ipairs(d.casts) do
+    cast[c.name or c.id] = c.t
+  end
+  check(cast["Shield Wall"] == 2 and cast[441] == 3, "… and when: each cooldown's start")
+  check(d.untold and d.untold[1] == "Polymorph", "… a spell without a cooldown: no trace either way")
+  local had = sectionOf(ns.cardOf(d), "What you had")
+  check(
+    had
+      == "Ready, unused: Greater Healing Potion | Used: Shield Wall, Healing Potion (2) | Ready, no trace either way: Polymorph",
+    "… the card: unused, used, untold"
+  )
+  check(lessons(d):find("A Greater Healing Potion was in your bags, ready%."), "… a lesson again")
 
   debriefs = life()
   G.pull()
@@ -853,6 +880,161 @@ else
     "… my casts readable, no notice"
   )
 end
+
+-- ── the graph's marks, the text to copy ──────────────────────────────────────
+if not G.FOREVER then
+  debriefs = life()
+  G.state.book = { ["Shield Wall"] = { id = 871, cd = 1800 } }
+  G.state.bags = { [929] = { count = 2 } }
+  G.pull()
+  G.hit({ from = "Defias Footpad", amount = 60 })
+  G.wait(1)
+  G.hit({ from = "Defias Pillager", amount = 50, spell = { 133, "Fireball", 4 } })
+  G.stun({ seconds = 1.5, spell = { 1833, "Cheap Shot" } })
+  G.wait(2)
+  G.cast({ 871, "Shield Wall" })
+  G.use(929, 441, "Healing Potion")
+  G.hit({ from = "Defias Footpad", amount = 55 })
+  G.leave()
+  G.state.book, G.state.bags = {}, {}
+  local d = only(debriefs, "close")
+  local kinds = {}
+  for _, m in ipairs(ns.marksOf(d)) do
+    table.insert(kinds, m.kind .. "@" .. m.t)
+  end
+  check(
+    table.concat(kinds, " ") == "hit@0 foe@1 hit@1 held@1 hit@3 used@3 used@3",
+    "the graph's marks: the hits that mattered, a foe joining, control lost, what I used"
+  )
+  ns.openDebrief(d.at)
+  local g = book.card.graph
+  check(
+    #g.shownMarks == 7 and g.legend:IsShown() and g.legend:GetText():find("what you used"),
+    "… drawn on the graph, their words under it"
+  )
+  local text = ns.textOf(d)
+  check(
+    text:find("^Second Wind: Close call: 8%% health\n")
+      and text:find("\nWhat you had:\n  Used: Shield Wall, Healing Potion %(2%)"),
+    "the debrief as text: its title, its lessons, its sections"
+  )
+  G.slash("copy")
+  check(
+    SecondWindCopy and SecondWindCopy:IsShown() and SecondWindCopy.box:GetText() == text,
+    "… /wind copy: in a box to copy"
+  )
+  SecondWindCopy:Hide()
+  book:Hide()
+end
+
+-- ── what I carry ─────────────────────────────────────────────────────────────
+debriefs = life()
+G.state.book = {
+  ["Shield Wall"] = { id = 871, cd = 1800 },
+  ["Retaliation"] = { id = 20230, cd = 1800, ready = GetTime() + 600 },
+}
+G.state.bags = {
+  [929] = { count = 2 },
+  [5509] = { count = 1 },
+  [19008] = { count = 1 },
+  [1251] = { count = 5 },
+  [6049] = { count = 1 },
+}
+G.state.auras = { [11196] = GetTime() + 40 }
+local carry = ns.carryPage(ns.carried())
+local function carried(heading)
+  for _, sec in ipairs(carry.sections) do
+    if sec.heading == heading then return table.concat(sec.lines, " | ") end
+  end
+end
+check(
+  carried("Heals") == "Healing Potion (2): ready | Healthstone (2): ready",
+  "what I carry: the heals, a healthstone's ranks together"
+)
+check(carried("Bandages") == "Linen Bandage (5): Recently Bandaged, 40 s", "… a bandage, not while Recently Bandaged")
+check(
+  carried("Guards") == "Shield Wall: ready | Retaliation: ready in 10 min | Fire Protection Potion: ready, against fire",
+  "… the guards: ready, or how long until; what a potion is against"
+)
+check(
+  carried("None of these") == "A cure: an anti-venom, a restorative potion | Anything that holds a foe or gets you out",
+  "… and the kinds I carry none of"
+)
+G.slash("carry")
+check(book:IsShown() and book.carry.shown.title == "What you carry", "/wind carry: the book at that page")
+book:Hide()
+G.state.book, G.state.bags, G.state.auras = {}, {}, {}
+
+-- ── every fight, and the patterns against it ─────────────────────────────────
+debriefs = life()
+for _ = 1, 2 do
+  G.pull()
+  G.hit({ from = "Ragged Young Wolf", amount = 30 })
+  G.leave()
+  G.state.health = G.state.maxHealth
+end
+check(ns.record().fights.n == 2 and #debriefs == 0, "every fight counted by its traits, kept or not")
+local against = ns.patternsOf(five, { n = 40, since = 1000, traits = { low = 4, many = 6, late = 3 } })
+check(
+  section(against, "Most often"):find("^3 of 5: you went in below 60%% health %(4 of your 40 fights%) | "),
+  "the patterns against every fight's, once twenty are counted"
+)
+check(
+  not section(ns.patternsOf(five, { n = 10, traits = { low = 4 } }), "Most often"):find("fights%)"),
+  "… not before"
+)
+
+-- ── a word before a pull ─────────────────────────────────────────────────────
+local counted = ns.countsOf(five)
+check(
+  ns.wordBefore(counted, { name = "Rockjaw Trogg", level = 7 }, { level = 8, pct = 100 })
+    == "3 of your 5 close calls and deaths were against Rockjaw Trogg.",
+  "a word before a pull: a foe met in close calls before"
+)
+check(
+  ns.wordBefore(counted, { name = "Frostmane Seer", level = 8 }, { level = 8, pct = 45 })
+    == "You're at 45% health; 3 of your 5 close calls and deaths began below 60%.",
+  "… going in hurt, as most of them began"
+)
+check(
+  ns.wordBefore(
+    { total = 4, deaths = 0, traits = { elite = 2, above = 3 }, foes = {} },
+    { name = "Defias Pillager", level = 12, rank = "elite" },
+    { level = 9, pct = 100 }
+  )
+    == "Defias Pillager, an elite three levels above you. Of your 4 close calls, 2 had an elite and 3 had a foe two levels or more above you.",
+  "… an elite, levels above: what they had"
+)
+check(
+  ns.wordBefore(counted, { name = "Ragged Young Wolf", level = 3 }, { level = 8, pct = 45 }) == nil,
+  "… nothing for a foe like none of them, nor for my health against a foe far below"
+)
+debriefs = life()
+for _, d in ipairs(five) do
+  table.insert(debriefs, d)
+end
+local before = #G.printed
+G.target({ name = "Rockjaw Trogg", level = 7 })
+check(said("were against Rockjaw Trogg") and #G.printed == before + 1, "… said in chat when I target one")
+G.target({ name = "Rockjaw Trogg", level = 7, guid = "Creature-0-4170-0-12-1999-00000999" })
+check(#G.printed == before + 1, "… a name not again for a while")
+G.state.inCombat = true
+G.target({ name = "Burly Rockjaw Trogg", level = 7, rank = "elite" })
+G.state.inCombat = false
+ns.setOption("prepull", false)
+G.target({ name = "Frostmane Seer", level = 8 })
+ns.setOption("prepull", true)
+check(#G.printed == before + 1, "… never in a fight, never when the setting is off")
+G.state.health = 80
+G.target({ name = "Rabbit", level = 8, type = "Critter" })
+check(#G.printed == before + 1, "… nor at a critter")
+G.target({ name = "Frostmane Snowstrider", level = 8 })
+check(
+  said("You're at 44%% health; 3 of your 5 close calls and deaths began below 60%%%."),
+  "… my health, before a foe near my level"
+)
+G.state.health = G.state.maxHealth
+G.target(nil)
 
 -- ── the fake game itself: fights as the game sends them ──────────────────────
 life()

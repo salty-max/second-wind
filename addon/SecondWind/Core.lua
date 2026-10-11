@@ -4,6 +4,8 @@
 --
 --   SecondWindChar (SavedVariablesPerCharacter), whose record: guid
 --     debriefs = { ... }   the close calls and the deaths, newest last
+--     fights = { n, since, traits = { trait = n } }   every fight, kept or
+--       not, counted by its traits (Recorder.lua): the patterns' measure
 local _, ns = ...
 local PREFIX = "|cffa8c7e0Second Wind:|r "
 ns.PREFIX = PREFIX
@@ -98,6 +100,7 @@ end
 
 -- ── /secondwind ──────────────────────────────────────────────────────────────
 local USAGE = "/secondwind (or /wind) opens the book; /wind settings; /wind minimap shows or hides the button; "
+  .. "/wind copy gives the open debrief as text; /wind carry shows what you carry for the worst moments; "
   .. "/wind welcome shows the welcome page again; /wind export gives this character's settings as a code, "
   .. "/wind import CODE takes them; /wind reset forgets this character's debriefs; /wind probe says, after "
   .. "the next fight, what the game let Second Wind read of it."
@@ -127,6 +130,10 @@ SlashCmdList.SECONDWIND = function(msg)
     end
   elseif msg == "probe" then
     ns.probeArm()
+  elseif msg == "copy" then
+    if not ns.copyDebrief() then print(PREFIX .. "no debrief to copy yet.") end
+  elseif msg == "carry" or msg == "kit" then
+    ns.openTab(ns.TAB.carry)
   elseif msg == "minimap" then
     ns.setOption("minimapHidden", not ns.option("minimapHidden"))
   elseif msg == "settings" or msg == "options" then

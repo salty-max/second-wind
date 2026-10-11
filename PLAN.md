@@ -220,7 +220,7 @@ healing (and whom it names) since 11 October. Then, by what it says:
 3. The meter's avoidable marks: a lesson when most of the harm was avoidable
    (on Classic too, should its spells carry the mark).
 
-## More, once real fights are read (11 October 2026)
+## More (11 October 2026: built the same night, at the user's ask)
 
 - The health graph marked: the hits that mattered, the foes' arrivals, what
   I used, control lost.
@@ -232,3 +232,14 @@ healing (and whom it names) since 11 October. Then, by what it says:
 - A debrief as plain text to copy, for a guild's channel or a Discord.
 - The warning before a pull (decided for later): out of combat, at a target,
   when it matches what my close calls share, a line, never in a fight.
+
+All five built: the graph by time, marked (`ns.marksOf`); every fight
+tallied (`record.fights`) and each trait set against it from twenty on; the
+third tab, What you carry (`ns.carried`, `ns.carryPage`); Copy as text
+(`ns.textOf`, `/wind copy`); the word before a pull (Pull.lua, on by default,
+"A word before a pull" in the settings). And, asked the same evening, what
+went unused on Forever: told by what a use leaves behind, read after the
+fight (`ns.tracesOf`: one fewer in the bags, a cooldown begun and when; a
+spell without a cooldown leaves none, and the card says so). `GetItemCount`
+and item cooldowns are never secret on Forever; spell cooldowns and auras
+only while combat's restriction lasts.

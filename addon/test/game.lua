@@ -46,9 +46,19 @@ function strtrim(s) return (s:gsub("^%s+", ""):gsub("%s+$", "")) end
 function GetRealZoneText() return state.zone end
 function GetSubZoneText() return state.sub end
 function GetRealmName() return state.realm end
-function UnitGUID(u) return u == "player" and state.guid or nil end
-function UnitName(u) return u == "player" and state.name or nil end
 local units = {} -- token = what the game can tell of a creature in sight
+-- (my target: units.target = { name, guid, level, rank, dead, player, friendly })
+function UnitGUID(u)
+  if u == "player" then return state.guid end
+  return units[u] and units[u].guid or nil
+end
+function UnitName(u)
+  if u == "player" then return state.name end
+  return units[u] and units[u].name or nil
+end
+function UnitExists(u) return u == "player" or units[u] ~= nil end
+function UnitIsPlayer(u) return u == "player" or (units[u] and units[u].player) or false end
+function UnitCanAttack(_, u) return units[u] ~= nil and not units[u].friendly end
 function UnitLevel(u)
   if u == "player" then return state.level end
   return units[u] and units[u].level or 1
@@ -63,7 +73,10 @@ function UnitHealth(u)
   if FOREVER and state.inCombat then return secret() end
   return state.health
 end
-function UnitIsDeadOrGhost(u) return u == "player" and state.dead end
+function UnitIsDeadOrGhost(u)
+  if u == "player" then return state.dead end
+  return units[u] and units[u].dead or false
+end
 function UnitAffectingCombat(u) return u == "player" and state.inCombat end
 function IsInInstance() return state.instance ~= nil, state.instance or "none" end
 function IsInGroup() return state.grouped == true end
@@ -84,19 +97,36 @@ end
 state.cvars = {}
 function GetCVarBool(name) return state.cvars[name] == true end
 function StartDuel() end
--- The spellbook (by name: { ready = GetTime it is off cooldown, usable }),
--- the bags (by item: { count, ready, usable }), the auras on me (by spell).
+-- The spellbook (by name: { id, cd: its own cooldown in seconds, ready =
+-- GetTime it is off cooldown, start: when it began, usable }), the bags (by
+-- item: { count, ready, start, usable }), the auras on me (by spell).
 state.book, state.bags, state.auras = {}, {}, {}
 local SPELLS = {}
 function GetSpellInfo(id)
-  if type(id) == "string" then return state.book[id] and id or nil end
+  if type(id) == "string" then
+    local s = state.book[id]
+    if not s then return nil end
+    return id, nil, nil, nil, nil, nil, s.id
+  end
   return SPELLS[id]
+end
+-- (a spell's own cooldown and the global one, in milliseconds)
+function GetSpellBaseCooldown(id)
+  for _, s in pairs(state.book) do
+    if s.id == id then return (s.cd or 0) * 1000, 1500 end
+  end
+  return 0, 1500
 end
 local function cooldown(x)
   if not x or not x.ready or x.ready <= uptime then return 0, 0, 1 end
-  return uptime, x.ready - uptime, 1
+  local start = x.start or uptime
+  return start, x.ready - start, 1
 end
-function GetSpellCooldown(name) return cooldown(state.book[name]) end
+-- (Forever: a spell's cooldown secret while combat's restrictions last)
+function GetSpellCooldown(name)
+  if FOREVER and state.inCombat then return secret(), secret(), secret() end
+  return cooldown(state.book[name])
+end
 function IsUsableSpell(name)
   local s = state.book[name]
   return s ~= nil and s.usable ~= false, false
@@ -121,7 +151,14 @@ function UnitDebuff(_, i)
   local d = state.debuffs[i]
   if d then return d.name, nil, 1, d.type end
 end
-C_UnitAuras = { GetPlayerAuraBySpellID = function(id) return state.auras[id] and { spellId = id } or nil end }
+-- (an aura: true, or when it runs out, GetTime)
+C_UnitAuras = {
+  GetPlayerAuraBySpellID = function(id)
+    local a = state.auras[id]
+    if not a then return nil end
+    return { spellId = id, expirationTime = type(a) == "number" and a or nil }
+  end,
+}
 function InCombatLockdown() return state.inCombat end
 
 -- Timers: run when the clock passes them (G.wait).
@@ -206,6 +243,9 @@ local function ui()
       end
       if k == "GetChecked" then
         return function(self) return rawget(self, "checked") or false end
+      end
+      if k == "GetVerticalScroll" then
+        return function() return 0 end
       end
       if k == "GetStringHeight" then
         return function() return 14 end
@@ -387,6 +427,13 @@ C_DamageMeter = {
 }
 
 local G = {}
+-- My target: { name, level, rank ("elite"), dead, player, friendly }; nil:
+-- none.
+function G.target(info)
+  if info then info.guid = info.guid or creature(info.name) end
+  units.target = info
+  offer("PLAYER_TARGET_CHANGED")
+end
 function G.sight(name, info)
   local token = "nameplate" .. (#tokens + 1)
   tokens[creature(name)] = token
@@ -552,6 +599,10 @@ function G.duelOver() offer("DUEL_FINISHED") end
 -- (state.castsSecret: the game hides my casts' spells, as Forever may)
 function G.cast(spell)
   SPELLS[spell[1]] = spell[2]
+  local s = state.book[spell[2]]
+  if s and s.cd then
+    s.start, s.ready = uptime, uptime + s.cd
+  end
   log("SPELL_CAST_SUCCESS", state.guid, state.name, nil, nil, spell[1], spell[2], 1)
   local id = state.castsSecret and secret() or spell[1]
   offer("UNIT_SPELLCAST_SUCCEEDED", "player", ("Cast-3-4170-0-1-%d-0001"):format(spell[1]), id)
@@ -560,7 +611,7 @@ end
 function G.use(item, spell, name)
   local b = state.bags[item]
   b.count = b.count - 1
-  b.ready = uptime + 60
+  b.start, b.ready = uptime, uptime + 60
   G.cast({ spell, name })
 end
 -- The fight is over: out of combat, a moment passing.

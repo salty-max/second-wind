@@ -43,6 +43,8 @@ globals:
     any: true
   cause:
     any: true
+  ChatFontNormal:
+    any: true
   CombatLogGetCurrentEventInfo:
     any: true
   confusing:
@@ -63,9 +65,9 @@ globals:
     any: true
   GetBuildInfo:
     any: true
-  GetCVarBool:
-    any: true
   GetCursorPosition:
+    any: true
+  GetCVarBool:
     any: true
   GetInventoryItemCooldown:
     any: true
@@ -80,6 +82,8 @@ globals:
   GetRealmName:
     any: true
   GetRealZoneText:
+    any: true
+  GetSpellBaseCooldown:
     any: true
   GetSpellCooldown:
     any: true
@@ -187,11 +191,15 @@ globals:
     any: true
   UnitAffectingCombat:
     any: true
+  UnitCanAttack:
+    any: true
   UnitClassification:
     any: true
   UnitCreatureType:
     any: true
   UnitDebuff:
+    any: true
+  UnitExists:
     any: true
   UnitGUID:
     any: true
@@ -200,6 +208,8 @@ globals:
   UnitHealthMax:
     any: true
   UnitIsDeadOrGhost:
+    any: true
+  UnitIsPlayer:
     any: true
   UnitLevel:
     any: true

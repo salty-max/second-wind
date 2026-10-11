@@ -17,13 +17,14 @@ The plan, its research and its decisions: PLAN.md.
   - `Kit.lua`: a copy of the kit shared with the siblings (~/code/addon-kit):
     never edit the copy; `bun run kit:sync` after changing the kit, `bun run
     kit:check` to verify.
-  - `Core.lua`: the character's record (`SecondWindChar`: guid, debriefs), the
-    events (`ns.on`, `ns.onUnit` for one unit's), the login, `/secondwind`
-    and `/wind` (`/sw` is the game's stopwatch).
+  - `Core.lua`: the character's record (`SecondWindChar`: guid, debriefs,
+    fights: every fight's tally), the events (`ns.on`, `ns.onUnit` for one
+    unit's), the login, `/secondwind` and `/wind` (`/sw` is the game's
+    stopwatch; `/wind copy`, `/wind carry`).
   - `Settings.lua`: each character's settings (the kit's profiles, code
-    `SW1:p15:c1:t1:d1:h0:a250`): the close call's threshold (10, 15, 20,
-    25%), a line in chat, the alert, the debrief after a death, the minimap
-    button; the Options page.
+    `SW1:p15:c1:t1:d1:w1:h0:a250`): the close call's threshold (10, 15, 20,
+    25%), a line in chat, the alert, the debrief after a death, the word
+    before a pull, the minimap button; the Options page.
   - `Tools.lua`: what I had for a bad moment: every class's and people's
     emergency spells by name (every rank; guard, stop, away) and 172 items
     players carry for the worst moments (the Hardcore guides and lists read
@@ -37,7 +38,12 @@ The plan, its research and its decisions: PLAN.md.
     `ns.readyTools()` (known, off cooldown but for the global one, usable;
     a bandage not while Recently Bandaged), `ns.relevantTools(ready, fight)`
     (a bandage only with LULL seconds without harm below half health),
-    `ns.unusedOf(ready, casts, since)`.
+    `ns.unusedOf(ready, casts, since)`, `ns.tracesOf(ready, t0)` (Forever,
+    my casts hidden: what a use left, read after the fight: one fewer in my
+    bags, a cooldown begun, its start the moment; a spell without a cooldown
+    leaves none, `untold`), `ns.toolOfCast(c)`; what I carry now,
+    `ns.carried()` and its page `ns.carryPage(list)` (by kind, ready or how
+    long until, the kinds I carry none of).
   - `Forever.lua`: where the combat log tells nothing (Forever): the game's
     damage meter (`C_DamageMeter`, readable once out of combat) for the foes
     and the harm by spell (`ns.meterFill`, never for a fall); `/wind probe`,
@@ -57,12 +63,14 @@ The plan, its research and its decisions: PLAN.md.
     Forever), the longest stretch without harm below half (a bandage's
     time); a debrief kept for a close call (below the threshold) or a death
     (with the game's recap, read a moment later), never for a duel or a
-    battleground; a hundred kept, a death always. Its schema in its header. `ns.summaryOf(d)`: a line.
-    Forever: the fight begins at the notice before combat's restrictions
-    (`ADDON_RESTRICTION_STATE_CHANGED`, Activating: my health and cooldowns
-    still readable); my health hidden in it, its low point is read at its
-    end (`lowAtEnd`) and what was ready at its start stands in (`readyFrom`);
-    my casts hidden, nothing is called used or unused (`castsHidden`).
+    battleground; a hundred kept, a death always; every fight, kept or not,
+    tallied by its traits (`record.fights`). Its schema in its header.
+    `ns.summaryOf(d)`: a line. Forever: the fight begins at the notice
+    before combat's restrictions (`ADDON_RESTRICTION_STATE_CHANGED`,
+    Activating: my health and cooldowns still readable); my health hidden in
+    it, its low point is read at its end (`lowAtEnd`) and what was ready at
+    its start stands in (`readyFrom`); my casts hidden, what was used is
+    told by its traces (`traced`, `untold`).
   - `Debrief.lua`: a debrief read, pure: `ns.factsOf(d)` (its title, place,
     the three largest hits and how long before the low point, the fall from
     half health, what was used and what wasn't), `ns.lessonsOf(d)` (rules
@@ -74,18 +82,30 @@ The plan, its research and its decisions: PLAN.md.
     nothing ready is a lesson); `ns.cardOf(d)`: the card's text (title, the
     line under it, the lessons, sections: the killing blow, foes, the hits
     that mattered, out of your control, heals, what you had: used and unused
-    only where my casts were seen); `ns.traitsOf(d)`: a fight's traits, the
-    lessons' tests as yes or no, for the patterns.
-  - `Patterns.lua`: what the close calls share, pure: `ns.patternsOf(debriefs)`
-    from three debriefs on (counts, never advice): the commonest trait said
-    above when it marks half of them, the traits marking a third and twice
-    or more, the places, the foes met more than once, the tools left unused
-    most often.
+    where my casts or their traces tell it); `ns.traitsOf(d)`: a fight's
+    traits, the lessons' tests as yes or no, for the patterns;
+    `ns.marksOf(d)`: the graph's marks (the hits that mattered, a foe
+    joining, what I used, control lost); `ns.textOf(d)`: the card as text.
+  - `Patterns.lua`: what the close calls share, pure:
+    `ns.patternsOf(debriefs, fights)` from three debriefs on (counts, never
+    advice): the commonest trait said above when it marks half of them, the
+    traits marking a third and twice or more (each set against every
+    fight's tally once twenty are counted: "(4 of your 40 fights)"), the
+    places, the foes met more than once, the tools left unused most often;
+    `ns.countsOf(debriefs)`, the counts, for the word before a pull.
+  - `Pull.lua`: the word before a pull: out of a fight, at a target like the
+    foes of my close calls (an elite, two levels up, one met in two of them)
+    or when I'm hurt and they mostly began so, a line in chat with the
+    counts; never in a fight, a name not again for five minutes, never at a
+    critter. `ns.wordBefore(counts, foe, me)`, pure.
   - `Book.lua`: the theme (frost steel) and the window, its tabs: the
-    Debriefs (the list, newest first; the open one's card, my health drawn
-    as bars against the threshold), the Patterns (the whole sheet). Pages
-    are drawn by one renderer (`drawPage`: title, the line under it,
-    lessons, the graph for a card, sections). A debrief written
+    Debriefs (the list, newest first; the open one's card, my health over
+    the fight by time against the threshold, marked (`ns.marksOf`, their
+    words under it), "Copy as text" (`ns.showCopy`: a box to copy from)),
+    the Patterns (the whole sheet), What you carry (Tools.lua's page, drawn
+    again as bags and cooldowns change). Pages are drawn by one renderer
+    (`drawPage`: title, the line under it, lessons, the graph for a card,
+    sections). A debrief written
     (`ns.debriefed`): a line in chat with a link (`|Hsecondwind:debrief:<at>|h`),
     the game's alert (the new recipe's), the book opened at a death's
     (`ns.openDebrief(at)`; settings).
@@ -93,8 +113,9 @@ The plan, its research and its decisions: PLAN.md.
   - `Minimap.lua`: the button.
 - `addon/test/game.lua`: the fake game: the API the addon calls, its events,
   a character, and fights to replay (`G.pull`, `G.hit`, `G.miss`, `G.heal`,
-  `G.debuff`, `G.cast`, `G.env` (a fall, the water), `G.stun` (control
-  lost: the game's account hidden in a fight on Forever), `G.leave`, `G.die`;
+  `G.debuff`, `G.cast` (a spell's cooldown begun, by its `cd`), `G.use`,
+  `G.env` (a fall, the water), `G.stun` (control lost: the game's account
+  hidden in a fight on Forever), `G.leave`, `G.die`; `G.target` (my target),
   `G.sight` a creature the game can name, `G.duel`, `state.instance`,
   `state.castsSecret`, `state.cvars`; `G.shown`: every text the pages set;
   `LowHealthFrame` shown at 35%; the meter's healing done): the combat log

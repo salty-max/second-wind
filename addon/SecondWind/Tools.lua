@@ -4,9 +4,12 @@
 -- the TBC Anniversary client's ItemSparse and ItemEffect on wago.tools, read
 -- 11 October 2026). The recorder (Recorder.lua) asks ns.readyTools() when my
 -- health first falls below half; at the fight's end ns.unusedOf() says which
--- of them were not used after.
---   a tool: { n = name, k = guard | stop | away | heal | bandage | potion,
---     item, spell (an item's: what its use casts), count }
+-- of them were not used after. Where my casts are hidden (Forever),
+-- ns.tracesOf() tells what was used by what a use leaves behind: one fewer in
+-- my bags, a cooldown begun in the fight (its start: when). ns.carried() and
+-- ns.carryPage(): what I carry now, the book's third tab.
+--   a tool: { n = name, k = guard | stop | away | heal | bandage | cure,
+--     item, spell (an item's: what its use casts), count, worn (its slot) }
 --   guard: lessens the harm or heals; stop: holds a foe; away: gets me out
 local _, ns = ...
 
@@ -279,12 +282,46 @@ local function readyAfter(start, duration, enabled)
   if not clear(start, duration, enabled) or enabled == false or enabled == 0 then return false end
   return not start or start == 0 or start + duration - GetTime() <= GCD
 end
-local function spellReady(name)
+-- Seconds until ready (0: ready), or nil where the game won't say.
+local function leftAfter(start, duration, enabled)
+  if not clear(start, duration, enabled) then return nil end
+  if enabled == false or enabled == 0 then return nil end
+  if not start or start == 0 or not duration then return 0 end
+  local left = start + duration - GetTime()
+  return left > GCD and left or 0
+end
+-- When a cooldown began (GetTime), if one is running: what a use leaves.
+local function began(start, duration)
+  if not clear(start, duration) or not start or start == 0 or not duration or duration <= GCD then return nil end
+  return start
+end
+local function spellCooldown(name)
   if C_Spell and C_Spell.GetSpellCooldown then
     local cd = C_Spell.GetSpellCooldown(name)
-    return cd ~= nil and readyAfter(cd.startTime, cd.duration, cd.isEnabled)
+    if not cd then return nil end
+    return cd.startTime, cd.duration, cd.isEnabled
   end
-  return GetSpellCooldown ~= nil and readyAfter(GetSpellCooldown(name))
+  if GetSpellCooldown then return GetSpellCooldown(name) end
+end
+local function spellReady(name)
+  if not ((C_Spell and C_Spell.GetSpellCooldown) or GetSpellCooldown) then return false end
+  return readyAfter(spellCooldown(name))
+end
+-- Whether a spell has a cooldown of its own at all (nil: the game won't say):
+-- one without leaves no trace of its use.
+local function hasCooldown(name)
+  if not GetSpellBaseCooldown then return nil end
+  local id
+  if C_Spell and C_Spell.GetSpellInfo then
+    local info = C_Spell.GetSpellInfo(name)
+    id = info and info.spellID
+  elseif GetSpellInfo then
+    id = select(7, GetSpellInfo(name))
+  end
+  if not id or not clear(id) then return nil end
+  local ms = GetSpellBaseCooldown(id)
+  if ms == nil or not clear(ms) then return nil end
+  return ms > GCD * 1000
 end
 local function spellUsable(name)
   local usable = (C_Spell and C_Spell.IsSpellUsable or IsUsableSpell)(name)
@@ -294,10 +331,11 @@ local function count(item)
   local n = (C_Item and C_Item.GetItemCount or GetItemCount)(item)
   return clear(n) and n or 0
 end
-local function itemReady(item)
+local function itemCooldown(item)
   local cooldown = C_Container and C_Container.GetItemCooldown or GetItemCooldown
-  return readyAfter(cooldown(item))
+  return cooldown(item)
 end
+local function itemReady(item) return readyAfter(itemCooldown(item)) end
 local function itemUsable(item)
   local usable = (C_Item and C_Item.IsUsableItem or IsUsableItem)(item)
   return clear(usable) and usable and true or false
@@ -359,7 +397,7 @@ function ns.readyTools()
     local tool
     if it.slot then
       local slot = worn(it)
-      if slot and wornReady(slot) and itemUsable(it.id) then tool = { count = nil } end
+      if slot and wornReady(slot) and itemUsable(it.id) then tool = { worn = slot } end
     else
       local n = count(it.id)
       if n > 0 and itemUsable(it.id) and itemReady(it.id) then tool = { count = n } end
@@ -428,4 +466,150 @@ function ns.unusedOf(ready, casts, since)
     if not used then table.insert(unused, t) end
   end
   return unused
+end
+
+-- A cast of mine that was one of the tools: the tool's name, else nil.
+local BY_NAME, BY_SPELL = {}, {}
+for _, t in ipairs(SPELLS) do
+  BY_NAME[t[1]] = t[1]
+end
+for _, it in ipairs(ITEMS) do
+  BY_SPELL[it.spell] = it.n
+end
+function ns.toolOfCast(c) return c and (c.id and BY_SPELL[c.id] or c.name and BY_NAME[c.name]) or nil end
+
+-- What a use of the tools ready (since t0, GetTime) left behind, read once
+-- the fight is over: one fewer in my bags, a cooldown begun (its start: when;
+-- a spell's or a worn item's: a potion's shared cooldown tells nothing).
+-- Casts for ns.unusedOf ({ t, id, name, traced }; t nil where only the bags
+-- tell), and the tools whose use leaves no trace (a spell without a cooldown).
+local function tenth(x) return math.floor(x * 10 + 0.5) / 10 end
+function ns.tracesOf(ready, t0)
+  local casts, untold = {}, {}
+  for _, t in ipairs(ready or {}) do
+    if type(t) == "table" and t.n then
+      local at
+      if t.worn then
+        at = began(GetInventoryItemCooldown("player", t.worn))
+      elseif t.item then
+        if t.count and count(t.item) < t.count then at = began(itemCooldown(t.item)) or true end
+      else
+        at = began(spellCooldown(t.n))
+        if not at and hasCooldown(t.n) ~= true then table.insert(untold, t.n) end
+      end
+      if at then
+        table.insert(casts, {
+          t = at ~= true and tenth(math.max(0, at - t0)) or nil,
+          id = t.item and t.spell or nil,
+          name = not t.item and t.n or nil,
+          traced = true,
+        })
+      end
+    end
+  end
+  return casts, untold
+end
+
+-- ── what I carry ─────────────────────────────────────────────────────────────
+-- Everything of the kinds above I carry now, ready or not: { n, k, count,
+-- left (seconds until ready, 0 ready, nil unknown), worn ("worn", or "bags":
+-- a worn kind not worn), wrapped (Recently Bandaged: seconds left), cures,
+-- school, env }; the same name once (a healthstone's ranks together).
+function ns.carried()
+  local out, byName = {}, {}
+  for _, t in ipairs(SPELLS) do
+    if known(t[1]) then table.insert(out, { n = t[1], k = t[2], left = leftAfter(spellCooldown(t[1])) }) end
+  end
+  local wrapped
+  if C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID then
+    local a = C_UnitAuras.GetPlayerAuraBySpellID(RECENTLY_BANDAGED)
+    if a and clear(a.expirationTime) and a.expirationTime then wrapped = math.max(0, a.expirationTime - GetTime()) end
+  end
+  for _, it in ipairs(ITEMS) do
+    local slot = it.slot and worn(it)
+    local tool
+    if slot then
+      tool = { worn = "worn", left = leftAfter(GetInventoryItemCooldown("player", slot)) }
+    else
+      local n = count(it.id)
+      if n > 0 then tool = { count = n, left = leftAfter(itemCooldown(it.id)), worn = it.slot and "bags" or nil } end
+    end
+    if tool and byName[it.n] then
+      local same = byName[it.n]
+      same.count = (same.count or 0) + (tool.count or 0)
+    elseif tool then
+      tool.n, tool.k, tool.cures, tool.school, tool.env = it.n, it.k, it.cures, it.school, it.env
+      if it.k == "bandage" then tool.wrapped = wrapped end
+      byName[it.n] = tool
+      table.insert(out, tool)
+    end
+  end
+  return out
+end
+
+local KINDS = {
+  { "heal", "Heals" },
+  { "bandage", "Bandages" },
+  { "cure", "Cures" },
+  { "guard", "Guards" },
+  { "stop", "Holds" },
+  { "away", "Ways out" },
+}
+local SCHOOL = { [2] = "holy", [4] = "fire", [8] = "nature", [16] = "frost", [32] = "shadow", [64] = "arcane" }
+local AGAINST = { Poison = "poison", Disease = "disease", Curse = "curses", Magic = "magic" }
+local ENVS = { Falling = "a fall", Drowning = "the water" }
+local function span(s)
+  s = math.ceil(s)
+  if s < 60 then return s .. " s" end
+  if s < 3600 then return math.ceil(s / 60) .. " min" end
+  return ("%d h %d min"):format(math.floor(s / 3600), math.ceil((s % 3600) / 60))
+end
+local function stateOf(t)
+  if t.worn == "bags" then return "in your bags, not worn" end
+  if t.wrapped and t.wrapped > 0 then return "Recently Bandaged, " .. span(t.wrapped) end
+  if t.left == nil then return "?" end
+  return t.left <= 0 and "ready" or ("ready in " .. span(t.left))
+end
+local function forWhat(t)
+  local what = {}
+  for _, c in ipairs(t.cures or {}) do
+    table.insert(what, AGAINST[c] or c:lower())
+  end
+  if t.school then table.insert(what, t.school == 126 and "magic" or SCHOOL[t.school] or "magic") end
+  local out = #what > 0 and (", against " .. table.concat(what, ", ")) or ""
+  for _, e in ipairs(t.env or {}) do
+    out = out .. (out:find(" in ") and " or " or ", in ") .. (ENVS[e] or e:lower())
+  end
+  return out
+end
+
+-- The page of what I carry (the book's third tab): a section a kind, then
+-- the kinds I carry none of. Counts and states, never advice.
+function ns.carryPage(list)
+  local page = {
+    title = "What you carry",
+    sub = "For the worst moments, now: ready, or how long until it is. Out of a fight, as the game tells it.",
+    lessons = {},
+    sections = {},
+  }
+  local has = {}
+  for _, kind in ipairs(KINDS) do
+    local lines = {}
+    for _, t in ipairs(list) do
+      if t.k == kind[1] then
+        has[t.k] = true
+        local n = t.count and t.count > 1 and ("%s (%d)"):format(t.n, t.count) or t.n
+        table.insert(lines, ("%s: %s%s"):format(n, stateOf(t), forWhat(t)))
+      end
+    end
+    if #lines > 0 then table.insert(page.sections, { heading = kind[2], lines = lines }) end
+  end
+  local none = {}
+  if not has.heal then table.insert(none, "Something that heals at once: a healing potion, a healthstone") end
+  if not has.bandage then table.insert(none, "A bandage") end
+  if not has.cure then table.insert(none, "A cure: an anti-venom, a restorative potion") end
+  if not has.stop and not has.away then table.insert(none, "Anything that holds a foe or gets you out") end
+  if #none > 0 then table.insert(page.sections, { heading = "None of these", lines = none }) end
+  if #page.sections == 0 then page.lessons = { "Nothing of the kind, as yet." } end
+  return page
 end

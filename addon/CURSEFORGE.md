@@ -21,10 +21,16 @@ A fight you survive below 15% health (or 10, 20, 25: your choice) is a close cal
 - **The killing blow**, from the game's own death recap: who, with what, and how much more than you had.
 - **The foes**: when each came in, their hits and misses, their level and rank where the game tells.
 - **The hits that mattered**: the three largest, and how long before your lowest point each landed.
-- **Your health over the fight**, drawn against your threshold.
+- **Your health over the fight**, drawn against your threshold and marked: the hits that mattered, each foe joining, what you used, the stretches out of your control.
 - **The heals**, yours and others'.
 - **Out of your control**: when a stun or a fear held you, how long and by what. Held the whole way down, what you had is shown as out of reach, never as a lesson.
 - **What you had**: what was ready when your health first fell below half, what you used, and what went unused.
+
+**Copy as text** puts the debrief in a box to copy, for your guild's channel or a Discord (`/wind copy`).
+
+## What you carry
+
+A third page lists what you carry for the worst moments right now, by kind: each potion, bandage, cure, guard and way out, how many, and whether it's ready or how long until it is. Under it, the kinds you carry none of. Handy before a dungeon (`/wind carry`).
 
 ## What you had ready
 
@@ -39,19 +45,23 @@ Every class's and people's emergency spells (every rank: Divine Shield, Ice Bloc
 
 ## The patterns
 
-From your third debrief on, a second page counts what your close calls share: *"In 4 of your 6 close calls, you went in below 60% health."* The traits that come back, the places, the foes met more than once, and the tools left unused most often. Counts, never advice.
+From your third debrief on, a second page counts what your close calls share: *"In 4 of your 6 close calls, you went in below 60% health."* The traits that come back, the places, the foes met more than once, and the tools left unused most often. Every fight is counted too, so each trait stands beside how common it is at all: *"3 of 5: three foes or more at once (12 of your 230 fights)"*. Counts, never advice.
+
+## A word before a pull
+
+Out of a fight, when you target a foe like those of your close calls (an elite, one two levels or more above you, one you've met in them before), or you're hurt and most of them began that way, one line in chat with the counts: *"Defias Pillager, an elite three levels above you. Of your 5 close calls, 3 had an elite."* Never in a fight, never at a critter, the same foe not again for five minutes; off in the settings if you'd rather not.
 
 ## Every game, one download
 
 The same file for Classic Era (Hardcore, Season of Discovery), TBC Anniversary and World of Warcraft: Forever: each game loads its own part.
 
-World of Warcraft: Forever closes the combat log to addons and hides your health and casts during a fight. Second Wind reads what the game still allows: the fight's foes and its harm by spell from the game's damage meter once the fight is over, your health at its end for its lowest point, what you had ready as it began, and when you lost control. So on Forever, a close call is seen by your health when the fight ends: one you recover from before then goes unseen. Deaths are always debriefed. A card says what the game hid, and with your casts hidden, nothing is called used or unused. `/wind probe` reports, after your next fight, what the game let it read.
+World of Warcraft: Forever closes the combat log to addons and hides your health and casts during a fight. Second Wind reads what the game still allows: the fight's foes and its harm by spell from the game's damage meter once the fight is over, your health at its end for its lowest point, what you had ready as it began, and when you lost control. So on Forever, a close call is seen by your health when the fight ends: one you recover from before then goes unseen. Deaths are always debriefed. With your casts hidden, what you used is told by what a use leaves behind, read once the fight is over: one fewer potion in your bags, a cooldown begun (and when). A spell without a cooldown leaves no trace, and the card says so. A card says what the game hid. `/wind probe` reports, after your next fight, what the game let it read.
 
 Duels and battlegrounds are never debriefed.
 
 ## Settings
 
-The first time each character logs in with Second Wind, a welcome page introduces it and offers its choices (`/wind welcome` shows it again). After that: Options → AddOns → Second Wind (or `/wind settings`, or right-click the minimap button): the close call's threshold, a line in chat with a link to the debrief, the game's alert, the debrief opened on its own after a death, the minimap button.
+The first time each character logs in with Second Wind, a welcome page introduces it and offers its choices (`/wind welcome` shows it again). After that: Options → AddOns → Second Wind (or `/wind settings`, or right-click the minimap button): the close call's threshold, a line in chat with a link to the debrief, the game's alert, the debrief opened on its own after a death, the word before a pull, the minimap button.
 
 Settings are each character's own, as in most interface addons. A character can take another's: choose one of your characters of the same game from a list (on the welcome page or the Options page), or bring them from anywhere with a code: `/wind export` on one character, `/wind import CODE` on the other.
 

@@ -3,14 +3,19 @@
 -- as the lessons'), the places, the foes met more than once and the tools left
 -- unused most often. Counts, never advice. Pure, as Debrief.lua: the book
 -- draws it (Book.lua's Patterns tab).
---   ns.patternsOf(debriefs) = { enough, count, title, sub, lessons = { a
---     headline }, sections = { { heading, lines } } }
+--   ns.patternsOf(debriefs, fights) = { enough, count, title, sub, lessons = {
+--     a headline }, sections = { { heading, lines } } }; fights: every
+--     fight's tally (Recorder.lua), each trait set against it once there
+--     are FIGHTS of them
+--   ns.countsOf(debriefs): the counts themselves, for the word before a pull
+--     (Pull.lua): { total, traits = { key = n }, foes = { name = n } }
 local _, ns = ...
 
 local MIN = 3 -- debriefs before anything is said
 local SHOWN = 0.3 -- a trait listed in at least this share of them (and twice)
 local HEADLINE = 0.5 -- the commonest told above, from this share
 local ROWS = 5 -- places, foes, tools listed
+local FIGHTS = 20 -- fights tallied before a trait is set against them all
 local TRAITS = {
   { "world", "harm from the world: a fall, the water" },
   { "low", "you went in below 60% health" },
@@ -42,9 +47,7 @@ local function ranked(counts, first)
   return list
 end
 
-function ns.patternsOf(debriefs)
-  local total = #debriefs
-  if total < MIN then return { enough = false, count = total } end
+local function counted(debriefs)
   local traits, places, foes, unused, firstSeen, order = {}, {}, {}, {}, {}, 0
   local deaths, since = 0, nil
   local function count(map, name)
@@ -78,6 +81,26 @@ function ns.patternsOf(debriefs)
       end
     end
   end
+  return {
+    total = #debriefs,
+    traits = traits,
+    places = places,
+    foes = foes,
+    unused = unused,
+    firstSeen = firstSeen,
+    deaths = deaths,
+    since = since,
+  }
+end
+function ns.countsOf(debriefs) return counted(debriefs) end
+
+function ns.patternsOf(debriefs, fights)
+  local total = #debriefs
+  if total < MIN then return { enough = false, count = total } end
+  local c = counted(debriefs)
+  local traits, places, foes, unused, firstSeen = c.traits, c.places, c.foes, c.unused, c.firstSeen
+  local deaths, since = c.deaths, c.since
+  local base = fights and fights.n and fights.n >= FIGHTS and fights or nil
 
   local page = { enough = true, count = total, title = "What your close calls share", lessons = {}, sections = {} }
   local closes = total - deaths
@@ -93,7 +116,7 @@ function ns.patternsOf(debriefs)
   local often = {}
   for i, t in ipairs(TRAITS) do
     local n = traits[t[1]] or 0
-    if n >= 2 and n / total >= SHOWN then table.insert(often, { n = n, i = i, phrase = t[2] }) end
+    if n >= 2 and n / total >= SHOWN then table.insert(often, { n = n, i = i, key = t[1], phrase = t[2] }) end
   end
   table.sort(often, function(a, b)
     if a.n ~= b.n then return a.n > b.n end
@@ -111,7 +134,11 @@ function ns.patternsOf(debriefs)
     end
     table.insert(page.sections, { heading = heading, lines = lines })
   end
-  section("Most often", often, function(t) return ("%d of %d: %s"):format(t.n, total, t.phrase) end)
+  -- (against every fight's, once enough are tallied: how common it is at all)
+  section("Most often", often, function(t)
+    local all = base and (" (%d of your %d fights)"):format(base.traits[t.key] or 0, base.n) or ""
+    return ("%d of %d: %s%s"):format(t.n, total, t.phrase, all)
+  end)
   section("Where", ranked(places, firstSeen), function(p) return ("%s: %d"):format(p.name, p.n) end)
   section("Foes met more than once", ranked(foes, firstSeen), function(f) return ("%s: in %d"):format(f.name, f.n) end)
   section(

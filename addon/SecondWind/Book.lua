@@ -1,10 +1,12 @@
 -- The book: the standard game window (portrait, title bar) and its tabs. The
 -- Debriefs: the list on the left (newest first), the open one's card on the
 -- right (Debrief.lua's text: its title, the line under it, the lessons, my
--- health over the fight drawn as bars against the threshold, its sections).
--- The Patterns: what the close calls share (PLAN.md, step 4: a word until
--- then). A debrief written: a line in chat with a link to it, the game's
--- alert, and after a death the book opened at it (settings). /wind opens it.
+-- health over the fight against the threshold, marked with what happened in
+-- it, its sections), and a button to copy it as text. The Patterns: what the
+-- close calls share (Patterns.lua), set against every fight's. What you
+-- carry: Tools.lua's page, now. A debrief written: a line in chat with a link
+-- to it, the game's alert, and after a death the book opened at it
+-- (settings). /wind opens it.
 local _, ns = ...
 
 -- ── look ─────────────────────────────────────────────────────────────────────
@@ -29,9 +31,22 @@ local label, panel, rule = K.label, K.panel, K.rule
 
 local TITLE = "Second Wind"
 local ICON = "Interface\\AddOns\\SecondWind\\Media\\Logo"
-local TAB = { debriefs = 1, patterns = 2 }
+local TAB = { debriefs = 1, patterns = 2, carry = 3 }
 ns.TAB = TAB
-local TAB_TITLES = { "Debriefs", "Patterns" }
+local TAB_TITLES = { "Debriefs", "Patterns", "What you carry" }
+-- The graph's marks (Debrief.lua's ns.marksOf): their colours, their words.
+local MARK = {
+  hit = { 0.92, 0.36, 0.30 },
+  foe = { 0.95, 0.72, 0.32 },
+  used = { 0.45, 0.86, 0.52 },
+  held = { 0.72, 0.62, 0.92 },
+}
+local LEGEND = {
+  { "hit", "the hits that mattered" },
+  { "foe", "a foe joined" },
+  { "used", "what you used" },
+  { "held", "out of your control" },
+}
 local LIST_W, ROW_H, CARD_W, PAGE_W, GRAPH_H = 236, 38, 470, 704, 60
 
 local function emptyText(n, count)
@@ -89,7 +104,9 @@ local function newPage(name, x, width, withGraph)
   if withGraph then
     local g = CreateFrame("Frame", nil, p.child)
     g:SetSize(width, GRAPH_H)
-    g.bars = {}
+    g.bars, g.marks = {}, {}
+    g.legend = label(p.child, K.BODY_FONT, 11, T.soft)
+    g.legend:SetWidth(width)
     g.threshold = g:CreateTexture(nil, "OVERLAY")
     g.threshold:SetColorTexture(T.accent[1], T.accent[2], T.accent[3], 0.5)
     local base = rule(g)
@@ -114,23 +131,41 @@ local function line(p, i, size, colour)
   return l
 end
 
--- My health over the fight: a bar for each sample, the threshold a line.
+-- A mark of the graph (reused from one drawing to the next).
+local function mark(g, i)
+  local m = g.marks[i]
+  if not m then
+    m = g:CreateTexture(nil, "OVERLAY")
+    g.marks[i] = m
+  end
+  m:ClearAllPoints()
+  m:Show()
+  return m
+end
+
+-- My health over the fight, by time: a step for each sample, from it to the
+-- next; the threshold a line; the marks (the hits that mattered a red line,
+-- a foe joining an amber one from below, what I used a green square above,
+-- control lost a band), their words under it.
 local function graph(p, d, y)
   local g = p.graph
   local samples = d.samples or {}
   g:SetPoint("TOPLEFT", 0, -y)
   g:SetShown(#samples > 1)
+  g.legend:SetShown(false)
   if #samples <= 1 then return y end
-  local w = p.width / #samples
+  local span = math.max(d.length or 0, samples[#samples].t or 0, d.lowT or 0, 1)
+  local function x(t) return math.max(0, math.min(1, (t or 0) / span)) * (p.width - 2) end
   for i, s in ipairs(samples) do
     local bar = g.bars[i]
     if not bar then
       bar = g:CreateTexture(nil, "ARTWORK")
       g.bars[i] = bar
     end
+    local from, to = x(s.t), samples[i + 1] and x(samples[i + 1].t) or (p.width - 2)
     bar:ClearAllPoints()
-    bar:SetPoint("BOTTOMLEFT", (i - 1) * w, 0)
-    bar:SetSize(math.max(1, w - 1), math.max(1, GRAPH_H * s.pct / 100))
+    bar:SetPoint("BOTTOMLEFT", from, 0)
+    bar:SetSize(math.max(1, to - from - (to - from > 3 and 1 or 0)), math.max(1, GRAPH_H * s.pct / 100))
     local low = s.pct == d.lowPct
     local colour = low and (d.kind == "death" and DEATH or T.accent) or T.bar
     bar:SetColorTexture(colour[1], colour[2], colour[3], low and 1 or 0.6)
@@ -142,11 +177,47 @@ local function graph(p, d, y)
   g.threshold:ClearAllPoints()
   g.threshold:SetPoint("BOTTOMLEFT", 0, GRAPH_H * ns.option("threshold") / 100)
   g.threshold:SetSize(p.width, 1)
-  return y + GRAPH_H + 14
+  local marks, kinds = ns.marksOf(d), {}
+  for i, m in ipairs(marks) do
+    local t, c = mark(g, i), MARK[m.kind]
+    kinds[m.kind] = true
+    if m.kind == "held" then
+      t:SetDrawLayer("BACKGROUND")
+      t:SetColorTexture(c[1], c[2], c[3], 0.28)
+      t:SetPoint("BOTTOMLEFT", x(m.t), 0)
+      t:SetSize(math.max(2, x(m.to) - x(m.t)), GRAPH_H)
+    elseif m.kind == "used" then
+      t:SetDrawLayer("OVERLAY")
+      t:SetColorTexture(c[1], c[2], c[3], 1)
+      t:SetPoint("BOTTOMLEFT", math.max(0, x(m.t) - 3), GRAPH_H - 6)
+      t:SetSize(6, 6)
+    else
+      t:SetDrawLayer("OVERLAY")
+      t:SetColorTexture(c[1], c[2], c[3], 0.9)
+      t:SetPoint("BOTTOMLEFT", x(m.t), 0)
+      t:SetSize(2, m.kind == "hit" and GRAPH_H or GRAPH_H * 0.4)
+    end
+  end
+  for i = #marks + 1, #g.marks do
+    g.marks[i]:Hide()
+  end
+  g.shownMarks = marks -- (for the tests)
+  local words = {}
+  for _, l in ipairs(LEGEND) do
+    if kinds[l[1]] then table.insert(words, K.hex(MARK[l[1]]) .. l[2] .. "|r") end
+  end
+  y = y + GRAPH_H + 8
+  if #words == 0 then return y + 6 end
+  g.legend:ClearAllPoints()
+  g.legend:SetPoint("TOPLEFT", 0, -y)
+  g.legend:SetText(table.concat(words, "   "))
+  g.legend:Show()
+  return y + g.legend:GetStringHeight() + 10
 end
 
--- A page drawn: c its text; d a debrief (its health over the fight), or nil.
-local function drawPage(p, c, d)
+-- A page drawn: c its text; d a debrief (its health over the fight), or nil;
+-- keep: where it was scrolled to stays (a page drawn again as it changes).
+local function drawPage(p, c, d, keep)
   local n, y = 0, 30
   local function put(text, size, colour, gap)
     n = n + 1
@@ -173,7 +244,7 @@ local function drawPage(p, c, d)
     p.lines[i]:Hide()
   end
   p.child:SetHeight(y + 10)
-  p:ScrollTo(0)
+  p:ScrollTo(keep and p:GetVerticalScroll() or 0)
   p.shown = c -- (for the tests)
 end
 
@@ -184,21 +255,25 @@ local function find(debriefs, at)
   end
 end
 
--- Rewrite what the open tab shows.
-function ns.refresh()
+-- Rewrite what the open tab shows (keep: where a page was scrolled to).
+function ns.refresh(keep)
   if not book then return end
   local record = ns.record()
   local debriefs = record and record.debriefs or {}
   book.count:SetText(#debriefs == 1 and "1 debrief" or ("%d debriefs"):format(#debriefs))
   local listing = book.selectedTab == TAB.debriefs and #debriefs > 0
-  local patterns = book.selectedTab == TAB.patterns and ns.patternsOf(debriefs) or nil
+  local patterns = book.selectedTab == TAB.patterns and ns.patternsOf(debriefs, record and record.fights) or nil
   local studied = patterns ~= nil and patterns.enough
+  local carrying = book.selectedTab == TAB.carry
   book.list:SetShown(listing)
   book.left:SetShown(listing)
   book.card:SetShown(listing)
+  book.copy:SetShown(listing)
   book.patterns:SetShown(studied)
-  book.empty:SetShown(not listing and not studied)
-  if studied then return drawPage(book.patterns, patterns) end
+  book.carry:SetShown(carrying)
+  book.empty:SetShown(not listing and not studied and not carrying)
+  if carrying then return drawPage(book.carry, ns.carryPage(ns.carried()), nil, keep) end
+  if studied then return drawPage(book.patterns, patterns, nil, keep) end
   if not listing then
     book.empty:SetText(emptyText(book.selectedTab, #debriefs))
     return
@@ -221,8 +296,57 @@ function ns.refresh()
   end
   book.list.child:SetHeight(n * ROW_H + 8)
   book.list:UpdateThumb()
-  drawPage(book.card, ns.cardOf(open), open)
+  drawPage(book.card, ns.cardOf(open), open, keep)
   book.cardShown = book.card.shown -- (for the tests)
+end
+
+-- ── the debrief as text ──────────────────────────────────────────────────────
+-- A box holding it, selected, to copy (Ctrl+C): for a guild's channel, a
+-- Discord. The text stays as it is whatever is typed.
+local copier
+function ns.showCopy(text)
+  if not copier then
+    copier = K.dialog("SecondWindCopy", "The debrief, as text")
+    K.movable(copier, 540, 400)
+    local note = label(copier, K.BODY_FONT, 11, T.soft)
+    note:SetPoint("TOPLEFT", 22, -42)
+    note:SetText("Copy it (Ctrl+C), then paste it where you like.")
+    copier.scroll = K.scrollArea(copier, 480, "SecondWindCopyScroll")
+    copier.scroll:SetPoint("TOPLEFT", 22, -64)
+    copier.scroll:SetPoint("BOTTOMRIGHT", -34, 20)
+    local box = CreateFrame("EditBox", nil, copier.scroll)
+    box:SetMultiLine(true)
+    box:SetAutoFocus(false)
+    box:SetFontObject(ChatFontNormal)
+    box:SetWidth(480)
+    box:SetScript("OnEscapePressed", function() copier:Hide() end)
+    box:SetScript("OnTextChanged", function(self, typed)
+      if typed then
+        self:SetText(copier.text)
+        self:HighlightText()
+      end
+    end)
+    copier.scroll:SetScrollChild(box)
+    copier.scroll.child = box
+    copier.box = box
+  end
+  copier.text = text
+  copier.box:SetText(text)
+  copier:Show()
+  copier.box:SetFocus()
+  copier.box:HighlightText()
+  copier.scroll:ScrollTo(0)
+  return copier
+end
+
+-- The open debrief (or the last one) as text; false if there is none.
+function ns.copyDebrief()
+  local record = ns.record()
+  local debriefs = record and record.debriefs or {}
+  local d = book and find(debriefs, book.open) or debriefs[#debriefs]
+  if not d then return false end
+  ns.showCopy(ns.textOf(d))
+  return true
 end
 
 -- The tab n shown.
@@ -262,9 +386,16 @@ local function build()
   book.empty:SetWidth(420)
   book.empty:SetJustifyH("CENTER")
 
-  -- the card, right of the list; the patterns, the whole sheet
+  -- the card, right of the list (its button to copy it above); the patterns
+  -- and what I carry, the whole sheet
   book.card = newPage("SecondWindCard", LIST_W + 20, CARD_W, true)
   book.patterns = newPage("SecondWindPatterns", 20, PAGE_W, false)
+  book.carry = newPage("SecondWindCarry", 20, PAGE_W, false)
+  book.copy = CreateFrame("Button", nil, book, "UIPanelButtonTemplate")
+  book.copy:SetSize(120, 22)
+  book.copy:SetPoint("TOPRIGHT", -14, -31)
+  book.copy:SetText("Copy as text")
+  book.copy:SetScript("OnClick", function() ns.copyDebrief() end)
 
   book.selectedTab = TAB.debriefs
   book:SetScript("OnShow", function() ns.showTab(book.selectedTab) end)
@@ -278,6 +409,25 @@ end
 ns.window = window -- (for the tests)
 
 function ns.toggle() window():SetShown(not book:IsShown()) end
+
+-- The book open at a tab.
+function ns.openTab(n)
+  window()
+  book.selectedTab = n
+  if book:IsShown() then
+    ns.showTab(n)
+  else
+    book:Show()
+  end
+end
+
+-- What I carry, drawn again as it changes while its tab is open.
+local function carried()
+  if book and book:IsShown() and book.selectedTab == TAB.carry then ns.refresh(true) end
+end
+for _, e in ipairs({ "BAG_UPDATE_DELAYED", "SPELL_UPDATE_COOLDOWN", "PLAYER_EQUIPMENT_CHANGED" }) do
+  ns.on(e, carried)
+end
 
 -- The book open at a debrief (by when it was written).
 function ns.openDebrief(at)
