@@ -8,6 +8,7 @@
 local _, ns = ...
 
 local DAMAGE_TAKEN = Enum and Enum.DamageMeterType and Enum.DamageMeterType.DamageTaken or 7
+local HEALING_DONE = Enum and Enum.DamageMeterType and Enum.DamageMeterType.HealingDone or 2
 local CURRENT = Enum and Enum.DamageMeterSessionType and Enum.DamageMeterSessionType.Current or 1
 local SPELLS_KEPT = 5
 
@@ -18,26 +19,29 @@ local function spellName(id)
   return GetSpellInfo and (GetSpellInfo(id)) or nil
 end
 
--- The meter's account of my damage taken in the last fight, by spell (the
--- largest first): { spell, src, amount, overkill, deadly, avoidable, rank },
--- or nil (no meter, not available, nothing readable).
-local function source()
+-- My own line of the meter in the last fight, of a kind (damage taken,
+-- healing done), or nil.
+local function source(kind)
   local me = UnitGUID("player")
-  local ok, s = pcall(C_DamageMeter.GetCombatSessionSourceFromType, CURRENT, DAMAGE_TAKEN, me)
+  local ok, s = pcall(C_DamageMeter.GetCombatSessionSourceFromType, CURRENT, kind, me)
   if ok and s and clear(s.combatSpells) and #s.combatSpells > 0 then return s end
   -- (the fight over, its session may be the last one kept)
   local okList, list = pcall(C_DamageMeter.GetAvailableCombatSessions)
   local last = okList and clear(list) and list[#list]
   if not (last and clear(last.sessionID)) then return nil end
-  ok, s = pcall(C_DamageMeter.GetCombatSessionSourceFromID, last.sessionID, DAMAGE_TAKEN, me)
+  ok, s = pcall(C_DamageMeter.GetCombatSessionSourceFromID, last.sessionID, kind, me)
   return ok and s or nil
 end
+
+-- The meter's account of my damage taken in the last fight, by spell (the
+-- largest first): { spell, src, amount, overkill, deadly, avoidable, rank },
+-- or nil (no meter, not available, nothing readable).
 
 function ns.meterTaken()
   if not (C_DamageMeter and C_DamageMeter.GetCombatSessionSourceFromType) then return nil end
   local ok, available, why = pcall(C_DamageMeter.IsDamageMeterAvailable)
   if not ok or not available then return nil, ok and why or nil end
-  local s = source()
+  local s = source(DAMAGE_TAKEN)
   if not (s and clear(s.combatSpells)) then return nil end
   local out = {}
   for _, sp in ipairs(s.combatSpells) do
@@ -91,9 +95,30 @@ end
 -- ── /wind probe ──────────────────────────────────────────────────────────────
 -- Armed, it watches the next fight and says, once it is over, what the game
 -- let an addon read: the combat log, my health and my casts in the fight, the
--- notice before combat's restrictions, the damage meter, losing control (a
--- stun, a fear: the game's account of it, or only that I had).
+-- notice before combat's restrictions, the damage meter (the harm, marked
+-- avoidable or not; my healing, and whom its spells name), losing control (a
+-- stun, a fear: the game's account of it, or only that I had), the game's own
+-- low-health warning (shown at 35% by Blizzard's code from my true health:
+-- whether an addon may see it in a fight, my health hidden).
 local probe
+
+-- My healing in the last fight by the meter, and the names its spells give.
+local function healingRead()
+  if not (C_DamageMeter and C_DamageMeter.GetCombatSessionSourceFromType) then return nil end
+  local s = source(HEALING_DONE)
+  if not (s and clear(s.combatSpells)) then return nil end
+  local total, names, seen = 0, {}, {}
+  for _, sp in ipairs(s.combatSpells) do
+    if clear(sp.totalAmount) then total = total + sp.totalAmount end
+    local details = clear(sp.combatSpellDetails) and sp.combatSpellDetails or {}
+    local who = clear(details.unitName) and details.unitName or nil
+    if who and who ~= "" and not seen[who] then
+      seen[who] = true
+      table.insert(names, who)
+    end
+  end
+  return total, names
+end
 
 function ns.probeArm()
   probe = { armed = true, log = 0 }
@@ -105,6 +130,11 @@ local function report()
   probe = nil
   local function said(v, yes, no) return v and yes or no end
   local taken, why = ns.meterTaken()
+  local avoidable = 0
+  for _, t in ipairs(taken or {}) do
+    if t.avoidable then avoidable = avoidable + 1 end
+  end
+  local healed, on = healingRead()
   local lines = {
     "the combat log: " .. (ns.forever and "closed (Forever)" or ("%d lines heard"):format(p.log)),
     "your health in the fight: " .. (p.healthSecret and "hidden" or said(p.healthRead, "readable", "no change seen")),
@@ -117,10 +147,18 @@ local function report()
         or p.lost and "only that you had lost it"
         or "not lost in this fight"
       ),
-    "the damage meter: "
+    "the damage meter: " .. (taken and ("%d of the spells that hit you read, %d marked avoidable"):format(
+      #taken,
+      avoidable
+    ) or ("nothing read" .. (why and why ~= "" and (" (" .. why .. ")") or ""))),
+    "the meter's healing: " .. (healed and ("yours %d%s"):format(
+      healed,
+      #on > 0 and (" (its spells name " .. table.concat(on, ", ") .. ")") or ""
+    ) or "nothing read"),
+    "the game's low-health warning (35%): "
       .. (
-        taken and ("%d of the spells that hit you read"):format(#taken)
-        or ("nothing read" .. (why and why ~= "" and (" (" .. why .. ")") or ""))
+        GetCVarBool and GetCVarBool("doNotFlashLowHealthWarning") and "turned off in your settings"
+        or said(p.lowWarn, "seen in the fight", "not seen (below 35% in the fight?)")
       ),
   }
   print(ns.PREFIX .. "the probe's report:")
@@ -132,6 +170,11 @@ end
 ns.on("ADDON_RESTRICTION_STATE_CHANGED", function()
   if probe then probe.notice = true end
 end)
+if LowHealthFrame and LowHealthFrame.Show then
+  hooksecurefunc(LowHealthFrame, "Show", function()
+    if probe and probe.inFight then probe.lowWarn = true end
+  end)
+end
 -- (control lost: whether the game says what, by which spell)
 local function controlSeen()
   if not (probe and probe.inFight) then return end

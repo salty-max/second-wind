@@ -63,6 +63,8 @@ globals:
     any: true
   GetBuildInfo:
     any: true
+  GetCVarBool:
+    any: true
   GetCursorPosition:
     any: true
   GetInventoryItemCooldown:
@@ -112,6 +114,8 @@ globals:
   LinkProcessorResponse:
     any: true
   LinkUtil:
+    any: true
+  LowHealthFrame:
     any: true
   MenuUtil:
     any: true

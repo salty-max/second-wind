@@ -43,7 +43,9 @@ The plan, its research and its decisions: PLAN.md.
     and the harm by spell (`ns.meterFill`, never for a fall); `/wind probe`,
     which says after the next fight what the game let the addon read (the
     combat log, my health and casts, the notice before combat's
-    restrictions, the meter, losing control).
+    restrictions, the meter: the harm marked avoidable, my healing and whom
+    it names; losing control; the game's own low-health warning at 35%,
+    `LowHealthFrame`, shown by Blizzard's code from my true health).
   - `Recorder.lua`: each fight as it went (its start: combat or the first
     harm; its end: combat's, a moment later so a death wins, or QUIET seconds
     after a fall), the foes (when each came, hits, misses, damage, level and
@@ -94,7 +96,8 @@ The plan, its research and its decisions: PLAN.md.
   `G.debuff`, `G.cast`, `G.env` (a fall, the water), `G.stun` (control
   lost: the game's account hidden in a fight on Forever), `G.leave`, `G.die`;
   `G.sight` a creature the game can name, `G.duel`, `state.instance`,
-  `state.castsSecret`; `G.shown`: every text the pages set): the combat log
+  `state.castsSecret`, `state.cvars`; `G.shown`: every text the pages set;
+  `LowHealthFrame` shown at 35%; the meter's healing done): the combat log
   as `COMBAT_LOG_EVENT_UNFILTERED` on
   Classic only, the health with it (a secret value in a fight on Forever),
   Forever's notices around combat, the damage meter (secret in combat on

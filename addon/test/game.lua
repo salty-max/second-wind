@@ -68,14 +68,21 @@ function UnitAffectingCombat(u) return u == "player" and state.inCombat end
 function IsInInstance() return state.instance ~= nil, state.instance or "none" end
 function IsInGroup() return state.grouped == true end
 if not FOREVER then C_GameRules = { IsHardcoreActive = function() return state.hardcore == true end } end
-function hooksecurefunc(name, fn)
-  local original = _G[name]
-  _G[name] = function(...)
+-- (a global function, or a table's: hooksecurefunc(LowHealthFrame, "Show", fn))
+function hooksecurefunc(t, name, fn)
+  if type(t) ~= "table" then
+    t, name, fn = _G, t, name
+  end
+  local original = t[name]
+  rawset(t, name, function(...)
     local r = original(...)
     fn(...)
     return r
-  end
+  end)
 end
+-- The settings of the game (state.cvars: by name, true or not).
+state.cvars = {}
+function GetCVarBool(name) return state.cvars[name] == true end
 function StartDuel() end
 -- The spellbook (by name: { ready = GetTime it is off cooldown, usable }),
 -- the bags (by item: { count, ready, usable }), the auras on me (by spell).
@@ -226,6 +233,9 @@ local function ui()
   })
 end
 UIParent, UISpecialFrames = ui(), {}
+-- The game's own low-health warning (the screen's red edge): Blizzard's code
+-- shows it at 35% from my true health, unless the setting turns it off.
+LowHealthFrame = ui()
 Minimap, GameTooltip = ui(), ui()
 function GetCursorPosition() return 0, 0 end
 SlashCmdList = {}
@@ -324,6 +334,12 @@ end
 local recap = {}
 local function health(v)
   state.health = math.max(0, math.min(state.maxHealth, v))
+  local low = state.health > 0 and state.health / state.maxHealth <= 0.35 and not state.cvars.doNotFlashLowHealthWarning
+  if low then
+    LowHealthFrame:Show()
+  else
+    LowHealthFrame:Hide()
+  end
   offer("UNIT_HEALTH", "player")
 end
 
@@ -344,11 +360,30 @@ local function metered()
   end
   return { combatSpells = list }
 end
+-- (healing done, type 2: a healer's, by spell, naming whom it healed: me)
+local healed = {}
+local function healing(guid)
+  if FOREVER and state.inCombat then return { combatSpells = secret() } end
+  local list = {}
+  for _, h in pairs(healed) do
+    if h.guid == guid then
+      table.insert(list, { spellID = h.id, totalAmount = h.amount, combatSpellDetails = { unitName = state.name } })
+    end
+  end
+  return { combatSpells = list }
+end
+local HEALING_DONE = 2
 C_DamageMeter = {
   IsDamageMeterAvailable = function() return true, "" end,
-  GetCombatSessionSourceFromType = function() return metered() end,
+  GetCombatSessionSourceFromType = function(_, kind, guid)
+    if kind == HEALING_DONE then return healing(guid) end
+    return metered()
+  end,
   GetAvailableCombatSessions = function() return { { sessionID = 1 } } end,
-  GetCombatSessionSourceFromID = function() return metered() end,
+  GetCombatSessionSourceFromID = function(_, kind, guid)
+    if kind == HEALING_DONE then return healing(guid) end
+    return metered()
+  end,
 }
 
 local G = {}
@@ -360,7 +395,7 @@ end
 -- A fight begins: in combat.
 -- (Forever: told before combat's restrictions begin, and after they end)
 function G.pull()
-  recap, meter = {}, {}
+  recap, meter, healed = {}, {}, {}
   if FOREVER then offer("ADDON_RESTRICTION_STATE_CHANGED", 0, 1) end
   state.inCombat = true
   offer("PLAYER_REGEN_DISABLED")
@@ -429,6 +464,9 @@ end
 -- A heal on me: { from = name (or me), amount, spell = { id, name } }.
 function G.heal(h)
   local source = h.from and creature(h.from) or state.guid
+  local key = source .. ":" .. h.spell[1]
+  healed[key] = healed[key] or { guid = source, id = h.spell[1], amount = 0 }
+  healed[key].amount = healed[key].amount + h.amount
   log(
     "SPELL_HEAL",
     source,

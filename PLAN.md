@@ -186,3 +186,49 @@ Next, from the same review, once real fights have been read: the health
 graph marked with the hits that mattered, the foes' arrivals and what I used;
 the patterns against every fight's (how many fights in all had three foes,
 not only the close calls), so a count says something of danger.
+
+## Forever, and its Hardcore (11 October 2026)
+
+The user: Second Wind is far more use on Classic Era than on Forever, and a
+Hardcore realm on Forever would make that a problem. What Forever's own
+interface documentation (1.60.1) says:
+
+- My health is secret in any fight (`UnitHealth`: SecretReturns; the Combat
+  restriction is "the player is actively affecting combat", open world
+  included; no predicate lets my own health through), my casts while it
+  lasts, the combat log closed to addons. So a close call I recover from
+  before the fight ends can't be seen as such, only its end.
+- What it gives: my health before (the notice before the restrictions) and
+  after; the damage meter once out of combat (the harm by spell, each marked
+  `isAvoidable` and `isDeadly`; healing done, by spell, each naming a unit);
+  losing control (`HasFullControl`); the death recap.
+- And maybe: the game's own low-health warning (`LowHealthFrame`, the red
+  edge) is Blizzard's code comparing my true health to 35% and showing a
+  frame; whether an addon sees it shown in a fight, only the game can say.
+
+Asked of the game first: `/wind probe` reports the warning and the meter's
+healing (and whom it names) since 11 October. Then, by what it says:
+
+1. The warning seen: a mark in a blind fight, "below 35%, 6 seconds in",
+   on the card and the graph; a fight that went below 35% kept even when it
+   ended above the threshold (not called a close call: "your health fell
+   below 35%").
+2. The harm told as a bound: the meter's harm against my health, and my
+   healing: "you took 140% of your health in harm and were healed for 75%:
+   at worst, 10%". A fight whose worst could pass the threshold is a
+   possible close call, said so, never more.
+3. The meter's avoidable marks: a lesson when most of the harm was avoidable
+   (on Classic too, should its spells carry the mark).
+
+## More, once real fights are read (11 October 2026)
+
+- The health graph marked: the hits that mattered, the foes' arrivals, what
+  I used, control lost.
+- The patterns against every fight's: a short tally of every fight's traits,
+  so "three foes or more: 4 of 6 close calls" stands beside "in 1 of 20
+  fights".
+- My kit: a page of what I carry now for the worst moments (ready, on
+  cooldown, how many) and what kind I carry none of; counts, no advice.
+- A debrief as plain text to copy, for a guild's channel or a Discord.
+- The warning before a pull (decided for later): out of combat, at a target,
+  when it matches what my close calls share, a line, never in a fight.

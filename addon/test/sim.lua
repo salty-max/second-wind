@@ -813,6 +813,8 @@ G.slash("probe")
 check(said("the probe is armed"), "/wind probe: armed for the next fight")
 G.pull()
 G.hit({ from = "Ragged Young Wolf", amount = 30 })
+G.hit({ from = "Ragged Young Wolf", amount = 100 })
+G.heal({ amount = 20, spell = { 2050, "Lesser Heal" } })
 G.stun({ seconds = 1, spell = { 1833, "Cheap Shot" } })
 G.wait(1)
 G.cast({ 6673, "Battle Shout" })
@@ -825,6 +827,12 @@ check(
       or "losing control: told by the game %(Stunned, Cheap Shot%)"
   ),
   "… what it could tell of a stun"
+)
+check(
+  said("the meter's healing: yours 20 %(its spells name Pippa%)")
+    and said("the game's low%-health warning %(35%%%): seen in the fight")
+    and said("read, 0 marked avoidable"),
+  "… the harm marked avoidable or not, the meter's healing and whom it names, the game's own low-health warning"
 )
 if G.FOREVER then
   check(
