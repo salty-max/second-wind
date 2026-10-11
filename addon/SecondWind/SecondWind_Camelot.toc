@@ -2,7 +2,7 @@
 ## Title: Second Wind
 ## Notes: A debrief after each close call and death: how the fight went, what you had ready and didn't use, and what your close calls share.
 ## Author: salty-max
-## Version: 0.1.2
+## Version: 0.1.3
 ## SavedVariablesPerCharacter: SecondWindChar
 ## SavedVariables: SecondWindSettings, SecondWindAccount
 ## IconTexture: Interface\AddOns\SecondWind\Media\Logo
