@@ -8,6 +8,8 @@
 ## IconTexture: Interface\AddOns\SecondWind\Media\Logo
 ## X-Website: https://github.com/salty-max/second-wind
 ## X-License: MIT
+## X-Curse-Project-ID: 1739380
+## X-Wago-ID: XKqEjbKy
 
 # Classic Era. Each game loads its own TOC (_Vanilla: Classic Era, _TBC: TBC
 # Anniversary, _Camelot: Forever), the same but for the interface
