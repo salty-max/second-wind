@@ -22,7 +22,10 @@ The plan, its research and its decisions: PLAN.md.
     fights: every fight's tally; a fallen Hardcore life's kept, read from the
     next; the per-character `SecondWindChar` of before 0.1.3 moved in at the
     login), `ns.record()` this character's, `ns.debriefsOf(every)`,
-    `ns.whose(d)`, `ns.fightsOf(every)`; the events (`ns.on`, `ns.onUnit` for one
+    `ns.whose(d)`, `ns.fightsOf(every)`; the creatures seen (my target, under
+    the mouse, a nameplate: `SecondWindAccount.seen[name]` = npc id, kind,
+    rank, the last 400), `ns.knownFoe(foe)` making whole a foe a fight named
+    only (Forever's meter: its portrait, its kind); the events (`ns.on`, `ns.onUnit` for one
     unit's), the login, `/secondwind` and `/wind` (`/sw` is the game's
     stopwatch; `/wind copy`, `/wind lifelines` (or `carry`, `kit`)).
   - `Settings.lua`: each character's settings (the kit's profiles, code

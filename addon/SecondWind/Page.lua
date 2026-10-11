@@ -83,6 +83,7 @@ local RANK_WORD = { elite = "elite", rareelite = "rare elite", rare = "rare", wo
 local ICONS = "Interface\\Icons\\"
 local QUESTION = ICONS .. "INV_Misc_QuestionMark"
 local MELEE = ICONS .. "INV_Sword_04"
+local FOE = ICONS .. "Ability_DualWield" -- (a foe nothing is known of)
 local HEALS = ICONS .. "Spell_Holy_Heal"
 local EMPTY = "Interface\\PaperDoll\\UI-Backpack-EmptySlot"
 local SKULL = "Interface\\TargetingFrame\\UI-TargetingFrame-Skull"
@@ -167,6 +168,8 @@ end
 -- (its display found and kept), else its kind's picture.
 local function portrait(p, foe)
   p.tex:SetDesaturated(false)
+  -- (a foe of an older debrief, or one a fight named only: what was seen of it)
+  ns.knownFoe(foe)
   local crest = foe.class and CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[foe.class]
   if crest then
     p.tex:SetTexture(CRESTS)
@@ -180,7 +183,7 @@ local function portrait(p, foe)
   end
   if foe.npc and not foe.display then resolve(foe) end
   if foe.level == -1 then return icon(p.tex, SKULL) end
-  icon(p.tex, KIND[foe.type] or (foe.player and KIND.Humanoid) or QUESTION)
+  icon(p.tex, KIND[foe.type] or (foe.player and KIND.Humanoid) or FOE)
 end
 
 -- A page's face: a foe's portrait, the world's harm, an icon.

@@ -8,6 +8,8 @@
 --       debriefs = { ... },  the close calls and the deaths, newest last
 --       fights = { n, since, traits = { trait = n } } }  every fight, kept or
 --         not, counted by its traits (Recorder.lua): the patterns' measure
+--     seen[name] = { npc, level, rank, type, at }  creatures in sight, the
+--       last 400 (a foe the fight named only: its portrait, what it was)
 --   SecondWindChar (SavedVariablesPerCharacter): the record before 0.1.3,
 --     moved into the account's at the login
 local _, ns = ...
@@ -130,6 +132,64 @@ local function account()
   return SecondWindAccount
 end
 
+-- ── creatures seen ───────────────────────────────────────────────────────────
+-- What the game told of a creature in sight (my target, under the mouse, a
+-- nameplate): its npc id, kind, rank and level, by name, account-wide
+-- (SecondWindAccount.seen), the last SEEN names kept. For a foe a fight named
+-- only (Forever's meter) or met out of sight: its portrait and what it was.
+local SEEN = 400
+local function clear(v) return v ~= nil and not ns.secret(v) end
+function ns.see(unit)
+  if not UnitExists(unit) or UnitIsPlayer(unit) or not UnitCanAttack("player", unit) then return end
+  local guid, name = UnitGUID(unit), UnitName(unit)
+  if not (clear(guid) and clear(name)) then return end
+  local npc = tonumber(guid:match("^Creature%-%d+%-%d+%-%d+%-%d+%-(%d+)%-") or "")
+  if not npc then return end
+  local level, rank, kind = UnitLevel(unit), UnitClassification(unit), UnitCreatureType(unit)
+  local acc = account()
+  acc.seen = acc.seen or {}
+  acc.seen[name] = {
+    npc = npc,
+    level = clear(level) and level > 0 and level or nil,
+    rank = clear(rank) and rank ~= "normal" and rank or nil,
+    type = clear(kind) and kind or nil,
+    at = time(),
+  }
+end
+function ns.seenNamed(name)
+  local seen = type(SecondWindAccount) == "table" and SecondWindAccount.seen
+  return seen and name and seen[name] or nil
+end
+-- A foe made whole from what was seen of its name: its npc id (its portrait),
+-- kind and rank where the fight didn't tell them (its level: the fight's own).
+function ns.knownFoe(foe)
+  if foe.npc or foe.player or not foe.name then return foe end
+  local s = ns.seenNamed(foe.name)
+  if s then
+    foe.npc = s.npc
+    foe.type = foe.type or s.type
+    foe.rank = foe.rank or s.rank
+  end
+  return foe
+end
+local function forget()
+  local seen = type(SecondWindAccount) == "table" and SecondWindAccount.seen
+  if not seen then return end
+  local names = {}
+  for name, s in pairs(seen) do
+    table.insert(names, { name = name, at = s.at or 0 })
+  end
+  if #names <= SEEN then return end
+  table.sort(names, function(a, b) return a.at > b.at end)
+  for i = SEEN + 1, #names do
+    seen[names[i].name] = nil
+  end
+end
+
+ns.on("PLAYER_TARGET_CHANGED", function() ns.see("target") end)
+ns.on("UPDATE_MOUSEOVER_UNIT", function() ns.see("mouseover") end)
+ns.on("NAME_PLATE_UNIT_ADDED", function(unit) ns.see(unit) end)
+
 local function newRecord(guid)
   char = { guid = guid, debriefs = {} }
   account().characters[guid] = char
@@ -139,6 +199,7 @@ end
 -- or a new one; a record of before 0.1.3, in the character's own saved file
 -- (SecondWindChar), moved into the account's.
 function ns.login()
+  forget()
   local guid = UnitGUID("player")
   char = account().characters[guid]
   if not char then

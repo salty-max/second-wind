@@ -493,6 +493,9 @@ local function recapOf(d)
   end
   -- (the damage meter, hidden at the death (still in combat), read now)
   if ns.meterFill then ns.meterFill(d) end
+  for _, foe in ipairs(d.foes) do
+    ns.knownFoe(foe)
+  end
   if ns.refresh then ns.refresh() end
 end
 
@@ -650,8 +653,12 @@ local function finish(death)
   end
 
   local d = written(f, death)
-  -- (Forever: the foes from the meter, for the tally too)
+  -- (Forever: the foes from the meter, for the tally too; each made whole
+  -- from what was seen of its name)
   if ns.meterFill then ns.meterFill(d) end
+  for _, foe in ipairs(d.foes) do
+    ns.knownFoe(foe)
+  end
   -- (rebuilt: one foe named by the meter dealt every blow told)
   if d.rebuilt and #d.foes == 1 then
     local foe = d.foes[1]

@@ -1033,9 +1033,18 @@ if G.FOREVER then
   end
   replay(15)
   check(#debriefs == 0, "Forever, a real fight replayed: its lowest point above 15%, no close call")
+  -- (the insurgent targeted before the pull, as it's played: what it is, seen)
+  G.target({ name = "Dark Iron Insurgent", level = 19, type = "Humanoid" })
+  G.target(nil)
   replay(25)
   d = only(debriefs, "close")
   local foe = d and d.foes[1]
+  check(
+    foe and foe.npc and foe.type == "Humanoid" and ns.seenNamed("Dark Iron Insurgent").npc == foe.npc,
+    "Forever: a foe the meter names only, made whole from what was seen of it (its portrait's id, its kind)"
+  )
+  local older = { name = "Dark Iron Insurgent" }
+  check(ns.knownFoe(older).npc == foe.npc, "… and a foe of an older debrief, when the book shows it")
   check(
     d
       and d.rebuilt == "warning"
