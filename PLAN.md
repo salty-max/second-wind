@@ -281,7 +281,7 @@ deaths from the recap; my own casts tell what I used, the traces adding what the
 the welcome and the page say so. Hearthtale's close calls (UnitHealth below
 10%) can't fire on Forever either: the same warning could stand in there.
 
-### Measured on live Forever (11 October 2026, the user's paladin, level 20, Loch Modan)
+### Measured on Forever (11 October 2026, the beta realm, build 1.60.1.70338: the user's paladin, level 20, Loch Modan)
 
 From the character's saved file after a real fight (90 seconds, a Dark Iron
 Insurgent):
@@ -299,3 +299,14 @@ Insurgent):
   (Attack, 746 in all).
 - What the card made of it showed a fault, fixed: a foe the meter names had
   an empty line (no blows counted); it reads "746 in all" now.
+
+The probe's report of the same fight (the account's saved file): 42
+`UNIT_COMBAT` events, none with a hidden amount (37 wounds, 746 in all: the
+damage meter's sum exactly; 2 misses; 3 heals, 425: the meter's healing);
+my health hidden in the fight and out of it; the heal calculator no way
+round (hidden); the meter's healing names no one. Counted from the warning
+(53.8 seconds, my health then between 32.4% and 35% of 731: within the last
+hit's size), the fight began at 95-98%, its lowest point was 18.6-21.2% at
+61.5 seconds (before the first Holy Light), its end 51-54%. Each hit's size
+and moment, and my health over a fight within about a hit's size, can be
+rebuilt on Forever.
