@@ -47,6 +47,10 @@ Every class's and people's emergency spells (every rank: Divine Shield, Ice Bloc
 
 From your third debrief on, a second page counts what your close calls share: *"In 4 of your 6 close calls, you went in below 60% health."* The traits that come back, the places, the foes met more than once, and the tools left unused most often. Every fight is counted too, so each trait stands beside how common it is at all: *"3 of 5: three foes or more at once (12 of your 230 fights)"*. Counts, never advice.
 
+## Every character, every life
+
+Your close calls and deaths are kept for the whole account (each game its own), with whose they were. The book shows this character's, or every character's at a choice, each with its name, class and level; the patterns can count across them all. On Hardcore, a fallen character's last fight stays readable from the next one, and the word before a pull counts a past life's close calls for the new one.
+
 ## A word before a pull
 
 Out of a fight, when you target a foe like those of your close calls (an elite, one two levels or more above you, one you've met in them before), or you're hurt and most of them began that way, one line in chat with the counts: *"Defias Pillager, an elite three levels above you. Of your 5 close calls, 3 had an elite."* Never in a fight, never at a critter, the same foe not again for five minutes; off in the settings if you'd rather not.

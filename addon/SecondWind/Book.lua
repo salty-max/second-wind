@@ -258,13 +258,27 @@ end
 -- Rewrite what the open tab shows (keep: where a page was scrolled to).
 function ns.refresh(keep)
   if not book then return end
-  local record = ns.record()
-  local debriefs = record and record.debriefs or {}
-  book.count:SetText(#debriefs == 1 and "1 debrief" or ("%d debriefs"):format(#debriefs))
+  -- (this character's, or every character's of this game: the select above)
+  local every = book.every
+  local debriefs = ns.debriefsOf(every)
+  local count = #debriefs == 1 and "1 debrief" or ("%d debriefs"):format(#debriefs)
+  if every then
+    local whose = {}
+    for _, d in ipairs(debriefs) do
+      whose[ns.whose(d)] = true
+    end
+    local n = 0
+    for _ in pairs(whose) do
+      n = n + 1
+    end
+    count = count .. (n == 1 and ", 1 character" or (", %d characters"):format(n))
+  end
+  book.count:SetText(count)
   local listing = book.selectedTab == TAB.debriefs and #debriefs > 0
-  local patterns = book.selectedTab == TAB.patterns and ns.patternsOf(debriefs, record and record.fights) or nil
+  local patterns = book.selectedTab == TAB.patterns and ns.patternsOf(debriefs, ns.fightsOf(every)) or nil
   local studied = patterns ~= nil and patterns.enough
   local carrying = book.selectedTab == TAB.carry
+  book.scope:SetShown(not carrying)
   book.list:SetShown(listing)
   book.left:SetShown(listing)
   book.card:SetShown(listing)
@@ -287,7 +301,8 @@ function ns.refresh(keep)
     r.at = d.at
     r.title:SetText(d.kind == "death" and "Death" or ("Close call: %s"):format(ns.lowOf(d)))
     r.title:SetTextColor(unpack(d.kind == "death" and DEATH or T.text))
-    r.sub:SetText((d.sub or d.zone or "?") .. " · " .. date("%d %b", d.at))
+    local who = every and ns.whose(d).name and (ns.whose(d).name .. " · ") or ""
+    r.sub:SetText(who .. (d.sub or d.zone or "?") .. " · " .. date("%d %b", d.at))
     r.mark:SetShown(d == open)
     r:Show()
   end
@@ -296,7 +311,14 @@ function ns.refresh(keep)
   end
   book.list.child:SetHeight(n * ROW_H + 8)
   book.list:UpdateThumb()
-  drawPage(book.card, ns.cardOf(open), open, keep)
+  -- (another character's: whose it is, on the line under the title)
+  local c = ns.cardOf(open)
+  local rec = ns.whose(open)
+  if every and rec ~= ns.record() and rec.name then
+    local about = { rec.class and rec.class:lower() or nil, rec.fallen and "fallen" or nil }
+    c.sub = ("%s%s · %s"):format(rec.name, #about > 0 and (" (" .. table.concat(about, ", ") .. ")") or "", c.sub)
+  end
+  drawPage(book.card, c, open, keep)
   book.cardShown = book.card.shown -- (for the tests)
 end
 
@@ -341,8 +363,7 @@ end
 
 -- The open debrief (or the last one) as text; false if there is none.
 function ns.copyDebrief()
-  local record = ns.record()
-  local debriefs = record and record.debriefs or {}
+  local debriefs = ns.debriefsOf(book and book.every)
   local d = book and find(debriefs, book.open) or debriefs[#debriefs]
   if not d then return false end
   ns.showCopy(ns.textOf(d))
@@ -396,6 +417,17 @@ local function build()
   book.copy:SetPoint("TOPRIGHT", -14, -31)
   book.copy:SetText("Copy as text")
   book.copy:SetScript("OnClick", function() ns.copyDebrief() end)
+  -- (whose debriefs: this character's, or every character's of this game)
+  book.scope = K.select(book, 150, "This character")
+  book.scope:SetPoint("TOPRIGHT", -142, -31)
+  book.scope:SetOptions({ { value = "mine", text = "This character" }, { value = "every", text = "Every character" } })
+  book.scope:SetValue("mine")
+  book.every = false
+  book.scope.onChange = function(v)
+    book.every = v == "every"
+    book.open = nil
+    ns.refresh()
+  end
 
   book.selectedTab = TAB.debriefs
   book:SetScript("OnShow", function() ns.showTab(book.selectedTab) end)

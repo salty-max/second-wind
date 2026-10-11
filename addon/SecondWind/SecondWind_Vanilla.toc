@@ -4,7 +4,7 @@
 ## Author: salty-max
 ## Version: 0.1.2
 ## SavedVariablesPerCharacter: SecondWindChar
-## SavedVariables: SecondWindSettings
+## SavedVariables: SecondWindSettings, SecondWindAccount
 ## IconTexture: Interface\AddOns\SecondWind\Media\Logo
 ## X-Website: https://github.com/salty-max/second-wind
 ## X-License: MIT

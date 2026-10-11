@@ -1,11 +1,15 @@
--- Second Wind: this character's record, the events every file listens to
+-- Second Wind: the characters' records, the events every file listens to
 -- (ns.on, ns.onUnit) and /secondwind. The fights are recorded by the recorder
--- (to come: PLAN.md, step 2) and shown in the book (Book.lua).
+-- (Recorder.lua) and shown in the book (Book.lua).
 --
---   SecondWindChar (SavedVariablesPerCharacter), whose record: guid
---     debriefs = { ... }   the close calls and the deaths, newest last
---     fights = { n, since, traits = { trait = n } }   every fight, kept or
---       not, counted by its traits (Recorder.lua): the patterns' measure
+--   SecondWindAccount (SavedVariables): every character's record of this game,
+--   by GUID, a fallen one's kept (its debriefs read from the next):
+--     characters[guid] = { guid, name, realm, class, classFile, level, fallen,
+--       debriefs = { ... },  the close calls and the deaths, newest last
+--       fights = { n, since, traits = { trait = n } } }  every fight, kept or
+--         not, counted by its traits (Recorder.lua): the patterns' measure
+--   SecondWindChar (SavedVariablesPerCharacter): the record before 0.1.3,
+--     moved into the account's at the login
 local _, ns = ...
 local PREFIX = "|cffa8c7e0Second Wind:|r "
 ns.PREFIX = PREFIX
@@ -21,6 +25,43 @@ ns.secret = issecretvalue or function() return false end
 
 local char
 function ns.record() return char end
+
+-- Every character's record of this game (this one's among them), by GUID.
+function ns.everyRecord() return type(SecondWindAccount) == "table" and SecondWindAccount.characters or {} end
+
+-- The debriefs to read, oldest first: this character's, or every character's
+-- (ns.whose(d): the record each is from).
+local whose = setmetatable({}, { __mode = "k" })
+function ns.debriefsOf(every)
+  if not every then return char and char.debriefs or {} end
+  local out = {}
+  for _, rec in pairs(ns.everyRecord()) do
+    for _, d in ipairs(rec.debriefs or {}) do
+      whose[d] = rec
+      table.insert(out, d)
+    end
+  end
+  table.sort(out, function(a, b) return (a.at or 0) < (b.at or 0) end)
+  return out
+end
+function ns.whose(d) return whose[d] or char end
+
+-- Every fight's tally (Recorder.lua), this character's or every character's.
+function ns.fightsOf(every)
+  if not every then return char and char.fights end
+  local sum = { n = 0, traits = {} }
+  for _, rec in pairs(ns.everyRecord()) do
+    local f = rec.fights
+    if f then
+      sum.n = sum.n + (f.n or 0)
+      if f.since and (not sum.since or f.since < sum.since) then sum.since = f.since end
+      for k, n in pairs(f.traits or {}) do
+        sum.traits[k] = (sum.traits[k] or 0) + n
+      end
+    end
+  end
+  return sum
+end
 
 -- ── events ───────────────────────────────────────────────────────────────────
 -- Every file listens through ns.on (an event a client doesn't know is never
@@ -83,26 +124,45 @@ function ns.knows(event)
 end
 
 -- ── the login ────────────────────────────────────────────────────────────────
-local function newRecord(guid)
-  char = { guid = guid, debriefs = {} }
-  SecondWindChar = char
+local function account()
+  if type(SecondWindAccount) ~= "table" then SecondWindAccount = {} end
+  SecondWindAccount.characters = SecondWindAccount.characters or {}
+  return SecondWindAccount
 end
 
--- This character's record, or a new one (a record saved by another character
--- of the same name is not theirs).
+local function newRecord(guid)
+  char = { guid = guid, debriefs = {} }
+  account().characters[guid] = char
+end
+
+-- This character's record (by its GUID: another of the same name is not it),
+-- or a new one; a record of before 0.1.3, in the character's own saved file
+-- (SecondWindChar), moved into the account's.
 function ns.login()
   local guid = UnitGUID("player")
-  local before = type(SecondWindChar) == "table" and SecondWindChar.guid == guid
-  if before then
-    char = SecondWindChar
-    char.debriefs = char.debriefs or {}
-  else
+  char = account().characters[guid]
+  if not char then
+    local old = type(SecondWindChar) == "table" and SecondWindChar.guid == guid and SecondWindChar or nil
     newRecord(guid)
+    if old then
+      char.debriefs, char.fights = old.debriefs or {}, old.fights
+    end
   end
+  SecondWindChar = nil
+  char.debriefs = char.debriefs or {}
+  -- (who it is, for the book of every character)
+  local className, classFile = UnitClass("player")
+  char.name, char.realm, char.class, char.classFile = UnitName("player"), GetRealmName(), className, classFile
+  char.level = UnitLevel("player")
   ns.loadProfile()
   ns.createMinimapButton()
   ns.createSettingsPanel()
 end
+
+-- (its level kept up, for the book of every character)
+ns.on("PLAYER_LEVEL_UP", function(level)
+  if char and level and not ns.secret(level) then char.level = level end
+end)
 
 -- ── /secondwind ──────────────────────────────────────────────────────────────
 local USAGE = "/secondwind (or /wind) opens the book; /wind settings; /wind minimap shows or hides the button; "

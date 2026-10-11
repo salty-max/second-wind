@@ -17,8 +17,12 @@ The plan, its research and its decisions: PLAN.md.
   - `Kit.lua`: a copy of the kit shared with the siblings (~/code/addon-kit):
     never edit the copy; `bun run kit:sync` after changing the kit, `bun run
     kit:check` to verify.
-  - `Core.lua`: the character's record (`SecondWindChar`: guid, debriefs,
-    fights: every fight's tally), the events (`ns.on`, `ns.onUnit` for one
+  - `Core.lua`: every character's record of this game, account-wide
+    (`SecondWindAccount.characters[guid]`: who, level, fallen, debriefs,
+    fights: every fight's tally; a fallen Hardcore life's kept, read from the
+    next; the per-character `SecondWindChar` of before 0.1.3 moved in at the
+    login), `ns.record()` this character's, `ns.debriefsOf(every)`,
+    `ns.whose(d)`, `ns.fightsOf(every)`; the events (`ns.on`, `ns.onUnit` for one
     unit's), the login, `/secondwind` and `/wind` (`/sw` is the game's
     stopwatch; `/wind copy`, `/wind carry`).
   - `Settings.lua`: each character's settings (the kit's profiles, code
@@ -115,13 +119,16 @@ The plan, its research and its decisions: PLAN.md.
     fight's tally once twenty are counted: "(4 of your 40 fights)"), the
     places, the foes met more than once, the tools left unused most often;
     `ns.countsOf(debriefs)`, the counts, for the word before a pull.
-  - `Pull.lua`: the word before a pull: out of a fight, at a target like the
+  - `Pull.lua`: the word before a pull (every character's close calls of this
+    game counting: a past life's lessons): out of a fight, at a target like the
     foes of my close calls (an elite, two levels up, one met in two of them)
     or when I'm hurt and they mostly began so, a line in chat with the
     counts; never in a fight, a name not again for five minutes, never at a
     critter. `ns.wordBefore(counts, foe, me)`, pure.
   - `Book.lua`: the theme (frost steel) and the window, its tabs: the
-    Debriefs (the list, newest first; the open one's card, my health over
+    Debriefs (the list, newest first, this character's or every character's
+    at the select above, `book.every`, each row and card then naming whose it
+    is; the open one's card, my health over
     the fight by time against the threshold, marked (`ns.marksOf`, their
     words under it), "Copy as text" (`ns.showCopy`: a box to copy from)),
     the Patterns (the whole sheet), What you carry (Tools.lua's page, drawn

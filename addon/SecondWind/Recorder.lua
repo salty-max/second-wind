@@ -658,6 +658,8 @@ local function finish(death)
   local lowest = f.lowRange and f.lowRange[1] or f.low
   if not death and not (lowest and lowest < ns.option("threshold")) then return end
   store(d)
+  -- (a Hardcore life ended: its record kept, read from the next character's)
+  if death and d.hardcore then ns.record().fallen = true end
   if death then C_Timer.After(1, function() recapOf(d) end) end
   if ns.debriefed then ns.debriefed(d) end
   if ns.refresh then ns.refresh() end

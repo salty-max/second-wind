@@ -145,6 +145,8 @@ globals:
     any: true
   PlaySound:
     any: true
+  SecondWindAccount:
+    any: true
   SecondWindChar:
     any: true
   SecondWindSettings:
@@ -200,6 +202,8 @@ globals:
   UnitAffectingCombat:
     any: true
   UnitCanAttack:
+    any: true
+  UnitClass:
     any: true
   UnitClassification:
     any: true

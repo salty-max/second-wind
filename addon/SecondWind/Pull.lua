@@ -2,7 +2,8 @@
 -- what my close calls share (Patterns.lua's counts: an elite, a foe two
 -- levels or more above me, a foe met in two of them or more), or when I am
 -- hurt and going in hurt is one of the things they share, a line in chat.
--- Facts and counts, never advice; never in a fight; a foe once, its name
+-- Every character's close calls of this game count (a past life's lessons
+-- for this one). Facts and counts, never advice; never in a fight; a foe once, its name
 -- not again for AGAIN seconds. Settings: "A word before a pull".
 local _, ns = ...
 
@@ -83,14 +84,15 @@ ns.on("PLAYER_TARGET_CHANGED", function()
   local guid, name = UnitGUID("target"), UnitName("target")
   if not (clear(guid) and clear(name)) or guid == lastGuid then return end
   lastGuid = guid
-  local record = ns.record()
-  if not record or #record.debriefs < MIN then return end
+  -- (every character's close calls of this game: a past life's lessons for this one)
+  local debriefs = ns.debriefsOf(true)
+  if #debriefs < MIN then return end
   local level, rank = UnitLevel("target"), UnitClassification("target")
   local health, max = UnitHealth("player"), UnitHealthMax("player")
   local foe = { name = name, level = clear(level) and level or nil, rank = clear(rank) and rank or nil }
   local me = { level = UnitLevel("player") }
   if clear(health) and clear(max) and max > 0 then me.pct = health / max * 100 end
-  local word = ns.wordBefore(counts(record.debriefs), foe, me)
+  local word = ns.wordBefore(counts(debriefs), foe, me)
   if not word then return end
   local key = word:find("^You're at") and "hurt" or name
   if said[key] and GetTime() - said[key] < AGAIN then return end

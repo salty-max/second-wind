@@ -1219,6 +1219,7 @@ check(
   ns.wordBefore(counted, { name = "Ragged Young Wolf", level = 3 }, { level = 8, pct = 45 }) == nil,
   "… nothing for a foe like none of them, nor for my health against a foe far below"
 )
+SecondWindAccount = nil -- (a fresh account: every character's close calls are counted)
 debriefs = life()
 for _, d in ipairs(five) do
   table.insert(debriefs, d)
@@ -1248,6 +1249,87 @@ else
   )
 end
 G.state.health = G.state.maxHealth
+G.target(nil)
+
+-- ── every character's ────────────────────────────────────────────────────────
+-- (a record of before 0.1.3, in the character's own file: moved in)
+SecondWindAccount = nil
+SecondWindChar =
+  { guid = "Player-6113-0000OLD1", debriefs = { { kind = "close", at = 77, lowPct = 9, zone = "Elwynn Forest" } } }
+G.state.guid, G.state.name = "Player-6113-0000OLD1", "Aldric"
+G.reload()
+check(
+  ns.record().debriefs[1]
+    and ns.record().debriefs[1].at == 77
+    and SecondWindChar == nil
+    and SecondWindAccount.characters["Player-6113-0000OLD1"].name == "Aldric",
+  "a record of before 0.1.3 moved into the account's, with whose it is"
+)
+-- (a Hardcore life ends; the next character reads it)
+SecondWindAccount = nil
+G.state.guid, G.state.name, G.state.hardcore = "Player-6113-0000HELL", "Hellefie", true
+G.state.health, G.state.dead = G.state.maxHealth, false
+G.reload()
+ns.setOption("threshold", 15)
+G.pull()
+G.hit({ from = "Defias Pillager", amount = 100 })
+G.hit({ from = "Defias Pillager", amount = 100 })
+G.die()
+G.wait(1.5)
+G.state.hardcore = nil
+local fallen = SecondWindAccount.characters["Player-6113-0000HELL"]
+check(not G.FOREVER or fallen.fallen == nil, "(Forever: no Hardcore told)")
+if not G.FOREVER then check(fallen.fallen, "a Hardcore death: the character's record kept, marked fallen") end
+G.state.guid, G.state.name = "Player-6113-0000MAX1", "Max"
+G.state.health, G.state.dead = G.state.maxHealth, false
+G.reload()
+ns.setOption("threshold", 15)
+G.pull()
+G.hit({ from = "Ragged Young Wolf", amount = 80 })
+G.hit({ from = "Ragged Young Wolf", amount = 75 })
+G.leave()
+book:Hide()
+ns.window():Show()
+ns.showTab(ns.TAB.debriefs)
+check(#ns.debriefsOf(false) == 1 and book.count:GetText() == "1 debrief", "the book: this character's debriefs")
+book.scope.onChange("every")
+check(
+  #ns.debriefsOf(true) == 2 and book.count:GetText() == "2 debriefs, 2 characters",
+  "… or every character's of this game, at a choice"
+)
+local subs = {}
+for _, r in ipairs(book.rows) do
+  if r:IsShown() then table.insert(subs, r.sub:GetText()) end
+end
+check(subs[2] and subs[2]:find("^Hellefie · "), "… each row naming whose it is")
+book.open = ns.debriefsOf(true)[1].at
+ns.refresh()
+check(
+  book.cardShown.sub:find(G.FOREVER and "^Hellefie %(warrior%) · " or "^Hellefie %(warrior, fallen%) · "),
+  "… another's card: whose, and fallen"
+)
+book.scope.onChange("mine")
+book:Hide()
+-- (the word before a pull: a past life's close calls count)
+SecondWindAccount = nil
+G.state.guid, G.state.name = "Player-6113-0000PAST", "Past"
+G.reload()
+for i = 1, 3 do
+  table.insert(
+    ns.record().debriefs,
+    { kind = "close", at = 100 + i, zone = "Dun Morogh", foes = { { name = "Rockjaw Ambusher" } } }
+  )
+end
+G.state.guid, G.state.name = "Player-6113-0000NEXT", "Next"
+G.reload()
+local printedBefore = #G.printed
+G.target({ name = "Rockjaw Ambusher", level = 7 })
+check(
+  #ns.record().debriefs == 0
+    and #G.printed == printedBefore + 1
+    and said("3 of your 3 close calls were against Rockjaw Ambusher"),
+  "the word before a pull: a past life's close calls count for the next character"
+)
 G.target(nil)
 
 -- ── the fake game itself: fights as the game sends them ──────────────────────
