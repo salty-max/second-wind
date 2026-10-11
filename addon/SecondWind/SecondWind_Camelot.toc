@@ -1,6 +1,7 @@
 ## Interface: 16001
 ## Title: Second Wind
 ## Notes: A debrief after each close call and death: how the fight went, what you had ready and didn't use, and what your close calls share.
+## Category: Combat
 ## Author: salty-max
 ## Version: 0.1.4
 ## SavedVariablesPerCharacter: SecondWindChar
