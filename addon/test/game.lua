@@ -68,9 +68,11 @@ function UnitCreatureType(u) return units[u] and units[u].type or nil end
 function UnitClass(u) return u == "player" and state.class:sub(1, 1) .. state.class:sub(2):lower(), state.class end
 function UnitRace(u) return state.race, state.race end
 function UnitHealthMax(u) return u == "player" and state.maxHealth or 0 end
+-- (Forever: secret always, in a fight and out of it: SecretReturns, documented
+-- as unconditional; a beta test read it so out of combat)
 function UnitHealth(u)
   if u ~= "player" then return 0 end
-  if FOREVER and state.inCombat then return secret() end
+  if FOREVER then return secret() end
   return state.health
 end
 function UnitIsDeadOrGhost(u)
@@ -550,17 +552,14 @@ function G.debuff(d)
   log("SPELL_AURA_APPLIED", creature(d.from), d.from, state.guid, state.name, d.spell[1], d.spell[2], 1, "DEBUFF")
 end
 -- Control lost (a stun, a fear): HasFullControl, and the game's account of
--- it (C_LossOfControl: what, by which spell, how long), hidden in a fight on
--- Forever (SecretWhenLossOfControlInfoRestricted). state.held while it lasts.
+-- it (C_LossOfControl: what, by which spell, how long; on Forever too: its
+-- secrecy is for units other than the player). state.held while it lasts.
 function HasFullControl() return state.held == nil end
 C_LossOfControl = {
   GetActiveLossOfControlDataCountByUnit = function() return state.held and not state.held.untold and 1 or 0 end,
   GetActiveLossOfControlDataByUnit = function(_, i)
     local h = state.held
     if not h or h.untold or i ~= 1 then return nil end
-    if FOREVER and state.inCombat then
-      return { locType = secret(), displayText = secret(), spellID = secret(), timeRemaining = secret() }
-    end
     return {
       locType = h.type,
       displayText = h.text,

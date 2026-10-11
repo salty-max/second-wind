@@ -138,6 +138,7 @@ local function report()
   local lines = {
     "the combat log: " .. (ns.forever and "closed (Forever)" or ("%d lines heard"):format(p.log)),
     "your health in the fight: " .. (p.healthSecret and "hidden" or said(p.healthRead, "readable", "no change seen")),
+    "your health out of a fight: " .. (ns.secret(UnitHealth("player")) and "hidden" or "readable"),
     "your casts in the fight: " .. (p.castSecret and "hidden" or said(p.castRead, "readable", "none cast")),
     "the notice before combat's restrictions: " .. said(p.notice, "seen", "not seen"),
     "losing control: "

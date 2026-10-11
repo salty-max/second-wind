@@ -93,6 +93,8 @@ globals:
     any: true
   GetTime:
     any: true
+  GetUIPanel:
+    any: true
   hard:
     any: true
   HasFullControl:

@@ -34,7 +34,15 @@
 --     held = { { t, to, what, spell } } (control lost: what as the game
 --     says it, "Stunned"; none where it only said I had lost control),
 --     traced (Forever: what went unused told by what a use leaves behind,
---     Tools.lua's ns.tracesOf), untold (the tools whose use leaves none)
+--     Tools.lua's ns.tracesOf), untold (the tools whose use leaves none),
+--     warned (Forever: when the game's low-health warning showed), below
+--     (Forever: the close call is that warning's, below this percent)
+-- Forever keeps my health from addons, in a fight and out of it (UnitHealth:
+-- SecretReturns, documented as unconditional): no low point is read; the
+-- game's own low-health warning (LowHealthFrame, shown by Blizzard's code
+-- below 35% from my true health) stands for a close call, where an addon
+-- sees it shown. The death recap, my casts and control lost (the player's
+-- own: never secret) are read as on Classic.
 --     (tools: Tools.lua), killer = { name, spell,
 --     amount, overkill }, foes = { { name, npc, first, hits, misses, damage,
 --     level, rank, type, player } }, heals = { { name, amount } }, casts = {
@@ -51,6 +59,7 @@ local KEEP = 100 -- debriefs kept per character (a death always)
 local SAMPLES = 60 -- health points kept per debrief
 local ROWS = 60 -- log rows kept per debrief
 local READY_BELOW = 50 -- health (percent) at which what was ready is noted
+local WARNING = 35 -- percent: where the game's low-health warning shows
 local DUEL_FORGET = 180 -- seconds after which a duel never finished is forgotten
 
 local fight, buffer = nil, {}
@@ -105,6 +114,7 @@ local function begin()
     startPct = p,
     low = p,
     lowT = p and 0 or nil,
+    blind = not pct() or nil,
     foes = {},
     order = {},
     heals = {},
@@ -225,10 +235,25 @@ end
 
 -- My health changed: a sample, perhaps a new low (the run-up kept), perhaps
 -- below half for the first time (what was ready noted).
+-- The game's low-health warning seen, in a fight (not the full screen's:
+-- the same frame shows over a full-screen panel in a fight).
+local function warned()
+  local f = fight
+  if not f or f.warned or UnitIsDeadOrGhost("player") then return end
+  if GetUIPanel and GetUIPanel("fullscreen") then return end
+  f.warned = tenth(GetTime() - f.t0)
+end
+if LowHealthFrame and LowHealthFrame.Show then hooksecurefunc(LowHealthFrame, "Show", warned) end
+
 local function health()
   local f = fight
   if ns.secret(UnitHealth("player")) then
-    if f then f.blind = true end
+    if f then
+      f.blind = true
+      -- (shown before this fight began: its Show isn't called again)
+      local shown = LowHealthFrame and LowHealthFrame:IsShown()
+      if shown and not ns.secret(shown) then warned() end
+    end
     return
   end
   local p = pct()
@@ -335,7 +360,9 @@ local function written(f, death)
     hardcore = hardcore and true or nil,
     startPct = round(f.startPct),
     lowPct = death and 0 or round(f.low),
-    lowT = death and tenth(GetTime() - f.t0) or f.lowT,
+    lowT = death and tenth(GetTime() - f.t0) or f.lowT or (f.below and f.warned) or nil,
+    warned = f.warned,
+    below = not death and f.below or nil,
     blind = f.blind or nil,
     castsHidden = f.castsHidden or nil,
     lowAtEnd = not death and f.lowAtEnd or nil,
@@ -461,19 +488,27 @@ local function finish(death)
   if f.ready and ns.relevantTools then
     f.ready = ns.relevantTools(f.ready, { schools = f.schools, env = f.env, lull = f.lull })
   end
-  -- (Forever: my casts hidden, what a use leaves behind, read now)
+  -- (Forever: what a use leaves behind, read now: what my casts didn't tell,
+  -- should the game hide them; a use with no trace is untold only then)
   if ns.forever and f.ready and ns.tracesOf then
     local casts, untold = ns.tracesOf(f.ready, f.t0)
-    for _, c in ipairs(casts) do
-      table.insert(f.casts, c)
+    local seen = {}
+    for _, c in ipairs(f.casts) do
+      if c.name then seen[c.name] = true end
+      if c.id then seen[c.id] = true end
     end
-    f.traced, f.untold = true, untold
+    for _, c in ipairs(casts) do
+      if not seen[c.name or c.id] then table.insert(f.casts, c) end
+    end
+    f.traced, f.untold = true, f.castsHidden and untold or nil
   end
+  -- (Forever: no low point to read; the game's warning stands for one)
+  if f.blind and not death and not f.low and f.warned then f.below = WARNING end
   local d = written(f, death)
   -- (Forever: the foes from the meter, for the tally too)
   if ns.meterFill then ns.meterFill(d) end
   tally(d)
-  if not death and not (f.low and f.low < ns.option("threshold")) then return end
+  if not death and not (f.low and f.low < ns.option("threshold")) and not f.below then return end
   store(d)
   if death then C_Timer.After(1, function() recapOf(d) end) end
   if ns.debriefed then ns.debriefed(d) end
@@ -621,7 +656,7 @@ function ns.summaryOf(d)
     table.insert(names, foe.name)
   end
   local place = d.sub and (d.sub .. ", " .. d.zone) or d.zone or "?"
-  local what = d.kind == "death" and "Death" or ("Close call, %d%%"):format(d.lowPct or 0)
+  local what = d.kind == "death" and "Death" or ("Close call, %s"):format(ns.lowOf and ns.lowOf(d) or "?")
   local by = #names > 0 and (" (" .. table.concat(names, ", ") .. ")") or (d.env and (" (" .. d.env .. ")") or "")
   return ("%s in %s%s"):format(what, place, by)
 end

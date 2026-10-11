@@ -55,7 +55,14 @@ Out of a fight, when you target a foe like those of your close calls (an elite, 
 
 The same file for Classic Era (Hardcore, Season of Discovery), TBC Anniversary and World of Warcraft: Forever: each game loads its own part.
 
-World of Warcraft: Forever closes the combat log to addons and hides your health and casts during a fight. Second Wind reads what the game still allows: the fight's foes and its harm by spell from the game's damage meter once the fight is over, your health at its end for its lowest point, what you had ready as it began, and when you lost control. So on Forever, a close call is seen by your health when the fight ends: one you recover from before then goes unseen. Deaths are always debriefed. With your casts hidden, what you used is told by what a use leaves behind, read once the fight is over: one fewer potion in your bags, a cooldown begun (and when). A spell without a cooldown leaves no trace, and the card says so. A card says what the game hid. `/wind probe` reports, after your next fight, what the game let it read.
+World of Warcraft: Forever keeps your health from addons, in a fight and out of it, and closes the combat log to them. Your own casts, your stuns and fears, and the game's death recap stay readable. So on Forever:
+
+- **A close call** is the game's own low-health warning, the screen's red edge below 35% of your health, seen even when you recover before the fight ends. Keep that warning on (Options, Combat).
+- **Deaths** are debriefed in full, from the game's recap.
+- **The foes and the harm by spell** come from the game's damage meter once the fight is over.
+- **What you had** is what was ready as the fight began; what you used is told by your casts, and by what a use leaves behind (one fewer potion in your bags, a cooldown begun).
+
+A card says what the game hid. `/wind probe` reports, after your next fight, what the game let Second Wind read.
 
 Duels and battlegrounds are never debriefed.
 

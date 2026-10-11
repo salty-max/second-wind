@@ -124,8 +124,15 @@ local function fall(d)
   return { from = from.pct, seconds = low - from.t }
 end
 
+-- How low a close call went, in words: "11%", or on Forever, where the game
+-- keeps my health from addons, "below 35%" (its own warning, Recorder.lua).
+function ns.lowOf(d)
+  if d.below and not d.lowPct then return ("below %d%%"):format(d.below) end
+  return ("%d%%"):format(d.lowPct or 0)
+end
+
 function ns.factsOf(d)
-  local title = d.kind == "death" and "Death" or ("Close call: %d%% health"):format(d.lowPct or 0)
+  local title = d.kind == "death" and "Death" or ("Close call: %s health"):format(ns.lowOf(d))
   local place = d.sub and (d.sub .. ", " .. (d.zone or "?")) or d.zone or "?"
   local unused, used, ready, left, untold, silent = {}, {}, {}, {}, {}, {}
   -- (Forever: a tool whose use leaves no trace is neither used nor unused)
@@ -168,6 +175,10 @@ local RULES = {
   -- harm from the world, not from a foe
   function(d)
     if not d.env or #(d.foes or {}) > 0 then return end
+    if not d.lowPct then
+      local what = (ENV[d.env] or d.env:lower()):gsub("^%l", string.upper)
+      return 100, ("%s took you below %d%% of your health."):format(what, d.below or 35)
+    end
     local lesson = ENV_LESSON[d.env] or (d.env .. " took %d%% of your health.")
     return 100, lesson:format((d.startPct or 100) - (d.lowPct or 0))
   end,
@@ -375,10 +386,18 @@ function ns.cardOf(d)
   section("Foes", foes)
   -- what Forever hid (its health and casts in a fight), said plainly
   local hidden = {}
-  if d.lowAtEnd then
+  if d.below and not d.lowPct then
+    table.insert(
+      hidden,
+      (
+        "Forever keeps your health from addons, in a fight and out of it: this close call is the game's own "
+        .. "low-health warning, shown below %d%%."
+      ):format(d.below)
+    )
+  elseif d.lowAtEnd then
     table.insert(hidden, "Forever hides your health during a fight: the lowest point here is your health at its end.")
-  elseif d.blind then
-    table.insert(hidden, "Forever hides your health during a fight: the lowest point here is your health as it began.")
+  elseif d.blind and d.kind == "death" then
+    table.insert(hidden, "Forever keeps your health from addons: the blows before your death are the game's own recap.")
   end
   if d.readyFrom == "start" then table.insert(hidden, "What you had is what was ready when the fight began.") end
   if d.castsHidden and d.traced then

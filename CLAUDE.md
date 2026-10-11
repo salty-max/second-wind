@@ -38,12 +38,13 @@ The plan, its research and its decisions: PLAN.md.
     `ns.readyTools()` (known, off cooldown but for the global one, usable;
     a bandage not while Recently Bandaged), `ns.relevantTools(ready, fight)`
     (a bandage only with LULL seconds without harm below half health),
-    `ns.unusedOf(ready, casts, since)`, `ns.tracesOf(ready, t0)` (Forever,
-    my casts hidden: what a use left, read after the fight: one fewer in my
+    `ns.unusedOf(ready, casts, since)`, `ns.tracesOf(ready, t0)` (Forever:
+    what a use left, read after the fight: one fewer in my
     bags, a cooldown begun, its start the moment; a spell without a cooldown
     leaves none, `untold`), `ns.toolOfCast(c)`; what I carry now,
     `ns.carried()` and its page `ns.carryPage(list)` (by kind, ready or how
     long until, the kinds I carry none of).
+  - `Debrief.lua`'s `ns.lowOf(d)`: how low, in words ("11%", "below 35%").
   - `Forever.lua`: where the combat log tells nothing (Forever): the game's
     damage meter (`C_DamageMeter`, readable once out of combat) for the foes
     and the harm by spell (`ns.meterFill`, never for a fall); `/wind probe`,
@@ -65,12 +66,17 @@ The plan, its research and its decisions: PLAN.md.
     (with the game's recap, read a moment later), never for a duel or a
     battleground; a hundred kept, a death always; every fight, kept or not,
     tallied by its traits (`record.fights`). Its schema in its header.
-    `ns.summaryOf(d)`: a line. Forever: the fight begins at the notice
-    before combat's restrictions (`ADDON_RESTRICTION_STATE_CHANGED`,
-    Activating: my health and cooldowns still readable); my health hidden in
-    it, its low point is read at its end (`lowAtEnd`) and what was ready at
-    its start stands in (`readyFrom`); my casts hidden, what was used is
-    told by its traces (`traced`, `untold`).
+    `ns.summaryOf(d)`: a line. Forever (its 1.60.1 docs and the wiki's
+    secret predicates, 11 October 2026; PLAN.md, "Forever, what is
+    verified"): my health secret in a fight and out of it (`UnitHealth`:
+    SecretReturns, unconditional), so no low point is read: the game's own
+    low-health warning (`LowHealthFrame`, shown by Blizzard's code below 35%
+    from my true health; its Show hooked) stands for a close call (`below`,
+    `warned`), recovered from or not; the fight begins at the notice before
+    combat's restrictions (cooldowns still readable: `readyFrom` "start");
+    my own casts and control lost are the player's, never secret; what a use
+    leaves (`ns.tracesOf`) adds what the casts didn't tell (`traced`), a use
+    with no trace `untold` only should the casts be hidden.
   - `Debrief.lua`: a debrief read, pure: `ns.factsOf(d)` (its title, place,
     the three largest hits and how long before the low point, the fall from
     half health, what was used and what wasn't), `ns.lessonsOf(d)` (rules
@@ -115,12 +121,12 @@ The plan, its research and its decisions: PLAN.md.
   a character, and fights to replay (`G.pull`, `G.hit`, `G.miss`, `G.heal`,
   `G.debuff`, `G.cast` (a spell's cooldown begun, by its `cd`), `G.use`,
   `G.env` (a fall, the water), `G.stun` (control lost: the game's account
-  hidden in a fight on Forever), `G.leave`, `G.die`; `G.target` (my target),
+  readable on Forever: the player's own), `G.leave`, `G.die`; `G.target`,
   `G.sight` a creature the game can name, `G.duel`, `state.instance`,
   `state.castsSecret`, `state.cvars`; `G.shown`: every text the pages set;
   `LowHealthFrame` shown at 35%; the meter's healing done): the combat log
   as `COMBAT_LOG_EVENT_UNFILTERED` on
-  Classic only, the health with it (a secret value in a fight on Forever),
+  Classic only, the health with it (a secret value on Forever, always),
   Forever's notices around combat, the damage meter (secret in combat on
   Forever), the game's death recap (`C_DeathRecap`, killing blow first),
   timers run by `G.wait`. `addon/test/sim.lua`: the checks, on both games.

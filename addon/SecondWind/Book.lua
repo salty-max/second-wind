@@ -285,7 +285,7 @@ function ns.refresh(keep)
     n = n + 1
     local d, r = debriefs[i], row(n)
     r.at = d.at
-    r.title:SetText(d.kind == "death" and "Death" or ("Close call: %d%%"):format(d.lowPct or 0))
+    r.title:SetText(d.kind == "death" and "Death" or ("Close call: %s"):format(ns.lowOf(d)))
     r.title:SetTextColor(unpack(d.kind == "death" and DEATH or T.text))
     r.sub:SetText((d.sub or d.zone or "?") .. " · " .. date("%d %b", d.at))
     r.mark:SetShown(d == open)
@@ -451,7 +451,7 @@ local toasts
 local function setUp(frame, d)
   frame.secondWindAt = d.at
   if frame.Icon then frame.Icon:SetTexture(ICON) end
-  frame.Title:SetText(d.kind == "death" and "Death" or ("Close call: %d%%"):format(d.lowPct or 0))
+  frame.Title:SetText(d.kind == "death" and "Death" or ("Close call: %s"):format(ns.lowOf(d)))
   frame.Name:SetText(d.sub or d.zone or "")
   if AlertFrame_SetDuration then AlertFrame_SetDuration(frame, 12) end
   frame:SetScript("OnClick", function(self, button, down)

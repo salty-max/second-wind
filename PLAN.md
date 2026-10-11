@@ -196,7 +196,9 @@ interface documentation (1.60.1) says:
 - My health is secret in any fight (`UnitHealth`: SecretReturns; the Combat
   restriction is "the player is actively affecting combat", open world
   included; no predicate lets my own health through), my casts while it
-  lasts, the combat log closed to addons. So a close call I recover from
+  lasts, the combat log closed to addons. (Corrected below, "Forever, what
+  is verified": my health is secret out of a fight too; my own casts are
+  not secret.) So a close call I recover from
   before the fight ends can't be seen as such, only its end.
 - What it gives: my health before (the notice before the restrictions) and
   after; the damage meter once out of combat (the harm by spell, each marked
@@ -243,3 +245,35 @@ fight (`ns.tracesOf`: one fewer in the bags, a cooldown begun and when; a
 spell without a cooldown leaves none, and the card says so). `GetItemCount`
 and item cooldowns are never secret on Forever; spell cooldowns and auras
 only while combat's restriction lasts.
+
+## Forever, what is verified (11 October 2026)
+
+The user: "do a real thorough research before telling me something is not
+possible". Read: Forever 1.60.1's generated API docs (every secrecy flag),
+Blizzard's own UI code in the same build, the API lists of the globals
+addons see (Ketho's BlizzardInterfaceResources, `forever` branch), the
+wiki's "Secret values" page (its predicates, verbatim), Blizzard's Midnight
+posts, and a beta test write-up (wowforeverbuilds, build 1.60.1.69913).
+
+| | On Forever | Source | Sure |
+|---|---|---|---|
+| My health | secret, in a fight and out of it | `UnitHealth` SecretReturns ("unconditionally", the wiki); a beta `/run` test read it secret | docs + one test; the probe now reads it out of a fight |
+| My max health | readable (secret for units not player-controlled) | SecretWhenUnitHealthMaxRestricted | docs |
+| A health bar's value read back | secret | StatusBar `GetValue`: SecretReturnsForAspect BarValue | docs |
+| The game's low-health warning | Blizzard's code shows `LowHealthFrame` below 35% of my true health (`doNotFlashLowHealthWarning` off, the default); its shown state carries no secret aspect of its own | LowHealthFrame.lua/.xml | unverified: the probe |
+| The combat log | closed: its reader moved to the secure-only namespace ("no deprecation is (intentionally) provided"); not among addons' globals; testers report registering the event errors | CombatLogSecure docs, Deprecated_CombatLog.lua, API lists, wowforeverguides | docs + reports |
+| My own casts | readable: cast info is secret only "if the unit ... is not the player or their pet" | SecretWhenUnitSpellCastRestricted (wiki) | docs; the probe |
+| Control lost (mine) | readable: secret only "if the subject unit is not the active player" | SecretWhenLossOfControlInfoRestricted (wiki) | docs |
+| Cooldowns, auras | secret while combat's restriction lasts (a spell may be flagged never secret), readable after | SecretWhenCooldownsRestricted, SecretWhenUnitAuraRestricted | docs |
+| Item counts, item cooldowns | never secret | `C_Item.GetItemCount`, `C_Container.GetItemCooldown`: no secret flag | docs |
+| The damage meter | secret in combat, readable after; spells marked avoidable, deadly | SecretWhenInCombat | docs |
+| The death recap | no secrecy flag on its functions; its event fields undocumented in this build | DeathRecapDocumentation | docs, partly |
+| The audio alerts' health | Blizzard's code keeps the last percent on its frame (`lastUnitHealthPercent`), the alerts off by default | Blizzard_CombatAudioAlertManager.lua | unverified, unused |
+| Unwrapping a secret | `secretunwrap` closed to addons | FrameScript docs, API lists | docs |
+
+What changed in the addon: on Forever no low point is read; the game's
+low-health warning, where an addon sees it shown, is the close call
+("Close call: below 35% health"), recovered from or not; deaths from the
+recap; my own casts tell what I used, the traces adding what they don't;
+the welcome and the page say so. Hearthtale's close calls (UnitHealth below
+10%) can't fire on Forever either: the same warning could stand in there.
