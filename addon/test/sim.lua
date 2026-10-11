@@ -797,6 +797,14 @@ if G.FOREVER then
     #d.foes == 2 and d.foes[1].name == "Ragged Young Wolf" and d.foes[1].damage == 100,
     "… the foes from the game's damage meter"
   )
+  local foesSection
+  for _, sec in ipairs(ns.cardOf(d).sections) do
+    if sec.heading == "Foes" then foesSection = table.concat(sec.lines, " | ") end
+  end
+  check(
+    foesSection == "Ragged Young Wolf: 100 in all | Rockjaw Trogg: 60 in all",
+    "… on the card: the harm each did in all (the meter has no blows)"
+  )
   check(
     d.spells[1].amount == 100 and d.spells[1].spell == "Attack" and d.spells[2].spell == "Fireball",
     "… the harm by spell"

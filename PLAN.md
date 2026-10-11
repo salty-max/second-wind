@@ -280,3 +280,22 @@ its end is read too (said "11% or lower": a dip before may have gone lower);
 deaths from the recap; my own casts tell what I used, the traces adding what they don't;
 the welcome and the page say so. Hearthtale's close calls (UnitHealth below
 10%) can't fire on Forever either: the same warning could stand in there.
+
+### Measured on live Forever (11 October 2026, the user's paladin, level 20, Loch Modan)
+
+From the character's saved file after a real fight (90 seconds, a Dark Iron
+Insurgent):
+
+- **The game's low-health warning is seen by an addon**: the close call was
+  written from it (`below` 35, `warned` 53.8 seconds in). Close calls work on
+  Forever.
+- **My own casts are readable in a fight**: eight, by id and name (Seal of
+  Righteousness, Judgement, Holy Light, Holy Strike, Divine Protection), each
+  at its moment.
+- **My health was read neither as the fight began (at the notice before the
+  restrictions) nor once it was over**: no `startPct`, no `endPct`; as
+  measured by Apotheca, hidden out of a fight too.
+- **The damage meter answers after the fight**: the foe and the harm by spell
+  (Attack, 746 in all).
+- What the card made of it showed a fault, fixed: a foe the meter names had
+  an empty line (no blows counted); it reads "746 in all" now.

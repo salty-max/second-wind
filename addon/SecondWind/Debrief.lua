@@ -352,10 +352,15 @@ local function foeLine(foe)
   local did = {}
   if foe.hits and foe.hits > 0 then
     table.insert(did, plural(foe.hits, "hit", "hits") .. " for " .. (foe.damage or 0))
+  elseif foe.damage and foe.damage > 0 then
+    -- (the game's damage meter: the harm in all, not the blows)
+    table.insert(did, foe.damage .. " in all")
   end
   if foe.misses and foe.misses > 0 then table.insert(did, plural(foe.misses, "miss", "misses")) end
   local first = foe.first and when(foe.first)
-  return ("%s: %s"):format(who, table.concat(first and { first, unpack(did) } or did, ", "))
+  local parts = first and { first, unpack(did) } or did
+  if #parts == 0 then return who end
+  return ("%s: %s"):format(who, table.concat(parts, ", "))
 end
 local function names(tools)
   local out = {}
