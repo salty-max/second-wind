@@ -66,10 +66,9 @@ local RANK_WORD = { elite = "elite", rareelite = "rare elite", rare = "rare", wo
 -- A rank's ring (the kit's K.ringColour, over the game's bronze ring): an
 -- elite's a warmer gold, a rare's silver, a boss's rose, as a death's; the
 -- rest the bronze itself.
-local WARM, SILVER, ROSE = { 1, 0.85, 0.45 }, { 1, 1, 1 }, { 1, 0.72, 0.67 }
-local RANK_RING = { elite = WARM, rareelite = SILVER, rare = SILVER, worldboss = ROSE }
-local GREYED = { [SILVER] = true, [ROSE] = true } -- (a metal of that colour)
-local function ringOf(p, c) K.ringColour(p, c, GREYED[c or false]) end
+local ROSE = { { 1, 0.72, 0.67 }, true }
+local RANK_RING = { elite = K.RINGS.gold, rareelite = K.RINGS.silver, rare = K.RINGS.silver, worldboss = ROSE }
+local function ringOf(p, r) K.ringColour(p, r and r[1], r and r[2]) end
 
 -- ── pictures ─────────────────────────────────────────────────────────────────
 local ICONS = "Interface\\Icons\\"
@@ -327,7 +326,9 @@ function Page:take(kind)
 end
 
 -- A block at the page's next place, so tall (and a gap after it).
+-- (any block ends a list of cards: placeCard)
 function Page:place(b, height, gap)
+  self.lastCard = nil
   b:SetPoint("TOPLEFT", self.child, "TOPLEFT", 0, -self.y)
   self.y = self.y + height + (gap or 0)
 end
@@ -391,6 +392,15 @@ local function shareBar(b, width, colour)
 end
 -- A card's height: the kit's, a little more with a bar under its line.
 local function cardHeight(withBar) return K.CARD_H + (withBar and 6 or 0) end
+-- A card at its place: the rule under the card before it back, none under
+-- this one till another comes (a list ends with no rule under its last).
+local function placeCard(p, b, height)
+  local before = rawget(p, "lastCard")
+  if before then before.line:Show() end
+  b.line:Hide()
+  p:place(b, height, 4)
+  p.lastCard = b
+end
 
 function MAKERS.foe(p)
   local b = card(p)
@@ -494,7 +504,7 @@ function DRAW.foe(p, r)
   if r.share then b.share:SetValue(r.share) end
   local height = cardHeight(r.share ~= nil)
   b:SetHeight(height)
-  p:place(b, height, 4)
+  placeCard(p, b, height)
 end
 
 function DRAW.blow(p, r)
@@ -513,7 +523,7 @@ function DRAW.blow(p, r)
   end
   local height = cardHeight(r.share ~= nil)
   b:SetHeight(height)
-  p:place(b, height, 4)
+  placeCard(p, b, height)
 end
 
 function DRAW.held(p, r)
@@ -526,7 +536,7 @@ function DRAW.held(p, r)
   b.detail:SetText(r.detail or "")
   b.share:Hide()
   b:SetHeight(cardHeight(false))
-  p:place(b, cardHeight(false), 4)
+  placeCard(p, b, cardHeight(false))
 end
 
 local ICON_SIZE, ICON_GAP = K.SLOT, 8
@@ -577,7 +587,7 @@ function DRAW.tool(p, r)
     K.setSlot(b.icon, t and ns.toolIcon(t), t and t.count, nil, r.ready == false and r.value ~= nil)
     b.icon.tip = t and toolTip(t) or nil
   end
-  p:place(b, cardHeight(false), 4)
+  placeCard(p, b, cardHeight(false))
 end
 
 function DRAW.share(p, r)
