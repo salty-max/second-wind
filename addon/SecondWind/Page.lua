@@ -62,14 +62,14 @@ local LEGEND = {
   { "hit", "Hits that mattered" },
   { "held", "Out of your control" },
 }
--- A rank's ring.
-local RANK = {
-  elite = { 0.95, 0.78, 0.30 },
-  rareelite = { 0.85, 0.88, 0.95 },
-  rare = { 0.85, 0.88, 0.95 },
-  worldboss = { 0.95, 0.35, 0.30 },
-}
 local RANK_WORD = { elite = "elite", rareelite = "rare elite", rare = "rare", worldboss = "boss" }
+-- A rank's ring (the kit's K.ringColour, over the game's bronze ring): an
+-- elite's a warmer gold, a rare's silver, a boss's rose, as a death's; the
+-- rest the bronze itself.
+local WARM, SILVER, ROSE = { 1, 0.85, 0.45 }, { 1, 1, 1 }, { 1, 0.72, 0.67 }
+local RANK_RING = { elite = WARM, rareelite = SILVER, rare = SILVER, worldboss = ROSE }
+local GREYED = { [SILVER] = true, [ROSE] = true } -- (a metal of that colour)
+local function ringOf(p, c) K.ringColour(p, c, GREYED[c or false]) end
 
 -- ── pictures ─────────────────────────────────────────────────────────────────
 local ICONS = "Interface\\Icons\\"
@@ -182,7 +182,7 @@ end
 
 -- A page's face: a foe's portrait, the world's harm, an icon.
 local function face(p, f, death)
-  p.ring:SetVertexColor(unpack(death and DEATH or (f and f.foe and RANK[f.foe.rank]) or T.ring))
+  ringOf(p, death and ROSE or (f and f.foe and RANK_RING[f.foe.rank]) or nil)
   if f and f.foe then return portrait(p, f.foe) end
   p.tex:SetDesaturated(false)
   if f and f.env then return icon(p.tex, WORLD[f.env]) end
@@ -481,7 +481,7 @@ local DRAW = {}
 function DRAW.foe(p, r)
   local b, foe = p:take("foe"), r.foe or { name = "?" }
   portrait(b.portrait, foe)
-  b.portrait.ring:SetVertexColor(unpack(RANK[foe.rank] or T.ring))
+  ringOf(b.portrait, RANK_RING[foe.rank])
   b.portrait.tip = { title = foe.name, text = aboutFoe(foe) }
   b.name:SetText(foe.name or "?")
   b.name:SetTextColor(unpack(levelColour(foe, r.level)))
@@ -837,7 +837,7 @@ function G:draw(d, samples, threshold)
         nf = nf + 1
         f = self:face(nf)
         portrait(f, ns.foeNamed(d, m.text))
-        f.ring:SetVertexColor(unpack(T.ring))
+        K.ringColour(f)
         f.tip = { title = m.text, text = ("joined %d seconds in"):format(math.floor(m.t + 0.5)) }
       else
         nslot = nslot + 1
