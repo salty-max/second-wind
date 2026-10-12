@@ -43,7 +43,8 @@ K.theme({
 local T = K.T
 local label, rule = K.label, K.rule
 
-local HEADER_H, PORTRAIT = 84, 64
+-- (the kit's page: its header's sizes, so the four books' pages match)
+local HEADER_H, PORTRAIT = 90, 64
 ns.DEATH = { 0.86, 0.45, 0.42 } -- a death's title, its ring, the bar at its end
 local DEATH = ns.DEATH
 local HEAL = { 0.45, 0.86, 0.52 }
@@ -56,10 +57,10 @@ local MARK = {
   held = { 0.72, 0.62, 0.92 },
 }
 local LEGEND = {
-  { "hit", "the hits that mattered" },
-  { "foe", "a foe joined" },
-  { "used", "what you used" },
-  { "held", "out of your control" },
+  { "hit", "Hits that mattered" },
+  { "foe", "A foe joined" },
+  { "used", "What you used" },
+  { "held", "Out of your control" },
 }
 -- A tool's frame in a debrief: unused (it could have helped), used, held (out
 -- of my control), ready (my casts hidden), untold (no trace either way).
@@ -302,16 +303,16 @@ function ns.newPage(parent, name, x, width, withGraph)
   p.width, p.pools, p.hasGraph = width, {}, withGraph and true or false
   p.portrait = K.roundIcon(p.child, PORTRAIT, true)
   p.portrait:SetPoint("TOPLEFT", 2, -2)
-  p.title = label(p.child, K.TITLE_FONT, 22, T.accent)
-  p.title:SetPoint("TOPLEFT", p.portrait, "TOPRIGHT", 14, -8)
-  p.title:SetWidth(width - PORTRAIT - 18)
+  p.title = label(p.child, K.TITLE_FONT, 24, T.accent)
+  p.title:SetPoint("TOPLEFT", p.portrait, "TOPRIGHT", 16, -8)
+  p.title:SetWidth(width - PORTRAIT - 20)
   p.title:SetWordWrap(false)
   p.sub = label(p.child, K.BODY_FONT, 12, T.soft)
   p.sub:SetPoint("TOPLEFT", p.title, "BOTTOMLEFT", 0, -7)
-  p.sub:SetWidth(width - PORTRAIT - 18)
+  p.sub:SetWidth(width - PORTRAIT - 20)
   local line = rule(p.child)
-  line:SetPoint("TOPLEFT", 0, -(HEADER_H - 8))
-  line:SetPoint("TOPRIGHT", 0, -(HEADER_H - 8))
+  line:SetPoint("TOPLEFT", 0, -76)
+  line:SetPoint("TOPRIGHT", 0, -76)
   if withGraph then p.graph = Page.newGraph(p.child, width) end
   return p
 end
@@ -347,7 +348,7 @@ local ROW_TEXT = 12
 function MAKERS.heading(p)
   local h = CreateFrame("Frame", nil, p.child)
   h:SetSize(p.width, 24)
-  h.text = label(h, K.TITLE_FONT, 15, T.accent)
+  h.text = label(h, K.TITLE_FONT, 16, T.accent)
   h.text:SetPoint("BOTTOMLEFT", 0, 5)
   h.line = rule(h)
   h.line:SetPoint("BOTTOMLEFT")
@@ -379,71 +380,66 @@ function MAKERS.text(p)
   return b
 end
 
--- A small square picture with a thin frame (its colour: what it says).
-local function square(parent, size)
-  local s = CreateFrame("Frame", nil, parent)
-  s:SetSize(size, size)
-  s.edge = s:CreateTexture(nil, "BACKGROUND")
-  s.edge:SetPoint("TOPLEFT", -1, 1)
-  s.edge:SetPoint("BOTTOMRIGHT", 1, -1)
-  s.edge:SetColorTexture(0, 0, 0, 0.9)
-  s.tex = s:CreateTexture(nil, "ARTWORK")
-  s.tex:SetAllPoints()
-  s.count = label(s, K.BODY_FONT, 10, { 1, 1, 1 })
-  s.count:SetFont(K.BODY_FONT, 10, "OUTLINE")
-  s.count:SetPoint("BOTTOMRIGHT", -1, 2)
-  return s
+-- The rows with a picture are the kit's cards, as every book's (a round
+-- picture in a ring, its colour what it says; the name in the display face,
+-- a line under it, a rule below), with what Second Wind adds: a bar of the
+-- share, a foe's kind beside its name, a blow's amount before its spell.
+local CARD_IN = 56 -- (the card's text: right of its picture)
+local function card(p)
+  local b = K.cardRow(p.child, p.width)
+  b.portrait.tex:SetTexCoord(unpack(K.ICON_CROP))
+  tipFor(b.portrait, nil)
+  return b
 end
-local function frameColour(s, c, alpha) s.edge:SetColorTexture(c[1], c[2], c[3], alpha or 1) end
+-- A share of the harm, under the card's line.
+local function shareBar(b, width, colour)
+  b.share = K.bar(b)
+  b.share:SetPoint("TOPLEFT", b.facts, "BOTTOMLEFT", 0, -5)
+  b.share:SetSize(width, 3)
+  b.share:SetMinMaxValues(0, 1)
+  if colour then b.share:SetStatusBarColor(unpack(colour)) end
+end
+-- A card's height: the kit's, a little more with a bar under its line.
+local function cardHeight(withBar) return K.CARD_H + (withBar and 6 or 0) end
 
 function MAKERS.foe(p)
-  local b = CreateFrame("Frame", nil, p.child)
-  b:SetSize(p.width, 46)
-  b.portrait = K.roundIcon(b, 38, true)
-  b.portrait:SetPoint("TOPLEFT", 2, -2)
-  b.name = label(b, K.BODY_FONT, 13, T.text)
-  b.name:SetPoint("TOPLEFT", 52, -2)
-  b.name:SetWordWrap(false)
+  local b = card(p)
+  -- (the name its own width, what it was beside it)
+  b.name:ClearAllPoints()
+  b.name:SetPoint("TOPLEFT", b.portrait, "TOPRIGHT", 12, -2)
   b.about = label(b, K.BODY_FONT, 11, T.soft)
   b.about:SetPoint("LEFT", b.name, "RIGHT", 8, 0)
   b.about:SetWordWrap(false)
-  b.did = label(b, K.BODY_FONT, 11, T.soft)
-  b.did:SetPoint("TOPLEFT", b.name, "BOTTOMLEFT", 0, -4)
-  b.did:SetWidth(p.width - 52)
-  b.did:SetWordWrap(false)
-  b.share = K.bar(b)
-  b.share:SetPoint("TOPLEFT", b.did, "BOTTOMLEFT", 0, -5)
-  b.share:SetSize(p.width - 52, 3)
-  b.share:SetMinMaxValues(0, 1)
-  b.share:SetStatusBarColor(unpack(MARK.hit))
-  tipFor(b.portrait, nil)
+  b.did = b.facts
+  shareBar(b, p.width - CARD_IN - 4, MARK.hit)
   return b
 end
 
 function MAKERS.blow(p)
-  local b = CreateFrame("Frame", nil, p.child)
-  b:SetSize(p.width, 34)
-  b.icon = square(b, 26)
-  b.icon:SetPoint("TOPLEFT", 2, -2)
-  b.amount = label(b, K.TITLE_FONT, 16, MARK.hit)
-  b.amount:SetPoint("TOPLEFT", 38, -1)
-  b.amount:SetWidth(54)
-  b.title = label(b, K.BODY_FONT, ROW_TEXT, T.text)
-  b.title:SetPoint("TOPLEFT", 96, -2)
-  b.title:SetWidth(p.width - 96)
-  b.title:SetWordWrap(false)
-  b.detail = label(b, K.BODY_FONT, 11, T.soft)
-  b.detail:SetPoint("TOPLEFT", b.title, "BOTTOMLEFT", 0, -3)
-  b.detail:SetWidth(p.width - 96)
-  b.detail:SetWordWrap(false)
-  b.share = K.bar(b)
-  b.share:SetPoint("BOTTOMLEFT", b.icon, "BOTTOMRIGHT", 10, -4)
-  b.share:SetSize(46, 3)
-  b.share:SetMinMaxValues(0, 1)
-  tipFor(b.icon, nil)
+  local b = card(p)
+  b.icon = b.portrait
+  b.amount = label(b, K.TITLE_FONT, 15, MARK.hit)
+  b.amount:SetPoint("TOPLEFT", b.portrait, "TOPRIGHT", 12, -2)
+  b.title, b.detail = b.name, b.facts
+  b.detail:ClearAllPoints()
+  b.detail:SetPoint("TOPLEFT", b.portrait, "TOPRIGHT", 12, -23)
+  b.detail:SetPoint("RIGHT", -4, 0)
+  shareBar(b, 60)
   return b
 end
+-- A blow's spell after its amount (none: where the amount would be).
+local function titleAfter(b, amount)
+  b.title:ClearAllPoints()
+  if amount then
+    b.title:SetPoint("TOPLEFT", b.amount, "TOPRIGHT", 8, 0)
+  else
+    b.title:SetPoint("TOPLEFT", b.portrait, "TOPRIGHT", 12, -2)
+  end
+  b.title:SetPoint("RIGHT", -4, 0)
+end
 
+-- The tools I had: their icons in a row, as the game draws items (the kit's),
+-- the frame's colour what became of them.
 function MAKERS.tools(p)
   local b = CreateFrame("Frame", nil, p.child)
   b:SetWidth(p.width)
@@ -452,23 +448,20 @@ function MAKERS.tools(p)
   b.icons = {}
   return b
 end
+local function frameColour(s, c, alpha) s.border:SetVertexColor(c[1], c[2], c[3], alpha or 1) end
 
 function MAKERS.tool(p)
-  local b = CreateFrame("Frame", nil, p.child)
-  b:SetSize(p.width, 34)
-  b.icon = square(b, 28)
-  b.icon:SetPoint("TOPLEFT", 2, -2)
-  b.title = label(b, K.BODY_FONT, ROW_TEXT, T.text)
-  b.title:SetPoint("TOPLEFT", 42, -2)
-  b.title:SetWordWrap(false)
+  local b = card(p)
+  b.icon = b.portrait
+  b.icon.count = b.portrait:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
+  b.icon.count:SetPoint("BOTTOMRIGHT", 2, -1)
+  b.title = b.name
+  b.title:ClearAllPoints()
+  b.title:SetPoint("TOPLEFT", b.portrait, "TOPRIGHT", 12, -2)
   b.value = label(b, K.BODY_FONT, 11, T.soft)
   b.value:SetPoint("LEFT", b.title, "RIGHT", 8, 0)
   b.value:SetWordWrap(false)
-  b.detail = label(b, K.BODY_FONT, 11, T.soft)
-  b.detail:SetPoint("TOPLEFT", b.title, "BOTTOMLEFT", 0, -3)
-  b.detail:SetWidth(p.width - 42)
-  b.detail:SetWordWrap(false)
-  tipFor(b.icon, nil)
+  b.detail = b.facts
   return b
 end
 
@@ -506,23 +499,26 @@ function DRAW.foe(p, r)
   b.name:SetText(foe.name or "?")
   b.name:SetTextColor(unpack(levelColour(foe, r.level)))
   -- (a long name cut short, what it was beside it)
-  fit(b.name, p.width - 200)
+  fit(b.name, p.width - CARD_IN - 150)
   b.about:SetText(aboutFoe(foe))
   local did = r.detail or didFoe(foe)
   b.did:SetText(did)
   b.share:SetShown(r.share ~= nil)
   if r.share then b.share:SetValue(r.share) end
-  p:place(b, r.share and 46 or 40, 6)
+  local height = cardHeight(r.share ~= nil)
+  b:SetHeight(height)
+  p:place(b, height, 4)
 end
 
 function DRAW.blow(p, r)
   local b = p:take("blow")
   icon(b.icon.tex, blowIcon(r))
-  b.icon.count:SetText("")
-  frameColour(b.icon, r.death and DEATH or { 0, 0, 0 }, 0.9)
+  b.icon.tex:SetDesaturated(false)
+  b.icon.ring:SetVertexColor(unpack(r.death and DEATH or r.heal and HEAL or T.ring))
   b.icon.tip = r.id and { spell = r.id } or { title = r.title, text = r.detail }
   b.amount:SetText(r.amount and tostring(r.amount) or "")
   b.amount:SetTextColor(unpack(r.heal and HEAL or r.death and DEATH or MARK.hit))
+  titleAfter(b, r.amount)
   b.title:SetText(r.title or "")
   b.detail:SetText(r.detail or "")
   b.share:SetShown(r.share ~= nil)
@@ -530,23 +526,27 @@ function DRAW.blow(p, r)
     b.share:SetValue(math.min(1, r.share))
     b.share:SetStatusBarColor(unpack(r.heal and HEAL or MARK.hit))
   end
-  p:place(b, 32, 4)
+  local height = cardHeight(r.share ~= nil)
+  b:SetHeight(height)
+  p:place(b, height, 4)
 end
 
 function DRAW.held(p, r)
   local b = p:take("blow")
   icon(b.icon.tex, r.icon or (r.spell and ns.spellIcon(r.spell)) or ICONS .. "Spell_Frost_Stun")
-  b.icon.count:SetText("")
-  frameColour(b.icon, MARK.held, 0.9)
+  b.icon.tex:SetDesaturated(false)
+  b.icon.ring:SetVertexColor(unpack(MARK.held))
   b.icon.tip = { title = r.title, text = r.detail }
   b.amount:SetText("")
+  titleAfter(b, nil)
   b.title:SetText(r.title or "")
   b.detail:SetText(r.detail or "")
   b.share:Hide()
-  p:place(b, 32, 4)
+  b:SetHeight(cardHeight(false))
+  p:place(b, cardHeight(false), 4)
 end
 
-local ICON_SIZE, ICON_GAP = 32, 6
+local ICON_SIZE, ICON_GAP = 34, 6
 function DRAW.tools(p, r)
   local b = p:take("tools")
   b.label:SetText(r.label or "")
@@ -555,13 +555,14 @@ function DRAW.tools(p, r)
   for i, t in ipairs(r.tools or {}) do
     local s = b.icons[i]
     if not s then
-      s = square(b, ICON_SIZE)
+      s = K.iconButton(b, ICON_SIZE)
+      s.tex = s.icon
       tipFor(s, nil)
       b.icons[i] = s
     end
     local col, line = (i - 1) % perRow, math.floor((i - 1) / perRow)
     s:ClearAllPoints()
-    s:SetPoint("TOPLEFT", col * (ICON_SIZE + ICON_GAP) + 2, -(18 + line * (ICON_SIZE + ICON_GAP)))
+    s:SetPoint("TOPLEFT", col * (ICON_SIZE + ICON_GAP), -(20 + line * (ICON_SIZE + ICON_GAP)))
     icon(s.tex, ns.toolIcon(t))
     s.tex:SetDesaturated(r.state == "untold")
     s.tex:SetAlpha(r.state == "untold" and 0.6 or 1)
@@ -575,9 +576,9 @@ function DRAW.tools(p, r)
     b.icons[i]:Hide()
   end
   local lines = math.max(1, math.ceil(n / perRow))
-  local height = 18 + lines * (ICON_SIZE + ICON_GAP)
+  local height = 20 + lines * (ICON_SIZE + ICON_GAP)
   b:SetHeight(height)
-  p:place(b, height, 4)
+  p:place(b, height, 6)
 end
 
 function DRAW.tool(p, r)
@@ -585,7 +586,7 @@ function DRAW.tool(p, r)
   local t = r.tool
   b.title:SetText(r.title or (t and t.n) or "")
   b.title:SetTextColor(unpack(r.missing and T.soft or T.text))
-  fit(b.title, p.width - 200)
+  fit(b.title, p.width - CARD_IN - 150)
   b.value:SetText(r.value or "")
   b.value:SetTextColor(unpack(r.ready and GOOD or T.soft))
   b.detail:SetText(r.detail or "")
@@ -595,7 +596,7 @@ function DRAW.tool(p, r)
     b.icon.tex:SetDesaturated(false)
     b.icon.tex:SetAlpha(1)
     b.icon.count:SetText("")
-    frameColour(b.icon, T.dim, 0.6)
+    b.icon.ring:SetVertexColor(unpack(T.dim))
     b.icon.tip = nil
   else
     icon(b.icon.tex, t and ns.toolIcon(t))
@@ -604,10 +605,10 @@ function DRAW.tool(p, r)
     b.icon.tex:SetDesaturated(waitingFor)
     b.icon.tex:SetAlpha(waitingFor and 0.7 or 1)
     b.icon.count:SetText(t and t.count and t.count > 1 and tostring(t.count) or "")
-    frameColour(b.icon, r.ready and GOOD or T.ring, 0.9)
+    b.icon.ring:SetVertexColor(unpack(r.ready and GOOD or T.ring))
     b.icon.tip = t and toolTip(t) or nil
   end
-  p:place(b, (r.detail and r.detail ~= "") and 34 or 30, 4)
+  p:place(b, cardHeight(false), 4)
 end
 
 function DRAW.share(p, r)
@@ -642,9 +643,11 @@ end
 -- the end. Under it, a lane of what happened, by time: the icon of each tool I
 -- used, the portrait of each foe as it joined, a red tick for each hit that
 -- mattered, a purple bar for each stretch out of my control (a band in the
--- plot too); then the time. Hovered: the moment's time, my health, what
--- happened then.
-local PLOT_H, LANE_H, AXIS_W = 100, 18, 30
+-- plot too); then the time; then the legend, a swatch for each kind of mark
+-- shown, drawn as the chart draws it. The whole in a card of its own (the
+-- window's panel), room around it. Hovered: the moment's time, my health,
+-- what happened then.
+local PLOT_H, LANE_H, AXIS_W, PAD, KEY_H = 120, 18, 32, 14, 16
 local MASK = "Interface\\CharacterFrame\\TempPortraitAlphaMask"
 local DANGER = { 0.88, 0.32, 0.28 }
 -- (the fill under my health: the bar's blue, and the danger's red, a fifth
@@ -652,18 +655,23 @@ local DANGER = { 0.88, 0.32, 0.28 }
 local FILL, FILL_LOW = { 0.14, 0.19, 0.25 }, { 0.23, 0.12, 0.12 }
 
 function Page.newGraph(parent, width)
-  local g = CreateFrame("Frame", nil, parent)
-  g:SetSize(width, PLOT_H + LANE_H + 18)
-  g.width, g.plotW = width, width - AXIS_W - 2
+  local g = K.panel(parent)
+  g:SetSize(width, PLOT_H + LANE_H + 2 * PAD + 40)
+  g.width, g.plotW = width, width - 2 * PAD - AXIS_W
   g.plot = CreateFrame("Frame", nil, g)
-  g.plot:SetPoint("TOPLEFT", AXIS_W, 0)
+  g.plot:SetPoint("TOPLEFT", PAD + AXIS_W, -PAD)
   g.plot:SetSize(g.plotW, PLOT_H)
   g.lane = CreateFrame("Frame", nil, g)
-  g.lane:SetPoint("TOPLEFT", g.plot, "BOTTOMLEFT", 0, -3)
+  g.lane:SetPoint("TOPLEFT", g.plot, "BOTTOMLEFT", 0, -6)
   g.lane:SetSize(g.plotW, LANE_H)
-  g.pieces, g.icons, g.labels = {}, {}, {}
-  g.legend = label(parent, K.BODY_FONT, 11, T.soft)
-  g.legend:SetWidth(width)
+  -- (the words over the plot: a frame above it, else the plot hides them)
+  g.over = CreateFrame("Frame", nil, g)
+  g.over:SetAllPoints()
+  g.over:SetFrameLevel(g.plot:GetFrameLevel() + 4)
+  g.pieces, g.icons, g.labels, g.keys = {}, {}, {}, {}
+  g.legend = CreateFrame("Frame", nil, g)
+  g.legend:SetPoint("TOPLEFT", g.lane, "BOTTOMLEFT", -AXIS_W, -24)
+  g.legend:SetSize(width - 2 * PAD, KEY_H)
   -- (the moment under the mouse)
   g.cursor = g.plot:CreateTexture(nil, "OVERLAY", nil, 7)
   g.cursor:SetColorTexture(1, 1, 1, 0.35)
@@ -713,7 +721,7 @@ end
 function G:text(i, size, colour)
   local l = self.labels[i]
   if not l then
-    l = label(self, K.BODY_FONT, size, colour)
+    l = label(self.over, K.BODY_FONT, size, colour)
     self.labels[i] = l
   end
   l:SetFont(K.BODY_FONT, size, "")
@@ -898,27 +906,69 @@ function G:hover()
   GameTooltip:Show()
 end
 
--- The chart on a page, at its place; its legend under it.
+-- The legend: a swatch for each kind of mark shown, as the chart draws it (a
+-- band, a tick, a ring, a bar), its words in the quiet colour; wrapped.
+local function widthOf(fs)
+  local v = fs.GetUnboundedStringWidth and fs:GetUnboundedStringWidth() or fs:GetStringWidth()
+  return type(v) == "number" and v or 0
+end
+function G:legendOf(keys)
+  local room, x, y = self.width - 2 * PAD, 0, 0
+  for i, k in ipairs(keys) do
+    local key = self.keys[i]
+    if not key then
+      key = CreateFrame("Frame", nil, self.legend)
+      key.swatch = key:CreateTexture(nil, "ARTWORK")
+      key.swatch:SetPoint("CENTER", key, "LEFT", 5, 0)
+      key.text = label(key, K.BODY_FONT, 11, T.soft)
+      key.text:SetPoint("LEFT", 16, 0)
+      self.keys[i] = key
+    end
+    local kind, c = k[1], k[2]
+    if kind == "foe" or kind == "used" then
+      key.swatch:SetTexture(MASK)
+      key.swatch:SetTexCoord(0, 1, 0, 1)
+      key.swatch:SetVertexColor(c[1], c[2], c[3], 1)
+      key.swatch:SetSize(9, 9)
+    else
+      key.swatch:SetColorTexture(c[1], c[2], c[3], kind == "danger" and 0.55 or 1)
+      key.swatch:SetSize(kind == "hit" and 2 or 10, kind == "hit" and 10 or kind == "held" and 4 or 8)
+    end
+    key.text:SetText(k[3])
+    local w = 16 + widthOf(key.text)
+    if x > 0 and x + w > room then
+      x, y = 0, y + KEY_H
+    end
+    key:ClearAllPoints()
+    key:SetPoint("TOPLEFT", self.legend, "TOPLEFT", x, -y)
+    key:SetSize(w, KEY_H)
+    key:Show()
+    x = x + w + 18
+  end
+  for i = #keys + 1, #self.keys do
+    self.keys[i]:Hide()
+  end
+  self.legend:SetHeight(y + KEY_H)
+  return y + KEY_H
+end
+
+-- The chart on a page, at its place, in its card.
 function Page:graphOf(d)
   local g = self.graph
   local samples = d.samples or {}
   g:ClearAllPoints()
   g:SetPoint("TOPLEFT", self.child, "TOPLEFT", 0, -self.y)
   g:SetShown(#samples > 1)
-  g.legend:SetShown(false)
   if #samples <= 1 then return end
   local threshold = ns.option("threshold")
   local kinds = g:draw(d, samples, threshold)
-  self.y = self.y + g:GetHeight() + 8
-  local words = { K.hex(DANGER) .. ("below %d%%, your threshold"):format(threshold) .. "|r" }
+  local keys = { { "danger", DANGER, ("Below %d%%, your threshold"):format(threshold) } }
   for _, l in ipairs(LEGEND) do
-    if kinds[l[1]] then table.insert(words, K.hex(MARK[l[1]]) .. l[2] .. "|r") end
+    if kinds[l[1]] then table.insert(keys, { l[1], MARK[l[1]], l[2] }) end
   end
-  g.legend:ClearAllPoints()
-  g.legend:SetPoint("TOPLEFT", self.child, "TOPLEFT", 0, -self.y)
-  g.legend:SetText(table.concat(words, "   "))
-  g.legend:Show()
-  self.y = self.y + g.legend:GetStringHeight() + 12
+  local height = PAD + PLOT_H + 6 + LANE_H + 24 + g:legendOf(keys) + PAD
+  g:SetHeight(height)
+  self.y = self.y + height + 18
 end
 
 -- ── a page drawn ─────────────────────────────────────────────────────────────
@@ -957,17 +1007,16 @@ function Page:draw(c, d, keep)
   end
   if self.hasGraph then
     if d then
-      self.y = self.y + 4
+      self.y = self.y + 6
       self:graphOf(d)
     else
       self.graph:Hide()
-      self.graph.legend:Hide()
     end
   end
   for _, s in ipairs(c.sections or {}) do
     local h = self:take("heading")
     h.text:SetText(s.heading)
-    self:place(h, 24, 8)
+    self:place(h, 24, 10)
     for i, l in ipairs(s.lines) do
       local r = s.rows and s.rows[i]
       if s.note then

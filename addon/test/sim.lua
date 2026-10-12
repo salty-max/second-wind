@@ -1192,9 +1192,16 @@ if not G.FOREVER then
   )
   ns.openDebrief(d.at)
   local g = book.card.graph
+  local keys = {}
+  for _, k in ipairs(g.keys) do
+    if k:IsShown() then table.insert(keys, k.text:GetText()) end
+  end
   check(
-    #g.shownMarks == 7 and g.legend:IsShown() and g.legend:GetText():find("what you used"),
-    "… drawn on the graph, their words under it"
+    #g.shownMarks == 7
+      and g.legend:IsShown()
+      and table.concat(keys, ", ")
+        == "Below 15%, your threshold, Hits that mattered, A foe joined, What you used, Out of your control",
+    "… drawn on the graph, a swatch and its words for each kind of mark"
   )
   local shown, texts = 0, {}
   for _, f in ipairs(g.icons) do

@@ -138,14 +138,19 @@ The plan, its research and its decisions: PLAN.md.
     foe that did the most harm, `ns.faceOf`; the title, the line under it, a
     rule), its figures (`c.figures`: the kit's strip, `K.figures`; the
     Patterns' and the Lifelines'), the lessons (an accent bar beside each), the chart for a card
-    (`Page.newGraph`: a dark plot, 100% and 50% lines, the threshold a red
+    (`Page.newGraph`, in a card of its own, the window's panel, room around
+    it: a dark plot, 100% and 50% lines, the threshold a red
     danger zone tinting the fill, my health a stepped line (red below the
     threshold) over an opaque fill on whole pixels, the low point a dot and
     `ns.lowOf`, a death a skull; a lane under it of `ns.marksOf`: tools'
     icons, joining foes' portraits, hits' red ticks, control lost's purple
-    bars; the time; hovered: the moment's health and marks),
+    bars; the time; a legend under it, a swatch for each kind of mark shown,
+    drawn as the chart draws it; its words on a frame above the plot;
+    hovered: the moment's health and marks),
     then sections, each line drawn by its row (`sections[i].rows`, beside the
-    `lines` the copy and the tests read): `foe` (the creature's still
+    `lines` the copy and the tests read); the rows with a picture are the
+    kit's card rows (`K.cardRow`, as every book's), the icon strips the kit's
+    item icons (`K.iconButton`): `foe` (the creature's still
     portrait, `SetPortraitTextureFromCreatureDisplayID`, its display
     Creatures.lua's as the Field Journal's, else found once by a hidden
     model and kept on the foe; a
