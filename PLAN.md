@@ -4,7 +4,7 @@ A World of Warcraft addon that teaches you from your close calls. After a fight
 that nearly killed you, or did, a short debrief: how it happened, what you had
 ready and didn't use, and what your close calls have in common. For Classic Era
 (Hardcore above all), TBC Anniversary and World of Warcraft: Forever, standalone,
-in the family's look (the shared kit, ~/code/addon-kit) and released like its
+in the family's look (the shared kit, ~/code/wow-addons/addon-kit) and released like its
 siblings (the BigWigs packager: GitHub, CurseForge, Wago).
 
 ## The idea (11 October 2026)

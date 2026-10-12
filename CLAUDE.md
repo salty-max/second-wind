@@ -14,7 +14,7 @@ The plan, its research and its decisions: PLAN.md.
   loads its own TOC (`SecondWind_Vanilla.toc`: Classic Era, 11509; `_TBC.toc`:
   TBC Anniversary, 20506; `_Camelot.toc`: Forever, 16001), the same but for
   the interface (`scripts/package.ts` checks).
-  - `Kit.lua`: a copy of the kit shared with the siblings (~/code/addon-kit):
+  - `Kit.lua`: a copy of the kit shared with the siblings (~/code/wow-addons/addon-kit):
     never edit the copy; `bun run kit:sync` after changing the kit, `bun run
     kit:check` to verify.
   - `Core.lua`: every character's record of this game, account-wide
@@ -201,7 +201,7 @@ The plan, its research and its decisions: PLAN.md.
 bun run check        # lint, the simulation on both games, the TOCs
 bun run package      # dist/SecondWind-<version>.zip (git describe), for a test in the game
 bun run format:lua
-bun run kit:sync     # after changing ~/code/addon-kit
+bun run kit:sync     # after changing ~/code/wow-addons/addon-kit
 scripts/release.sh [--version X.Y.Z] [--hold] NOTES.md   # tag, push; Actions publish
 ```
 
