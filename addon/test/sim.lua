@@ -1199,13 +1199,14 @@ if not G.FOREVER then
   check(
     #g.shownMarks == 7
       and g.legend:IsShown()
-      and table.concat(keys, ", ")
-        == "Below 15%, your threshold, Hits that mattered, A foe joined, What you used, Out of your control",
-    "… drawn on the graph, a swatch and its words for each kind of mark"
+      and table.concat(keys, ", ") == "Below 15%, your threshold, Hits that mattered, Out of your control",
+    "… drawn on the graph, a swatch and its words for each mark that needs them"
   )
   local shown, texts = 0, {}
-  for _, f in ipairs(g.icons) do
-    if f:IsShown() then shown = shown + 1 end
+  for _, pool in ipairs({ g.slots, g.faces }) do
+    for _, f in ipairs(pool) do
+      if f:IsShown() then shown = shown + 1 end
+    end
   end
   for _, l in ipairs(g.labels) do
     if l:IsShown() then texts[l:GetText()] = true end

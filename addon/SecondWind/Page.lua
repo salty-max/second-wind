@@ -56,20 +56,11 @@ local MARK = {
   used = { 0.45, 0.86, 0.52 },
   held = { 0.72, 0.62, 0.92 },
 }
+-- (the marks that need words: what was used and who joined show as
+-- themselves, their slots and faces, named on hover)
 local LEGEND = {
   { "hit", "Hits that mattered" },
-  { "foe", "A foe joined" },
-  { "used", "What you used" },
   { "held", "Out of your control" },
-}
--- A tool's frame in a debrief: unused (it could have helped), used, held (out
--- of my control), ready (my casts hidden), untold (no trace either way).
-local STATE = {
-  unused = MARK.foe,
-  used = MARK.used,
-  held = MARK.held,
-  ready = T.ring,
-  untold = T.dim,
 }
 -- A rank's ring.
 local RANK = {
@@ -448,7 +439,6 @@ function MAKERS.tools(p)
   b.icons = {}
   return b
 end
-local function frameColour(s, c, alpha) s.border:SetVertexColor(c[1], c[2], c[3], alpha or 1) end
 
 function MAKERS.tool(p)
   local b = card(p)
@@ -546,28 +536,23 @@ function DRAW.held(p, r)
   p:place(b, cardHeight(false), 4)
 end
 
-local ICON_SIZE, ICON_GAP = 34, 6
+local ICON_SIZE, ICON_GAP = K.SLOT, 8
 function DRAW.tools(p, r)
   local b = p:take("tools")
   b.label:SetText(r.label or "")
-  local colour = STATE[r.state] or T.ring
   local perRow = math.max(1, math.floor((p.width + ICON_GAP) / (ICON_SIZE + ICON_GAP)))
   for i, t in ipairs(r.tools or {}) do
     local s = b.icons[i]
     if not s then
-      s = K.iconButton(b, ICON_SIZE)
-      s.tex = s.icon
+      s = K.slot(b, ICON_SIZE)
       tipFor(s, nil)
       b.icons[i] = s
     end
     local col, line = (i - 1) % perRow, math.floor((i - 1) / perRow)
     s:ClearAllPoints()
     s:SetPoint("TOPLEFT", col * (ICON_SIZE + ICON_GAP), -(20 + line * (ICON_SIZE + ICON_GAP)))
-    icon(s.tex, ns.toolIcon(t))
-    s.tex:SetDesaturated(r.state == "untold")
-    s.tex:SetAlpha(r.state == "untold" and 0.6 or 1)
-    s.count:SetText(t.count and t.count > 1 and tostring(t.count) or "")
-    frameColour(s, colour)
+    -- (a use that left no trace either way: greyed)
+    K.setSlot(s, ns.toolIcon(t), t.count, nil, r.state == "untold")
     s.tip = toolTip(t)
     s:Show()
   end
@@ -647,7 +632,7 @@ end
 -- shown, drawn as the chart draws it. The whole in a card of its own (the
 -- window's panel), room around it. Hovered: the moment's time, my health,
 -- what happened then.
-local PLOT_H, LANE_H, AXIS_W, PAD, KEY_H = 120, 18, 32, 14, 16
+local PLOT_H, LANE_H, AXIS_W, PAD, KEY_H, MARK_SIZE = 120, 26, 32, 14, 16, 22
 local MASK = "Interface\\CharacterFrame\\TempPortraitAlphaMask"
 local DANGER = { 0.88, 0.32, 0.28 }
 -- (the fill under my health: the bar's blue, and the danger's red, a fifth
@@ -655,8 +640,24 @@ local DANGER = { 0.88, 0.32, 0.28 }
 local FILL, FILL_LOW = { 0.14, 0.19, 0.25 }, { 0.23, 0.12, 0.12 }
 
 function Page.newGraph(parent, width)
-  local g = K.panel(parent)
+  -- (its box: the page's width, a shade and an edge in the rule's colour)
+  local g = CreateFrame("Frame", nil, parent)
   g:SetSize(width, PLOT_H + LANE_H + 2 * PAD + 40)
+  g.shade = g:CreateTexture(nil, "BACKGROUND")
+  g.shade:SetAllPoints()
+  g.shade:SetColorTexture(0, 0, 0, 0.22)
+  for _, side in ipairs({ { "TOPLEFT", "TOPRIGHT" }, { "BOTTOMLEFT", "BOTTOMRIGHT" } }) do
+    local edge = rule(g)
+    edge:SetPoint(side[1])
+    edge:SetPoint(side[2])
+  end
+  for _, side in ipairs({ { "TOPLEFT", "BOTTOMLEFT" }, { "TOPRIGHT", "BOTTOMRIGHT" } }) do
+    local edge = g:CreateTexture(nil, "ARTWORK")
+    edge:SetColorTexture(unpack(T.rule))
+    edge:SetWidth(1)
+    edge:SetPoint(side[1])
+    edge:SetPoint(side[2])
+  end
   g.width, g.plotW = width, width - 2 * PAD - AXIS_W
   g.plot = CreateFrame("Frame", nil, g)
   g.plot:SetPoint("TOPLEFT", PAD + AXIS_W, -PAD)
@@ -668,7 +669,7 @@ function Page.newGraph(parent, width)
   g.over = CreateFrame("Frame", nil, g)
   g.over:SetAllPoints()
   g.over:SetFrameLevel(g.plot:GetFrameLevel() + 4)
-  g.pieces, g.icons, g.labels, g.keys = {}, {}, {}, {}
+  g.pieces, g.slots, g.faces, g.labels, g.keys = {}, {}, {}, {}, {}
   g.legend = CreateFrame("Frame", nil, g)
   g.legend:SetPoint("TOPLEFT", g.lane, "BOTTOMLEFT", -AXIS_W, -24)
   g.legend:SetSize(width - 2 * PAD, KEY_H)
@@ -730,13 +731,25 @@ function G:text(i, size, colour)
   l:Show()
   return l
 end
--- An icon of the lane (a frame: its tooltip), square or round.
-function G:icon(i)
-  local f = self.icons[i]
+-- A picture of the lane (its tooltip): a tool's slot (the kit's), or the face
+-- of a foe that joined, round as the foes' are.
+function G:slot(i)
+  local f = self.slots[i]
   if not f then
-    f = K.roundIcon(self.lane, 14, true)
+    f = K.slot(self.lane, MARK_SIZE)
     tipFor(f, nil)
-    self.icons[i] = f
+    self.slots[i] = f
+  end
+  f:ClearAllPoints()
+  f:Show()
+  return f
+end
+function G:face(i)
+  local f = self.faces[i]
+  if not f then
+    f = K.roundIcon(self.lane, MARK_SIZE - 2, true)
+    tipFor(f, nil)
+    self.faces[i] = f
   end
   f:ClearAllPoints()
   f:Show()
@@ -823,7 +836,7 @@ function G:draw(d, samples, threshold)
   end
   -- the lane: what happened, by time
   self:rect(lane, "BACKGROUND", 0, { 0, 0, 0 }, 0.25, 0, 0, w, LANE_H)
-  local marks, kinds, ni, last = ns.marksOf(d), {}, 0, -100
+  local marks, kinds, nslot, nf, last = ns.marksOf(d), {}, 0, 0, -100
   for _, m in ipairs(marks) do
     kinds[m.kind] = true
     if m.kind == "held" then
@@ -831,28 +844,32 @@ function G:draw(d, samples, threshold)
     elseif m.kind == "hit" then
       self:rect(lane, "ARTWORK", 1, MARK.hit, 1, x(m.t) - 1, 2, 2, LANE_H - 4)
     else
-      ni = ni + 1
-      local f = self:icon(ni)
       -- (side by side when two came at once)
-      local at = math.max(7, math.min(w - 7, math.max(x(m.t), last + 16)))
+      local half = MARK_SIZE / 2
+      local at = math.max(half, math.min(w - half, math.max(x(m.t), last + MARK_SIZE + 2)))
       last = at
-      f:SetPoint("CENTER", lane, "LEFT", at, 0)
+      local f
       if m.kind == "foe" then
-        local foe = ns.foeNamed(d, m.text)
-        portrait(f, foe)
-        f.ring:SetVertexColor(unpack(MARK.foe))
+        nf = nf + 1
+        f = self:face(nf)
+        portrait(f, ns.foeNamed(d, m.text))
+        f.ring:SetVertexColor(unpack(T.ring))
         f.tip = { title = m.text, text = ("joined %d seconds in"):format(math.floor(m.t + 0.5)) }
       else
+        nslot = nslot + 1
+        f = self:slot(nslot)
         local t = toolNamed(d, m.text)
-        icon(f.tex, ns.toolIcon(t))
-        f.tex:SetDesaturated(false)
-        f.ring:SetVertexColor(unpack(MARK.used))
+        K.setSlot(f, ns.toolIcon(t))
         f.tip = toolTip(t)
       end
+      f:SetPoint("CENTER", lane, "LEFT", at, 0)
     end
   end
-  for i = ni + 1, #self.icons do
-    self.icons[i]:Hide()
+  for i = nslot + 1, #self.slots do
+    self.slots[i]:Hide()
+  end
+  for i = nf + 1, #self.faces do
+    self.faces[i]:Hide()
   end
   -- the time
   for i, t in ipairs({ 0, span / 2, span }) do
@@ -907,7 +924,7 @@ function G:hover()
 end
 
 -- The legend: a swatch for each kind of mark shown, as the chart draws it (a
--- band, a tick, a ring, a bar), its words in the quiet colour; wrapped.
+-- band, a tick, a bar), its words in the quiet colour; wrapped.
 local function widthOf(fs)
   local v = fs.GetUnboundedStringWidth and fs:GetUnboundedStringWidth() or fs:GetStringWidth()
   return type(v) == "number" and v or 0
@@ -925,15 +942,8 @@ function G:legendOf(keys)
       self.keys[i] = key
     end
     local kind, c = k[1], k[2]
-    if kind == "foe" or kind == "used" then
-      key.swatch:SetTexture(MASK)
-      key.swatch:SetTexCoord(0, 1, 0, 1)
-      key.swatch:SetVertexColor(c[1], c[2], c[3], 1)
-      key.swatch:SetSize(9, 9)
-    else
-      key.swatch:SetColorTexture(c[1], c[2], c[3], kind == "danger" and 0.55 or 1)
-      key.swatch:SetSize(kind == "hit" and 2 or 10, kind == "hit" and 10 or kind == "held" and 4 or 8)
-    end
+    key.swatch:SetColorTexture(c[1], c[2], c[3], kind == "danger" and 0.55 or 1)
+    key.swatch:SetSize(kind == "hit" and 2 or 10, kind == "hit" and 10 or kind == "held" and 4 or 8)
     key.text:SetText(k[3])
     local w = 16 + widthOf(key.text)
     if x > 0 and x + w > room then
@@ -1006,8 +1016,13 @@ function Page:draw(c, d, keep)
     self:place(b, height, 8)
   end
   if self.hasGraph then
-    if d then
+    if d and #(d.samples or {}) > 1 then
       self.y = self.y + 6
+      local h = self:take("heading")
+      h.text:SetText("Your health")
+      self:place(h, 24, 10)
+      self:graphOf(d)
+    elseif d then
       self:graphOf(d)
     else
       self.graph:Hide()
