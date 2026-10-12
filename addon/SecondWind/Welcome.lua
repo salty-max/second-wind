@@ -48,7 +48,7 @@ local W = K.welcome({
       },
       {
         text = "An alert after a death",
-        hint = "The game's alert; a click opens the debrief. A close call has its line in chat.",
+        hint = "A banner among the game's alerts; a click opens the debrief. A close call has its line in chat.",
         get = function() return ns.option("toast") end,
         set = function(v) ns.setOption("toast", v) end,
       },

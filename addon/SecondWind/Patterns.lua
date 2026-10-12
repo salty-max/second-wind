@@ -118,6 +118,12 @@ function ns.patternsOf(debriefs, fights)
     table.concat(made, " and "),
     since and (", since " .. date("%d %b", since)) or ""
   )
+  page.figures = {
+    { tostring(total), "debriefs" },
+    { tostring(closes), closes == 1 and "close call" or "close calls" },
+    { tostring(deaths), deaths == 1 and "death" or "deaths" },
+    { fights and fights.n and tostring(fights.n) or "0", "fights counted" },
+  }
 
   local often = {}
   for i, t in ipairs(TRAITS) do

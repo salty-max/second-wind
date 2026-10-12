@@ -6,7 +6,7 @@
 -- pictures), and a button to copy it as text. The Patterns: what the close
 -- calls share (Patterns.lua), set against every fight's. The Lifelines: what
 -- I carry for the worst moments, now (Tools.lua's page). A debrief written: a
--- line in chat with a link to it, the game's alert, and after a death the
+-- line in chat with a link to it, a banner among the game's alerts, and after a death the
 -- book opened at it (settings). /wind opens it.
 local _, ns = ...
 
@@ -22,6 +22,7 @@ ns.TAB = TAB
 local TAB_TITLES = { "Debriefs", "Patterns", "Lifelines" }
 local LIST_W, ROW_H, CARD_W, PAGE_W = 236, 38, 470, 704
 
+-- A tab with nothing to show yet: a page all the same, what it will hold.
 local function emptyText(n, count)
   if n == TAB.patterns then
     return (
@@ -33,6 +34,17 @@ local function emptyText(n, count)
     "No close call yet. When a fight leaves you below %d%% health, or ends you, its debrief is written "
     .. "here: how it went, what you had ready and didn't use, and what to take from it."
   ):format(ns.option("threshold"))
+end
+local function emptyPage(n, count)
+  local patterns = n == TAB.patterns
+  return {
+    title = patterns and "Patterns" or "Debriefs",
+    sub = patterns and ("%s of the three it takes"):format(count == 0 and "None" or tostring(count))
+      or "Nothing written yet",
+    face = { icon = ICON },
+    lessons = {},
+    sections = { { heading = "What comes here", lines = { emptyText(n, count) } } },
+  }
 end
 
 local book
@@ -96,15 +108,12 @@ function ns.refresh(keep)
   book.left:SetShown(listing)
   book.card:SetShown(listing)
   book.copy:SetShown(listing)
-  book.patterns:SetShown(studied)
+  local empty = not listing and not studied and not carrying
+  book.patterns:SetShown(studied or empty) -- (the whole sheet: the patterns, or what a tab will hold)
   book.carry:SetShown(carrying)
-  book.empty:SetShown(not listing and not studied and not carrying)
   if carrying then return book.carry:draw(ns.carryPage(ns.carried()), nil, keep) end
   if studied then return book.patterns:draw(patterns, nil, keep) end
-  if not listing then
-    book.empty:SetText(emptyText(book.selectedTab, #debriefs))
-    return
-  end
+  if empty then return book.patterns:draw(emptyPage(book.selectedTab, #debriefs), nil, keep) end
   local open = find(debriefs, book.open) or debriefs[#debriefs]
   book.open = open.at
   local n = 0
@@ -202,8 +211,7 @@ local function build()
   local edge = window and 8 or 14
   book.count = label(book, K.BODY_FONT, 11, T.accent)
   book.count:SetPoint("TOPLEFT", 64, -36)
-  -- (the sheet over the whole window: the empty tabs' word in its middle;
-  -- the list's panel above its left part)
+  -- (the sheet over the whole window; the list's panel above its left part)
   book.sheet = panel(book)
   book.sheet:SetPoint("TOPLEFT", edge, -58)
   book.sheet:SetPoint("BOTTOMRIGHT", -edge, edge)
@@ -215,10 +223,6 @@ local function build()
   book.list = K.scrollArea(book.left, LIST_W - 16, "SecondWindList")
   book.list:SetPoint("TOPLEFT", 4, -6)
   book.list:SetPoint("BOTTOMRIGHT", -12, 6)
-  book.empty = label(book.sheet, K.BODY_FONT, 13, T.soft)
-  book.empty:SetPoint("CENTER")
-  book.empty:SetWidth(420)
-  book.empty:SetJustifyH("CENTER")
 
   -- the card, right of the list (its button to copy it above); the patterns
   -- and the lifelines, the whole sheet
@@ -289,35 +293,24 @@ end
 -- ── a debrief written ────────────────────────────────────────────────────────
 function ns.link(at, text) return ("|cffa8c7e0|Hsecondwind:debrief:%d|h[%s]|h|r"):format(at, text) end
 
--- The game's alert: the new recipe's (an icon, a title, a name), a click
--- opens the debrief (a right-click dismisses it).
-local TOAST = "NewRecipeLearnedAlertFrameTemplate"
-local toasts
-local function setUp(frame, d)
-  frame.secondWindAt = d.at
-  if frame.Icon then frame.Icon:SetTexture(ICON) end
-  frame.Title:SetText(d.kind == "death" and "Death" or ("Close call: %s"):format(ns.lowOf(d)))
-  frame.Name:SetText(d.sub or d.zone or "")
-  if AlertFrame_SetDuration then AlertFrame_SetDuration(frame, 12) end
-  frame:SetScript("OnClick", function(self, button, down)
-    if AlertFrame_OnClick and AlertFrame_OnClick(self, button, down) then return end
-    if self.secondWindAt then ns.openDebrief(self.secondWindAt) end
-  end)
-end
+-- The banner (the kit's, among the game's alerts): what it was, where; a
+-- click opens the debrief, a right-click or its cross dismisses it.
+local banners
 local function toast(d)
-  if not toasts then
-    if not (AlertFrame and AlertFrame.AddQueuedAlertFrameSubSystem and C_XMLUtil and C_XMLUtil.GetTemplateInfo) then
-      return
-    end
-    if not C_XMLUtil.GetTemplateInfo(TOAST) then return end
-    toasts = AlertFrame:AddQueuedAlertFrameSubSystem(TOAST, setUp, 2, 6)
-  end
-  toasts:AddAlert(d)
+  banners = banners or K.banners({ name = "SecondWindBanner", art = ICON, seconds = 12 })
+  banners:show({
+    picture = ICON,
+    kicker = d.kind == "death" and "Death" or ("Close call: %s"):format(ns.lowOf(d)),
+    title = d.sub or d.zone or "",
+    tip = "Click to read its debrief",
+    click = function() ns.openDebrief(d.at) end,
+    at = d.at,
+  })
 end
 
 function ns.debriefed(d)
   -- (its weightiest lesson in the line: the gist without opening anything;
-  -- the game's alert after a death only, a close call's line being enough)
+  -- the banner after a death only, a close call's line being enough)
   if ns.option("chat") then
     local lesson = ns.lessonsOf(d)[1]
     print(ns.PREFIX .. ns.summaryOf(d) .. (lesson and (": " .. lesson) or ".") .. " " .. ns.link(d.at, "Debrief"))

@@ -15,7 +15,7 @@ For Classic Era (Hardcore, Season of Discovery), TBC Anniversary and World of Wa
 
 ## The debrief
 
-A fight you survive below 15% health (or 10, 20, 25: your choice) is a close call; a fight that kills you is a death. Once the fight is over, a line in chat gives the main lesson with a link to the debrief; after a death, the game's alert too, and the card opens on its own. Each gets a card, headed by the foe that did the most harm:
+A fight you survive below 15% health (or 10, 20, 25: your choice) is a close call; a fight that kills you is a death. Once the fight is over, a line in chat gives the main lesson with a link to the debrief; after a death, a banner among the game's alerts too, and the card opens on its own. Each gets a card, headed by the foe that did the most harm:
 
 - **The lessons**: one or two, by rule over what was recorded, never invented: *"A Major Healing Potion was in your bags, ready."* *"Three foes at once."* *"Defias Pillager joined six seconds in."* *"From half your health to 9% in two seconds."*
 - **The killing blow**, from the game's own death recap: who, with what, and how much more than you had.
@@ -73,7 +73,7 @@ Duels and battlegrounds are never debriefed.
 
 ## Settings
 
-The first time each character logs in with Second Wind, a welcome page introduces it and offers its choices (`/wind welcome` shows it again). After that: Options → AddOns → Second Wind (or `/wind settings`, or right-click the minimap button): the close call's threshold, a line in chat with its lesson and a link to the debrief, the game's alert after a death, the debrief opened on its own after a death, the word before a pull, the minimap button.
+The first time each character logs in with Second Wind, a welcome page introduces it and offers its choices (`/wind welcome` shows it again). After that: Options → AddOns → Second Wind (or `/wind settings`, or right-click the minimap button): the close call's threshold, a line in chat with its lesson and a link to the debrief, a banner after a death, the debrief opened on its own after a death, the word before a pull, the minimap button.
 
 Settings are each character's own, as in most interface addons. A character can take another's: choose one of your characters of the same game from a list (on the welcome page or the Options page), or bring them from anywhere with a code: `/wind export` on one character, `/wind import CODE` on the other.
 

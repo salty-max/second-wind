@@ -936,6 +936,17 @@ function Page:draw(c, d, keep)
   self.sub:SetText(c.sub or "")
   face(self.portrait, c.face, c.death)
   self.y = HEADER_H
+  -- (its figures first, the kit's strip, as every book's pages)
+  local strip = rawget(self, "strip")
+  if c.figures then
+    strip = strip or K.figures(self.child)
+    self.strip = strip
+    strip:ClearAllPoints()
+    strip:Show()
+    self:place(strip, strip:set(c.figures, self.width), 14)
+  elseif strip then
+    strip:Hide()
+  end
   for _, lesson in ipairs(c.lessons or {}) do
     local b = self:take("lesson")
     b.bar:SetColorTexture(unpack(c.death and DEATH or T.accent))

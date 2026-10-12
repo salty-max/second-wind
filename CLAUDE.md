@@ -14,8 +14,8 @@ The plan, its research and its decisions: PLAN.md.
   loads its own TOC (`SecondWind_Vanilla.toc`: Classic Era, 11509; `_TBC.toc`:
   TBC Anniversary, 20506; `_Camelot.toc`: Forever, 16001), the same but for
   the interface (`scripts/package.ts` checks).
-  - `Kit.lua`: a copy of the kit shared with the siblings (~/code/wow-addons/addon-kit):
-    never edit the copy; `bun run kit:sync` after changing the kit, `bun run
+  - `Kit.lua`: a copy of the kit shared with the siblings (~/code/wow-addons/addon-kit:
+    the look, the window's pieces, the figures, the banners): never edit the copy; `bun run kit:sync` after changing the kit, `bun run
     kit:check` to verify.
   - `Core.lua`: every character's record of this game, account-wide
     (`SecondWindAccount.characters[guid]`: who, level, fallen, debriefs,
@@ -136,7 +136,8 @@ The plan, its research and its decisions: PLAN.md.
   - `Page.lua`: the theme (frost steel) and the pages' renderer
     (`ns.newPage`, `page:draw(c, d, keep)`): a header (a round portrait: the
     foe that did the most harm, `ns.faceOf`; the title, the line under it, a
-    rule), the lessons (an accent bar beside each), the chart for a card
+    rule), its figures (`c.figures`: the kit's strip, `K.figures`; the
+    Patterns' and the Lifelines'), the lessons (an accent bar beside each), the chart for a card
     (`Page.newGraph`: a dark plot, 100% and 50% lines, the threshold a red
     danger zone tinting the fill, my health a stepped line (red below the
     threshold) over an opaque fill on whole pixels, the low point a dot and
@@ -162,10 +163,11 @@ The plan, its research and its decisions: PLAN.md.
     the fight by time against the threshold, marked (`ns.marksOf`, their
     words under it), "Copy as text" (`ns.showCopy`: a box to copy from)),
     the Patterns (the whole sheet), the Lifelines (Tools.lua's page, drawn
-    again as bags and cooldowns change). A debrief written
+    again as bags and cooldowns change); a tab with nothing yet, a page of
+    its own all the same (what it will hold). A debrief written
     (`ns.debriefed`): a line in chat with its weightiest lesson and a link
-    (`|Hsecondwind:debrief:<at>|h`), every close call; after a death only, the
-    game's alert (the new recipe's) and the book opened at it
+    (`|Hsecondwind:debrief:<at>|h`), every close call; after a death only, a
+    banner (the kit's, among the game's alerts) and the book opened at it
     (`ns.openDebrief(at)`; settings).
   - `Welcome.lua`: the kit's welcome page, once per character.
   - `Minimap.lua`: the button.

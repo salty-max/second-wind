@@ -666,18 +666,25 @@ C_DeathRecap = {
 
 -- The game's alerts and chat links: keep what the addon hands them.
 local toasted, linkHandlers = {}, {}
-AlertFrame = {
-  AddQueuedAlertFrameSubSystem = function(_, _, setUp)
-    return {
-      AddAlert = function(_, data)
-        local frame = ui()
-        frame.Icon, frame.Title, frame.Name = ui(), ui(), ui()
-        setUp(frame, data)
-        table.insert(toasted, frame)
-      end,
-    }
-  end,
-}
+-- (the game's alert container: a frame joins its stack, and it places those
+-- shown, each on top of the one under it: AlertFrameAutoAnchoredMixin's way)
+AlertFrame = { subs = {}, updates = 0 }
+function AlertFrame:AddAutoAnchoredSubSystem(f)
+  f:SetAlertContainer(self)
+  table.insert(self.subs, f)
+end
+function AlertFrame:UpdateAnchors()
+  self.updates = self.updates + 1
+  local rel = self
+  for _, f in ipairs(self.subs) do
+    if f:IsShown() then
+      f:ClearAllPoints()
+      f:SetPoint("BOTTOM", rel, "TOP", 0, 0)
+      f:OnAlertAnchorUpdated()
+      rel = f
+    end
+  end
+end
 LinkUtil = { RegisterLinkHandler = function(kind, fn) linkHandlers[kind] = fn end }
 LinkProcessorResponse = { Handled = 2 }
 local G_click = function(link)
@@ -693,6 +700,22 @@ for l in io.lines(DIR .. (FOREVER and "SecondWind_Camelot.toc" or "SecondWind_Va
   local f = l:match("^([%w_]+%.lua)%s*$")
   if f then assert(loadfile(DIR .. f))("SecondWind", ns) end
 end
+-- The banners shown: what each said (the kit's banners, as the addon makes
+-- them), and the banners themselves (G.banners()), to clear them.
+local bannersMade
+do
+  local make = ns.kit.banners
+  ns.kit.banners = function(o)
+    local banners = make(o)
+    bannersMade = banners
+    local show = banners.show
+    banners.show = function(self, b)
+      table.insert(toasted, b)
+      return show(self, b)
+    end
+    return banners
+  end
+end
 
 function G.login()
   offer("PLAYER_LOGIN")
@@ -706,6 +729,7 @@ end
 G.ns, G.state, G.panel, G.printed, G.wait, G.offer, G.FOREVER = ns, state, panel, printed, wait, offer, FOREVER
 G.shown = shown
 G.toasted, G.click = toasted, G_click
+function G.banners() return bannersMade end
 G.secret = function(v) return secrets[v] == true end
 G.line = function() return line end
 function G.slash(msg) SlashCmdList.SECONDWIND(msg) end

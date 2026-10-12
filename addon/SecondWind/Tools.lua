@@ -631,7 +631,7 @@ function ns.carryPage(list)
     sections = {},
     face = { icon = "Interface\\AddOns\\SecondWind\\Media\\Logo" },
   }
-  local has = {}
+  local has, ready = {}, 0
   for _, kind in ipairs(KINDS) do
     local lines, rows = {}, {}
     for _, t in ipairs(list) do
@@ -639,14 +639,15 @@ function ns.carryPage(list)
         has[t.k] = true
         local n = t.count and t.count > 1 and ("%s (%d)"):format(t.n, t.count) or t.n
         table.insert(lines, ("%s: %s%s"):format(n, stateOf(t), forWhat(t)))
-        local ready = t.left ~= nil and t.left <= 0 and t.worn ~= "bags" and not (t.wrapped and t.wrapped > 0)
+        local now = t.left ~= nil and t.left <= 0 and t.worn ~= "bags" and not (t.wrapped and t.wrapped > 0)
+        if now then ready = ready + 1 end
         local about = forWhat(t):gsub("^, ", "")
         table.insert(rows, {
           kind = "tool",
           tool = t,
           title = t.n,
           value = stateOf(t),
-          ready = ready,
+          ready = now,
           detail = about ~= "" and about or nil,
         })
       end
@@ -664,5 +665,10 @@ function ns.carryPage(list)
   if not has.stop and not has.away then lack("Anything that holds a foe or gets you out") end
   if #none > 0 then table.insert(page.sections, { heading = "None of these", lines = none, rows = rows }) end
   if #page.sections == 0 then page.lessons = { "Nothing of the kind, as yet." } end
+  page.figures = {
+    { tostring(#list), #list == 1 and "lifeline carried" or "lifelines carried" },
+    { tostring(ready), "ready now" },
+    { tostring(#none), #none == 1 and "kind lacking" or "kinds lacking" },
+  }
   return page
 end

@@ -28,7 +28,7 @@ local SHARED = { "threshold", "chat", "toast", "openAfterDeath", "prepull", "min
 ns.THRESHOLDS = { 10, 15, 20, 25 }
 
 -- The profiles: a code "SW1:p15:c1:t1:d1:w1:h0:a250" (the threshold, a line
--- in chat, the toast, the card after a death, the word before a pull, the
+-- in chat, the banner, the card after a death, the word before a pull, the
 -- minimap button hidden, its angle; an older code without w leaves it).
 local P = K.profiles({
   saved = function()
@@ -99,7 +99,11 @@ function ns.createSettingsPanel()
     "A line in chat",
     "After a close call or a death, a line in chat with its main lesson and a link to its debrief."
   )
-  checkbox("toast", "An alert after a death", "After a death, the game's alert; a click opens the debrief.")
+  checkbox(
+    "toast",
+    "An alert after a death",
+    "After a death, a banner among the game's alerts; a click opens the debrief."
+  )
   checkbox(
     "openAfterDeath",
     "The debrief after a death",

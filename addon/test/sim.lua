@@ -86,7 +86,12 @@ G.state.errors = nil
 G.slash("")
 local book = ns.window()
 check(book:IsShown(), "/wind opens the book")
-check(book.empty:GetText():find("below 15%%"), "… which says what it will hold, at this character's threshold")
+check(
+  book.patterns:IsShown()
+    and book.patterns.shown.title == "Debriefs"
+    and book.patterns.shown.sections[1].lines[1]:find("below 15%%"),
+  "… a page, which says what it will hold, at this character's threshold"
+)
 G.slash("")
 check(not book:IsShown(), "/wind again closes it")
 G.slash("settings")
@@ -597,7 +602,7 @@ if not G.FOREVER then
     "… the lesson, set apart"
   )
   local last = G.toasted[#G.toasted]
-  check(not (last and last.Title:GetText():find("^Close call")), "a close call: no alert, its line in chat enough")
+  check(not (last and last.kicker:find("^Close call")), "a close call: no banner, its line in chat enough")
   check(
     said("Close call, 11%% in Coldridge Valley, Dun Morogh %(.-%): Shield Wall was ready and went unused%. |c"),
     "… the line carries its main lesson"
@@ -606,6 +611,7 @@ if not G.FOREVER then
 end
 
 debriefs = life()
+if G.banners() then G.banners():clear() end
 G.pull()
 G.hit({ from = "Ragged Young Wolf", amount = 60 })
 G.wait(1)
@@ -631,13 +637,19 @@ check(
   "… drawn: the blow's amount, by whom, the overkill"
 )
 local t = G.toasted[#G.toasted]
+local card = SecondWindBanner1
 check(
-  t and t.Title:GetText() == "Death" and t.Name:GetText() == "Coldridge Valley",
-  "a death: the game's alert, and where"
+  t
+    and t.kicker == "Death"
+    and t.title == "Coldridge Valley"
+    and card:IsShown()
+    and card.joined
+    and card.title:GetText() == "Coldridge Valley",
+  "a death: a banner among the game's alerts, and where"
 )
 book:Hide()
-t.scripts.OnClick(t, "LeftButton")
-check(book:IsShown() and book.open == death.at, "… a click on it opens the card")
+card.scripts.OnClick(card, "LeftButton")
+check(book:IsShown() and book.open == death.at and not card:IsShown(), "… a click on it opens the card")
 book:Hide()
 ns.setOption("openAfterDeath", false)
 G.state.dead, G.state.health = false, G.state.maxHealth
@@ -721,14 +733,21 @@ debriefs = life()
 book:Show()
 ns.showTab(ns.TAB.patterns)
 check(
-  book.empty:IsShown() and book.empty:GetText():find("%(none so far%)"),
-  "the Patterns tab: what it will hold, none so far"
+  book.patterns:IsShown()
+    and book.patterns.shown.title == "Patterns"
+    and book.patterns.shown.sections[1].lines[1]:find("%(none so far%)"),
+  "the Patterns tab: a page, what it will hold, none so far"
 )
 for _, d in ipairs(five) do
   table.insert(debriefs, d)
 end
 ns.refresh()
-check(not book.empty:IsShown() and book.patterns.shown.title == "What your close calls share", "… then the patterns")
+check(
+  book.patterns.shown.title == "What your close calls share"
+    and book.patterns.strip:IsShown()
+    and book.patterns.strip.tiles[1].value:GetText() == tostring(#debriefs),
+  "… then the patterns, their figures on top"
+)
 local share = drawn(book.patterns, "share", 1)
 check(share and share.value.text:find("^%d+ of your %d+$"), "… a trait drawn: its bar, how many of the close calls")
 check(not book.card:IsShown() and not book.left:IsShown(), "… over the whole page, the list put away")
@@ -1245,6 +1264,12 @@ check(first.icon.count.text == "2", "… its count on its icon")
 book:Hide()
 G.slash("lifelines")
 check(book:IsShown() and book.carry.shown.title == "Your lifelines", "/wind lifelines: the book at that page")
+check(
+  book.carry.strip:IsShown()
+    and book.carry.strip.tiles[1].label:GetText():find("carried$")
+    and book.carry.strip.tiles[2].label:GetText() == "ready now",
+  "… its figures on top: what you carry, what is ready"
+)
 book:Hide()
 G.state.book, G.state.bags, G.state.auras = {}, {}, {}
 
