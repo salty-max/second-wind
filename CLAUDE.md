@@ -150,8 +150,10 @@ The plan, its research and its decisions: PLAN.md.
     hovered: the moment's health and marks),
     then sections, each line drawn by its row (`sections[i].rows`, beside the
     `lines` the copy and the tests read); the rows with a picture are the
-    kit's card rows (`K.cardRow`, as every book's), the icon strips the kit's
-    slots (`K.slot`, as the game draws its own): `foe` (the creature's still
+    kit's card rows (`K.cardRow`, as every book's: a foe's face round, a
+    spell or an item in a square slot), the icon strips the kit's slots
+    (`K.slot`, as the game draws its own; a kind I carry none of, an empty
+    slot): `foe` (the creature's still
     portrait, `SetPortraitTextureFromCreatureDisplayID`, its display
     Creatures.lua's as the Field Journal's, else found once by a hidden
     model and kept on the foe; a

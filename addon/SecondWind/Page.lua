@@ -77,7 +77,6 @@ local QUESTION = ICONS .. "INV_Misc_QuestionMark"
 local MELEE = ICONS .. "INV_Sword_04"
 local FOE = ICONS .. "Ability_DualWield" -- (a foe nothing is known of)
 local HEALS = ICONS .. "Spell_Holy_Heal"
-local EMPTY = "Interface\\PaperDoll\\UI-Backpack-EmptySlot"
 local SKULL = "Interface\\TargetingFrame\\UI-TargetingFrame-Skull"
 local CRESTS = "Interface\\TargetingFrame\\UI-Classes-Circles"
 -- The world's harm (a fall, the water...), and a foe of a kind with no portrait.
@@ -376,10 +375,10 @@ end
 -- a line under it, a rule below), with what Second Wind adds: a bar of the
 -- share, a foe's kind beside its name, a blow's amount before its spell.
 local CARD_IN = 56 -- (the card's text: right of its picture)
-local function card(p)
-  local b = K.cardRow(p.child, p.width)
-  b.portrait.tex:SetTexCoord(unpack(K.ICON_CROP))
-  tipFor(b.portrait, nil)
+-- (square: a spell's or an item's slot, the kit's; else a foe's round face)
+local function card(p, square)
+  local b = K.cardRow(p.child, p.width, square)
+  tipFor(b.picture, nil)
   return b
 end
 -- A share of the harm, under the card's line.
@@ -407,13 +406,13 @@ function MAKERS.foe(p)
 end
 
 function MAKERS.blow(p)
-  local b = card(p)
-  b.icon = b.portrait
+  local b = card(p, true)
+  b.icon = b.slot
   b.amount = label(b, K.TITLE_FONT, 15, MARK.hit)
-  b.amount:SetPoint("TOPLEFT", b.portrait, "TOPRIGHT", 12, -2)
+  b.amount:SetPoint("TOPLEFT", b.slot, "TOPRIGHT", 12, -2)
   b.title, b.detail = b.name, b.facts
   b.detail:ClearAllPoints()
-  b.detail:SetPoint("TOPLEFT", b.portrait, "TOPRIGHT", 12, -23)
+  b.detail:SetPoint("TOPLEFT", b.slot, "TOPRIGHT", 12, -23)
   b.detail:SetPoint("RIGHT", -4, 0)
   shareBar(b, 60)
   return b
@@ -424,13 +423,13 @@ local function titleAfter(b, amount)
   if amount then
     b.title:SetPoint("TOPLEFT", b.amount, "TOPRIGHT", 8, 0)
   else
-    b.title:SetPoint("TOPLEFT", b.portrait, "TOPRIGHT", 12, -2)
+    b.title:SetPoint("TOPLEFT", b.slot, "TOPRIGHT", 12, -2)
   end
   b.title:SetPoint("RIGHT", -4, 0)
 end
 
--- The tools I had: their icons in a row, as the game draws items (the kit's),
--- the frame's colour what became of them.
+-- The tools I had: their slots in a row (the kit's), what became of them in
+-- the label above.
 function MAKERS.tools(p)
   local b = CreateFrame("Frame", nil, p.child)
   b:SetWidth(p.width)
@@ -441,13 +440,11 @@ function MAKERS.tools(p)
 end
 
 function MAKERS.tool(p)
-  local b = card(p)
-  b.icon = b.portrait
-  b.icon.count = b.portrait:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
-  b.icon.count:SetPoint("BOTTOMRIGHT", 2, -1)
+  local b = card(p, true)
+  b.icon = b.slot
   b.title = b.name
   b.title:ClearAllPoints()
-  b.title:SetPoint("TOPLEFT", b.portrait, "TOPRIGHT", 12, -2)
+  b.title:SetPoint("TOPLEFT", b.slot, "TOPRIGHT", 12, -2)
   b.value = label(b, K.BODY_FONT, 11, T.soft)
   b.value:SetPoint("LEFT", b.title, "RIGHT", 8, 0)
   b.value:SetWordWrap(false)
@@ -502,9 +499,7 @@ end
 
 function DRAW.blow(p, r)
   local b = p:take("blow")
-  icon(b.icon.tex, blowIcon(r))
-  b.icon.tex:SetDesaturated(false)
-  b.icon.ring:SetVertexColor(unpack(r.death and DEATH or r.heal and HEAL or T.ring))
+  K.setSlot(b.icon, blowIcon(r))
   b.icon.tip = r.id and { spell = r.id } or { title = r.title, text = r.detail }
   b.amount:SetText(r.amount and tostring(r.amount) or "")
   b.amount:SetTextColor(unpack(r.heal and HEAL or r.death and DEATH or MARK.hit))
@@ -523,9 +518,7 @@ end
 
 function DRAW.held(p, r)
   local b = p:take("blow")
-  icon(b.icon.tex, r.icon or (r.spell and ns.spellIcon(r.spell)) or ICONS .. "Spell_Frost_Stun")
-  b.icon.tex:SetDesaturated(false)
-  b.icon.ring:SetVertexColor(unpack(MARK.held))
+  K.setSlot(b.icon, r.icon or (r.spell and ns.spellIcon(r.spell)) or ICONS .. "Spell_Frost_Stun")
   b.icon.tip = { title = r.title, text = r.detail }
   b.amount:SetText("")
   titleAfter(b, nil)
@@ -576,21 +569,12 @@ function DRAW.tool(p, r)
   b.value:SetTextColor(unpack(r.ready and GOOD or T.soft))
   b.detail:SetText(r.detail or "")
   if r.missing then
-    b.icon.tex:SetTexture(EMPTY)
-    b.icon.tex:SetTexCoord(0, 1, 0, 1)
-    b.icon.tex:SetDesaturated(false)
-    b.icon.tex:SetAlpha(1)
-    b.icon.count:SetText("")
-    b.icon.ring:SetVertexColor(unpack(T.dim))
+    -- (a kind I carry none of: an empty slot, as a bag's)
+    K.setSlot(b.icon, false)
     b.icon.tip = nil
   else
-    icon(b.icon.tex, t and ns.toolIcon(t))
-    -- (not ready now: dimmed, as the game greys a spell on cooldown)
-    local waitingFor = r.ready == false and r.value ~= nil
-    b.icon.tex:SetDesaturated(waitingFor)
-    b.icon.tex:SetAlpha(waitingFor and 0.7 or 1)
-    b.icon.count:SetText(t and t.count and t.count > 1 and tostring(t.count) or "")
-    b.icon.ring:SetVertexColor(unpack(r.ready and GOOD or T.ring))
+    -- (not ready now: greyed, as the game greys a spell on cooldown)
+    K.setSlot(b.icon, t and ns.toolIcon(t), t and t.count, nil, r.ready == false and r.value ~= nil)
     b.icon.tip = t and toolTip(t) or nil
   end
   p:place(b, cardHeight(false), 4)
