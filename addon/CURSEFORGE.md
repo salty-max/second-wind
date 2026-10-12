@@ -87,6 +87,10 @@ The same look, each in its own colours, and each stands alone:
 - **[Lorekeeper's Codex](https://www.curseforge.com/wow/addons/lorekeepers-codex)** ([Wago](https://addons.wago.io/addons/j6jAL0NR)). The lore of Azeroth, written for you as you explore: each zone, figure of legend, people and quest you meet adds a page to your codex.
 - **[Explorer's Field Journal](https://www.curseforge.com/wow/addons/explorers-field-journal)** ([Wago](https://addons.wago.io/addons/ZKbq5y61)). Riddles that lead you to the world's overlooked corners, rare quarries to hunt, and a bestiary, an atlas and your fish and herbs, filled in as you travel.
 
+## Support
+
+Second Wind is free, and will stay free. If a debrief has helped a character live a little longer, you can say thanks with a coffee on [Ko-fi](https://ko-fi.com/salty_max): it helps the addon keep growing. Thank you.
+
 ## Source
 
 MIT licensed: [github.com/salty-max/second-wind](https://github.com/salty-max/second-wind). Items and spells resolved from the CMaNGOS project's Classic database and the TBC Anniversary client's tables. Not affiliated with Blizzard Entertainment.
