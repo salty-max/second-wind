@@ -1,35 +1,68 @@
 # Second Wind
 
-A World of Warcraft addon: after a fight that nearly killed you, or did, a
-debrief once the fight is over: how it went, the hits that mattered, what you
-had ready and didn't use, and over time what your close calls share. For
-Classic Era (Hardcore), TBC Anniversary and World of Warcraft: Forever.
+Second Wind gives you a debrief after a close call or death in World of
+Warcraft. Once the fight is over, see the hits that hurt most, how your
+health fell, and which potions or abilities were ready but went unused.
+After a few debriefs, you can compare what your dangerous fights have in
+common.
 
-On [CurseForge](https://www.curseforge.com/projects/1739380),
-[Wago](https://addons.wago.io/addons/XKqEjbKy) and
-[GitHub](https://github.com/salty-max/second-wind/releases): one zip for every
-game (each loads its own TOC). A sibling of Hearthtale, Lorekeeper's Codex,
-Explorer's Field Journal and Keyring, in the same look (the shared kit,
-`addon/SecondWind/Kit.lua`). The project page: addon/CURSEFORGE.md; the plan
-and its decisions: [PLAN.md](PLAN.md).
+For Classic Era, Hardcore, Season of Discovery, TBC Anniversary and World of
+Warcraft: Forever. Nothing pops up during combat. Duels and battlegrounds
+are excluded.
 
-## Use
+Get it from [CurseForge](https://www.curseforge.com/projects/1739380),
+[Wago](https://addons.wago.io/addons/XKqEjbKy) or
+[GitHub releases](https://github.com/salty-max/second-wind/releases).
+One download covers all of them.
 
-- `/secondwind` or `/wind` (or the button by the minimap) opens the book.
-- `/wind copy` (the open debrief as text), `/wind lifelines` (what you carry for
-  the worst moments), `/wind probe` (what the game lets Second Wind read).
-- `/wind settings`, `/wind minimap`, `/wind welcome`, `/wind export`,
-  `/wind import CODE`, `/wind reset`.
+## In game
 
-## Develop
+Type `/secondwind` or `/wind`, or click the minimap button to open the book.
+By default, surviving below 15% health counts as a close call. The threshold
+can also be set to 10%, 20% or 25%.
+
+The **Debriefs** tab shows individual fights, with a health graph, enemies,
+large hits, healing, stuns and fears, and the tools you used or left ready.
+**Patterns** compares close calls after your third debrief. **Lifelines**
+shows the emergency supplies you carry now and their cooldowns.
+
+Debriefs are saved across your account, separately for each game. A fallen
+Hardcore character's last fight remains available from your next character.
+Optional chat reminders before a pull use what happened in earlier fights.
+
+Forever limits the health and combat information addons can read. Second
+Wind reconstructs health estimates from damage, healing and the game's
+low-health warning or death recap. Keep that warning enabled under
+**Options > Combat**. The debrief shows when a health value is an estimate.
+
+- `/wind copy` opens a text version of the debrief for you to copy.
+- `/wind lifelines` opens your emergency supplies.
+- `/wind probe` reports what the game let the addon read after your next fight.
+- `/wind settings` opens settings for thresholds, alerts and reminders.
+- `/wind welcome` reopens the welcome page.
+- `/wind minimap` shows or hides the minimap button.
+- `/wind export` and `/wind import CODE` transfer settings.
+- `/wind reset` clears this character's debriefs after confirmation.
+
+Second Wind shares its book style with Hearthtale, Lorekeeper's Codex and
+Explorer's Field Journal. Each addon works independently. Keyring can gather
+their minimap buttons.
+
+The full store description is in [addon/CURSEFORGE.md](addon/CURSEFORGE.md).
+[PLAN.md](PLAN.md) records the design decisions.
+
+## Development
 
 ```bash
-bun run check      # lint, the simulation on Classic Era and Forever, the TOCs
-bun run package    # dist/SecondWind-<version>.zip: one package for every game
+bun run check      # Check Lua, both game simulations and the TOCs
+bun run package    # Create dist/SecondWind-<version>.zip
 scripts/release.sh [--version X.Y.Z] [--hold] NOTES.md
-                   # tag and push; GitHub Actions publish on GitHub, CurseForge and Wago
 ```
+
+The release script tags and pushes. GitHub Actions publishes the addon on
+GitHub, CurseForge and Wago. The shared kit is copied to
+`addon/SecondWind/Kit.lua` from `../addon-kit`.
 
 ## License
 
-MIT (see LICENSE). Not affiliated with Blizzard Entertainment.
+[MIT](LICENSE). Not affiliated with Blizzard Entertainment.

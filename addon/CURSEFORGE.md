@@ -5,92 +5,98 @@ The project's title on CurseForge: "Second Wind: Close Call & Death Debrief" (th
 addon's own name stays Second Wind). -->
 
 <!-- Summary (the project's summary on CurseForge and Wago, and the TOCs' Notes):
-A debrief after each close call and death: how the fight went, what you had ready and didn't use, and what your close calls share. -->
+Review close calls and deaths after combat. See what hit you, which emergency tools went unused and what your dangerous fights have in common. -->
 
-**A debrief after each close call and death.** When a fight leaves you on your last breath and you live, or ends you, Second Wind writes it down once the fight is over: how it went, the hits that mattered, what you had ready and didn't use, and a lesson or two to take from it. Over time, the book shows what your close calls have in common.
+Second Wind gives you a debrief after a close call or death. Once the fight is over, you can see the hits that hurt most, how your health fell, and which potions or abilities were ready but went unused. After a few debriefs, it starts showing what your dangerous fights have in common.
 
-Nothing shows during a fight: no frames, no alerts, no sounds. On Hardcore, the debrief of a death is the life's last page.
+For Classic Era (including Hardcore and Season of Discovery), TBC Anniversary and World of Warcraft: Forever. Nothing pops up during combat. Duels and battlegrounds are excluded.
 
-For Classic Era (Hardcore, Season of Discovery), TBC Anniversary and World of Warcraft: Forever. A sibling of [Hearthtale](https://www.curseforge.com/wow/addons/hearthtale), [Lorekeeper's Codex](https://www.curseforge.com/wow/addons/lorekeepers-codex) and [Explorer's Field Journal](https://www.curseforge.com/wow/addons/explorers-field-journal), in the same look (each in its own colours), but it stands alone.
+## After the fight
 
-## The debrief
+By default, surviving a fight below **15% health** counts as a close call. You can change the threshold to 10%, 20% or 25%. Deaths always get a debrief.
 
-A fight you survive below 15% health (or 10, 20, 25: your choice) is a close call; a fight that kills you is a death. Once the fight is over, a line in chat gives the main lesson with a link to the debrief; after a death, a banner among the game's alerts too, and the card opens on its own. Each gets a card, headed by the foe that did the most harm:
+A chat message gives the main finding and links to the full card. After a death, an alert appears and the debrief opens automatically. Both are configurable.
 
-- **The lessons**: one or two, by rule over what was recorded, never invented: *"A Major Healing Potion was in your bags, ready."* *"Three foes at once."* *"Defias Pillager joined six seconds in."* *"From half your health to 9% in two seconds."*
-- **The killing blow**, from the game's own death recap: who, with what, and how much more than you had.
-- **The foes**, each with its portrait (the creature as its unit frame shows it, a player's class crest), its name in the colour of its level against yours, its rank on its ring: when it came in, its hits and misses, its share of the harm.
-- **The hits that mattered**: the three largest, each with its spell's icon, and how long before your lowest point each landed.
-- **Your health over the fight**, as a chart: your threshold a red danger zone, your lowest point marked, and under it a timeline of what happened (the icon of each thing you used, each foe's portrait as it joined, the hits that mattered, the stretches out of your control). Hover it for the moment's health and events.
-- **The heals**, yours and others'.
-- **Out of your control**: when a stun or a fear held you, how long and by what. Held the whole way down, what you had is shown as out of reach, never as a lesson.
-- **What you had**: what was ready when your health first fell below half, what you used, and what went unused, as icons (hover one for the game's tooltip).
+Each debrief includes:
 
-**Copy as text** puts the debrief in a box to copy, for your guild's channel or a Discord (`/wind copy`).
+- **Up to two findings.** These come from the recorded fight, such as a healing potion left ready, a third enemy joining or a sudden drop in health.
+- **The killing blow.** For deaths, the game's recap supplies the attacker, spell, damage and overkill.
+- **The enemies.** Who joined, when they arrived, their hits and misses, and how much damage they dealt.
+- **The three largest hits.** Each with its spell icon and timing relative to your lowest health.
+- **A health graph.** Your close-call threshold and lowest point are marked, with a timeline of enemy arrivals, big hits, abilities used and time spent stunned or feared. Hover to inspect a moment.
+- **Healing received**, from yourself and others.
+- **Time out of your control.** Stuns and fears, including their duration and cause. If you were unable to act throughout the health drop, the debrief treats your abilities as out of reach.
+- **What you had ready.** The emergency spells and items available when your health first fell below half, split into used and unused.
 
-## Lifelines
+Use **Copy as text** or `/wind copy` to share a debrief with your guild or on Discord.
 
-A third page, the Lifelines, lists what you carry for the worst moments right now, by kind: each potion, bandage, cure, guard and way out with its icon, how many, and whether it's ready or how long until it is. Under it, the kinds you carry none of. Handy before a dungeon (`/wind lifelines`).
+## Potions, cooldowns and escape tools
 
-## What you had ready
+Second Wind recognises class and racial emergency abilities such as Divine Shield, Ice Block, Vanish, Feign Death, Frost Nova, Last Stand, Escape Artist and Stoneform. It also tracks **172 emergency items**, including:
 
-Every class's and people's emergency spells (every rank: Divine Shield, Ice Block, Vanish, Feign Death, Frost Nova, Intimidating Shout, Last Stand, Escape Artist, Will of the Forsaken, Stoneform...) and 172 items players carry for the worst moments, read from the Hardcore guides:
+- Healing potions, healthstones, Whipper Root Tubers and bandages.
+- Anti-Venom, Elixir of Poison Resistance and Restorative Potion.
+- Free Action, Limited Invulnerability, Living Action and protection potions.
+- Grenades, nets, target dummies and Magic Dust.
+- Swiftness Potion, Noggenfogger, Rocket Boots, the Gnomish Cloaking Device and Insignias.
 
-- **Heals and bandages**: potions, healthstones, Whipper Root Tubers, Night Dragon's Breath; a bandage only when the blows paused long enough to use one, and not while Recently Bandaged.
-- **Cures**: Anti-Venom, Elixir of Poison Resistance, Restorative Potion..., counted only while what they cure is on you.
-- **Guards**: Free Action, Limited Invulnerability, Living Action, the protection potions, counted only when harm of their school came.
-- **Holds**: grenades, nets, target dummies, Magic Dust.
-- **Ways out**: Swiftness Potion, Noggenfogger, Rocket Boots, the Gnomish Cloaking Device, Insignias; swimming and slow-fall ones only in the water or a fall.
-- **Worn ones** (helms, boots, trinkets) only when worn; anything on cooldown isn't counted.
+The debrief checks whether an item could have helped. A bandage needs a long enough pause in damage and no Recently Bandaged debuff. Cures need something to cure. Protection potions are matched to the damage school, and swimming or slow-fall items only count in water or during a fall. Equipment must be worn, and anything on cooldown is left out.
 
-## The patterns
+The **Lifelines** tab shows what you carry now, grouped by purpose, with quantities and cooldowns. It also shows which kinds of emergency supplies you're missing. Open it with `/wind lifelines` before heading into a dungeon.
 
-From your third debrief on, a second page counts what your close calls share: *"In 4 of your 6 close calls, you went in below 60% health."* The traits that come back, the places, the foes met more than once, and the tools left unused most often. Every fight is counted too, so each trait stands beside how common it is at all: *"3 of 5: three foes or more at once (12 of your 230 fights)"*. Counts, never advice.
+## Spotting patterns
 
-## Every character, every life
+After three debriefs, the **Patterns** tab starts comparing them. It might show that you started four of six close calls below 60% health, often fought several enemies at once, or repeatedly left the same potion unused.
 
-Your close calls and deaths are kept for the whole account (each game its own), with whose they were. The book shows this character's, or every character's at a choice, each with its name, class and level; the patterns can count across them all. On Hardcore, a fallen character's last fight stays readable from the next one, and the word before a pull counts a past life's close calls for the new one.
+It also counts ordinary fights, so you can compare a trait's frequency in close calls with how often it happens overall. Repeated enemies and locations are listed too.
 
-## A word before a pull
+Debriefs are saved across your account, separately for each game. Choose the current character or all characters to browse their fights and compare patterns. A fallen Hardcore character's final fight stays available when you start again.
 
-Out of a fight, when you target a foe like those of your close calls (an elite, one two levels or more above you, one you've met in them before), or you're hurt and most of them began that way, one line in chat with the counts: *"Defias Pillager, an elite three levels above you. Of your 5 close calls, 3 had an elite."* Never in a fight, never at a critter, the same foe not again for five minutes; off in the settings if you'd rather not.
+## Before the next pull
 
-## Every game, one download
+Outside combat, Second Wind can give a short chat reminder when you target an enemy that resembles past close calls. It can also flag starting hurt if that was common in those fights. The reminder uses your recorded counts, including earlier Hardcore lives.
 
-The same file for Classic Era (Hardcore, Season of Discovery), TBC Anniversary and World of Warcraft: Forever: each game loads its own part.
+It never appears during combat or for critters, and won't repeat for the same enemy within five minutes. You can turn it off in the settings.
 
-World of Warcraft: Forever hides your health from addons, in a fight and out of it, and closes the combat log to them. Your own casts, your stuns and fears, and the game's death recap stay readable. So on Forever:
+## Compatibility
 
-- **Your health is rebuilt** from each blow and heal the game tells, counted from its own low-health warning (the screen's red edge, below 35% of your health), or back from a death: the graph, the lowest point (within a blow's size, the card says how close) and your threshold work again, even when you recover before the fight ends. Keep that warning on (Options, Combat).
-- **The hits that mattered** come with their size and moment; who dealt them, when there was one foe, or from the game's damage meter.
-- **Deaths** are debriefed in full, from the game's recap.
-- **The foes and the harm by spell** come from the game's damage meter once the fight is over.
-- **What you had** is what was ready as the fight began; what you used is told by your casts, and by what a use leaves behind (one fewer potion in your bags, a cooldown begun).
+One download covers Classic Era, Hardcore, Season of Discovery, TBC Anniversary and World of Warcraft: Forever.
 
-`/wind probe` reports, after your next fight, what the game let Second Wind read.
+Forever hides health values and the combat log from addons. Second Wind uses the information the game still provides:
 
-Duels and battlegrounds are never debriefed.
+- **Health estimates** are reconstructed from damage and healing, using the game's low-health warning or working back from a death. The debrief shows the uncertainty. Keep the game's low-health warning enabled under **Options > Combat**.
+- **Hits** retain their damage and timing. The attacker can be identified when there was a single enemy or from the game's damage meter.
+- **Death details** come from the game's death recap.
+- **Enemies and damage by spell** come from the damage meter after combat.
+- **Available tools** are checked at the start of the fight on Forever. Casts, bag changes and cooldowns help determine what you used.
 
-## Settings
+Use `/wind probe` if you need a report of what the game let the addon read after your next fight.
 
-The first time each character logs in with Second Wind, a welcome page introduces it and offers its choices (`/wind welcome` shows it again). After that: Options → AddOns → Second Wind (or `/wind settings`, or right-click the minimap button): the close call's threshold, a line in chat with its lesson and a link to the debrief, a banner after a death, the debrief opened on its own after a death, the word before a pull, the minimap button.
+## Settings and commands
 
-Settings are each character's own, as in most interface addons. A character can take another's: choose one of your characters of the same game from a list (on the welcome page or the Options page), or bring them from anywhere with a code: `/wind export` on one character, `/wind import CODE` on the other.
+Open the book with `/secondwind`, `/wind` or the minimap button. The welcome page appears once per character and can be reopened with `/wind welcome`.
 
-Other commands: `/secondwind` or `/wind` opens the book; `/wind reset` clears a character's debriefs (it asks first); `/wind minimap` shows or hides the button.
+Settings are under **Options > AddOns > Second Wind**, through `/wind settings` or by right-clicking the minimap button. Choose the close-call threshold, chat announcements, death alerts, whether a death opens its debrief, pre-pull reminders and the minimap button.
 
-## Siblings
+Each character has its own settings. Copy another character's settings within the same game from the welcome or settings page, or use `/wind export` and `/wind import CODE` to transfer them.
 
-The same look, each in its own colours, and each stands alone:
+- `/wind copy` opens a text version of the debrief for you to copy.
+- `/wind lifelines` opens your emergency supplies.
+- `/wind reset` clears this character's debriefs after confirmation.
+- `/wind minimap` shows or hides the minimap button.
 
-- **[Hearthtale](https://www.curseforge.com/wow/addons/hearthtale)** ([Wago](https://addons.wago.io/addons/E6gzPnN1)). Your character's own journal, written as you play: a diary entry in their voice at each rest, and an epitaph if a Hardcore life ends.
-- **[Lorekeeper's Codex](https://www.curseforge.com/wow/addons/lorekeepers-codex)** ([Wago](https://addons.wago.io/addons/j6jAL0NR)). The lore of Azeroth, written for you as you explore: each zone, figure of legend, people and quest you meet adds a page to your codex.
-- **[Explorer's Field Journal](https://www.curseforge.com/wow/addons/explorers-field-journal)** ([Wago](https://addons.wago.io/addons/ZKbq5y61)). Riddles that lead you to the world's overlooked corners, rare quarries to hunt, and a bestiary, an atlas and your fish and herbs, filled in as you travel.
+## Other addons
+
+These share Second Wind's book style and work independently:
+
+- **[Hearthtale](https://www.curseforge.com/wow/addons/hearthtale)** ([Wago](https://addons.wago.io/addons/E6gzPnN1)) writes a diary for your character as you play, with an epitaph when a Hardcore life ends.
+- **[Lorekeeper's Codex](https://www.curseforge.com/wow/addons/lorekeepers-codex)** ([Wago](https://addons.wago.io/addons/j6jAL0NR)) unlocks lore pages as you explore Azeroth and meet its people.
+- **[Explorer's Field Journal](https://www.curseforge.com/wow/addons/explorers-field-journal)** ([Wago](https://addons.wago.io/addons/ZKbq5y61)) offers exploration riddles, rare hunts, a bestiary, an atlas and records of your fish and herbs.
 
 ## Support
 
-Second Wind is free, and will stay free. If a debrief has helped a character live a little longer, you can say thanks with a coffee on [Ko-fi](https://ko-fi.com/salty_max): it helps the addon keep growing. Thank you.
+Second Wind is free and will stay free. If the debriefs have helped you survive the next fight, you can support the addon with a coffee on [Ko-fi](https://ko-fi.com/salty_max). Thank you.
 
 ## Source
 
-MIT licensed: [github.com/salty-max/second-wind](https://github.com/salty-max/second-wind). Items and spells resolved from the CMaNGOS project's Classic database and the TBC Anniversary client's tables. Not affiliated with Blizzard Entertainment.
+MIT licensed: [github.com/salty-max/second-wind](https://github.com/salty-max/second-wind). Item and spell data comes from the CMaNGOS Classic database and the TBC Anniversary client's tables. Not affiliated with Blizzard Entertainment.
