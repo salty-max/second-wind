@@ -5,8 +5,10 @@
 -- (AddOns tab): /wind settings, or a right-click on the minimap button; the
 -- welcome page (Welcome.lua) offers them too.
 --
---   SecondWindSettings.profiles["Name - Realm"] = { threshold, chat, toast,
+--   SecondWindSettings.profiles["Name - Realm"] = { threshold, toast,
 --     openAfterDeath, prepull, minimapHidden, minimapAngle, welcomed }
+--   (the chat line after a close call or a death has no setting any more,
+--   always shown: a profile's old chat value is left unread)
 local _, ns = ...
 local K = ns.kit
 
@@ -16,7 +18,6 @@ local K = ns.kit
 -- never copied)
 local DEFAULTS = {
   threshold = 15,
-  chat = true,
   toast = true,
   openAfterDeath = true,
   prepull = true,
@@ -24,12 +25,13 @@ local DEFAULTS = {
   minimapAngle = 250,
   welcomed = false,
 }
-local SHARED = { "threshold", "chat", "toast", "openAfterDeath", "prepull", "minimapHidden", "minimapAngle" }
+local SHARED = { "threshold", "toast", "openAfterDeath", "prepull", "minimapHidden", "minimapAngle" }
 ns.THRESHOLDS = { 10, 15, 20, 25 }
 
--- The profiles: a code "SW1:p15:c1:t1:d1:w1:h0:a250" (the threshold, a line
--- in chat, the banner, the card after a death, the word before a pull, the
--- minimap button hidden, its angle; an older code without w leaves it).
+-- The profiles: a code "SW1:p15:t1:d1:w1:h0:a250" (the threshold, the banner,
+-- the card after a death, the word before a pull, the minimap button hidden,
+-- its angle; an older code without w leaves it, an older one's c, the chat
+-- line, is left out).
 local P = K.profiles({
   saved = function()
     if type(SecondWindSettings) ~= "table" then SecondWindSettings = {} end
@@ -39,7 +41,6 @@ local P = K.profiles({
   shared = SHARED,
   letters = {
     threshold = "p",
-    chat = "c",
     toast = "t",
     openAfterDeath = "d",
     prepull = "w",
@@ -94,11 +95,6 @@ function ns.createSettingsPanel()
     )
     Settings.CreateCheckbox(category, setting, tooltip)
   end
-  checkbox(
-    "chat",
-    "A line in chat",
-    "After a close call or a death, a line in chat with its main lesson and a link to its debrief."
-  )
   checkbox(
     "toast",
     "An alert after a death",

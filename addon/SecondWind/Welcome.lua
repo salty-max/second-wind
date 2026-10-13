@@ -1,8 +1,8 @@
 -- The welcome (the kit's, Kit.lua): once per character, a few seconds after
 -- its first login (out of combat; /wind welcome shows it again), laid out as
 -- the book's window: on the left what Second Wind is; on the right this
--- character's choices (Settings.lua: the close call's threshold, a line in
--- chat, the alert, the debrief after a death, the minimap button), then
+-- character's choices (Settings.lua: the close call's threshold, the alert,
+-- the debrief after a death, the minimap button), then
 -- another character's to take, chosen among this game's or brought by a code
 -- (/wind export there). Closing it, however, is enough to have seen it.
 local _, ns = ...
@@ -39,12 +39,6 @@ local W = K.welcome({
         options = thresholds,
         get = function() return ns.option("threshold") end,
         set = function(v) ns.setOption("threshold", v) end,
-      },
-      {
-        text = "A line in chat",
-        hint = "After a close call or a death: its main lesson, and a link to its debrief.",
-        get = function() return ns.option("chat") end,
-        set = function(v) ns.setOption("chat", v) end,
       },
       {
         text = "An alert after a death",

@@ -29,8 +29,8 @@ The plan, its research and its decisions: PLAN.md.
     unit's), the login, `/secondwind` and `/wind` (`/sw` is the game's
     stopwatch; `/wind copy`, `/wind lifelines` (or `carry`, `kit`)).
   - `Settings.lua`: each character's settings (the kit's profiles, code
-    `SW1:p15:c1:t1:d1:w1:h0:a250`): the close call's threshold (10, 15, 20,
-    25%), a line in chat, the alert after a death, the debrief after a death, the word
+    `SW1:p15:t1:d1:w1:h0:a250`): the close call's threshold (10, 15, 20,
+    25%), the alert after a death (the line in chat has no setting: always), the debrief after a death, the word
     before a pull, the minimap button; the Options page.
   - `Tools.lua`: what I had for a bad moment: every class's and people's
     emergency spells by name (every rank; guard, stop, away) and 172 items

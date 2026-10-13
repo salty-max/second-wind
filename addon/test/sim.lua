@@ -29,18 +29,19 @@ G.reload()
 check(ns.record() ~= record and #ns.record().debriefs == 0, "another character of the same name: a record of its own")
 
 -- ── settings ─────────────────────────────────────────────────────────────────
-check(ns.option("threshold") == 15 and ns.option("chat") and ns.option("toast"), "the defaults: below 15%, chat, alert")
+check(ns.option("threshold") == 15 and ns.option("toast"), "the defaults: below 15%, the alert")
 check(
   ns.option("openAfterDeath") and not ns.option("minimapHidden"),
   "the defaults: a death's debrief opens, the button shows"
 )
 check(ns.option("prepull"), "the defaults: a word before a pull")
-check(ns.profiles:export() == "SW1:p15:c1:t1:d1:w1:h0:a250", "the settings as a code")
-check(ns.profiles:import("SW1:p20:c0"), "a code taken")
+check(ns.profiles:export() == "SW1:p15:t1:d1:w1:h0:a250", "the settings as a code")
+check(ns.profiles:import("SW1:p20:c0:t0"), "a code taken")
 check(
-  ns.option("threshold") == 20 and not ns.option("chat") and ns.option("prepull"),
-  "… its choices this character's (an older code, without the word before a pull, leaves it)"
+  ns.option("threshold") == 20 and not ns.option("toast") and ns.option("prepull"),
+  "… its choices this character's (an older code, without the word before a pull, leaves it; its c, the chat line, left out)"
 )
+ns.setOption("toast", true)
 check(not ns.profiles:import("FJ1:c1"), "another addon's code refused")
 check(G.panel.name == "Second Wind" and G.panel.settings.SECONDWIND_THRESHOLD, "the Options page, the threshold on it")
 local thresholds = {}
@@ -117,7 +118,6 @@ local function life()
   G.state.health, G.state.dead, G.state.instance = G.state.maxHealth, false, nil
   G.reload()
   ns.setOption("threshold", 15)
-  ns.setOption("chat", true)
   return ns.record().debriefs
 end
 local function only(list, kind) return #list == 1 and list[1].kind == kind and list[1] end

@@ -76,7 +76,7 @@ Use `/wind probe` if you need a report of what the game let the addon read after
 
 Open the book with `/secondwind`, `/wind` or the minimap button. The welcome page appears once per character and can be reopened with `/wind welcome`.
 
-Settings are under **Options > AddOns > Second Wind**, through `/wind settings` or by right-clicking the minimap button. Choose the close-call threshold, chat announcements, death alerts, whether a death opens its debrief, pre-pull reminders and the minimap button.
+Settings are under **Options > AddOns > Second Wind**, through `/wind settings` or by right-clicking the minimap button. Choose the close-call threshold, death alerts, whether a death opens its debrief, pre-pull reminders and the minimap button. Chat lines always show.
 
 Each character has its own settings. Copy another character's settings within the same game from the welcome or settings page, or use `/wind export` and `/wind import CODE` to transfer them.
 

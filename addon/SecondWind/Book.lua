@@ -313,10 +313,8 @@ end
 function ns.debriefed(d)
   -- (its weightiest lesson in the line: the gist without opening anything;
   -- the banner after a death only, a close call's line being enough)
-  if ns.option("chat") then
-    local lesson = ns.lessonsOf(d)[1]
-    print(ns.PREFIX .. ns.summaryOf(d) .. (lesson and (": " .. lesson) or ".") .. " " .. ns.link(d.at, "Debrief"))
-  end
+  local lesson = ns.lessonsOf(d)[1]
+  print(ns.PREFIX .. ns.summaryOf(d) .. (lesson and (": " .. lesson) or ".") .. " " .. ns.link(d.at, "Debrief"))
   if d.kind == "death" and ns.option("toast") then toast(d) end
   if d.kind == "death" and ns.option("openAfterDeath") then ns.openDebrief(d.at) end
   if book and book:IsShown() then ns.refresh() end
