@@ -12,7 +12,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const ROOT = join(import.meta.dir, "..");
-const SOURCE = process.argv[2] ?? join(ROOT, "..", "field-journal", "data", "creatures.json");
+const SOURCE = process.argv[2] ?? join(ROOT, "..", "yonder", "data", "creatures.json");
 const OUT = join(ROOT, "addon", "SecondWind", "Creatures.lua");
 
 type Creature = { id: number; name: string; model: number };
