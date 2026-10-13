@@ -3,7 +3,7 @@
 ## Notes: Review close calls and deaths after combat. See what hit you, which emergency tools went unused and what your dangerous fights have in common.
 ## Category: Combat
 ## Author: salty-max
-## Version: 0.2.0
+## Version: 0.3.0
 ## SavedVariablesPerCharacter: SecondWindChar
 ## SavedVariables: SecondWindSettings, SecondWindAccount
 ## IconTexture: Interface\AddOns\SecondWind\Media\Logo
