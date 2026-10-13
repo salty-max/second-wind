@@ -63,11 +63,8 @@ local LEGEND = {
   { "held", "Out of your control" },
 }
 local RANK_WORD = { elite = "elite", rareelite = "rare elite", rare = "rare", worldboss = "boss" }
--- A rank's ring (the kit's K.ringColour, over the game's bronze ring): an
--- elite's a warmer gold, a rare's silver, a boss's rose, as a death's; the
--- rest the bronze itself.
-local ROSE = { { 1, 0.72, 0.67 }, true }
-local RANK_RING = { elite = K.RINGS.gold, rareelite = K.RINGS.silver, rare = K.RINGS.silver, worldboss = ROSE }
+-- A ring, one of the kit's (K.rankRing: a foe's by its rank, as the target
+-- frame marks one; a death's rose), else the plain bronze.
 local function ringOf(p, r) K.ringColour(p, r and r[1], r and r[2]) end
 
 -- ── pictures ─────────────────────────────────────────────────────────────────
@@ -181,7 +178,7 @@ end
 
 -- A page's face: a foe's portrait, the world's harm, an icon.
 local function face(p, f, death)
-  ringOf(p, death and ROSE or (f and f.foe and RANK_RING[f.foe.rank]) or nil)
+  ringOf(p, death and K.RINGS.rose or (f and f.foe and K.rankRing(f.foe.rank)) or nil)
   if f and f.foe then return portrait(p, f.foe) end
   p.tex:SetDesaturated(false)
   if f and f.env then return icon(p.tex, WORLD[f.env]) end
@@ -491,7 +488,7 @@ local DRAW = {}
 function DRAW.foe(p, r)
   local b, foe = p:take("foe"), r.foe or { name = "?" }
   portrait(b.portrait, foe)
-  ringOf(b.portrait, RANK_RING[foe.rank])
+  ringOf(b.portrait, K.rankRing(foe.rank))
   b.portrait.tip = { title = foe.name, text = aboutFoe(foe) }
   b.name:SetText(foe.name or "?")
   b.name:SetTextColor(unpack(levelColour(foe, r.level)))
