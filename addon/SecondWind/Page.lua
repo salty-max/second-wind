@@ -6,7 +6,7 @@
 -- Tools.lua's lifelines, { title, sub, face, lessons, death, sections = { {
 -- heading, lines, rows, note } } }, a row of each line:
 --   foe: its portrait (the creature's still one, as its unit frame shows
---     it, from its display: Creatures.lua's, as the Field Journal's, else
+--     it, from its display: Creatures.lua's, as Yonder's, else
 --     found by a hidden model; a player's class crest; else its kind's
 --     picture), its name in the colour of its level against mine, what it
 --     was, what it did, its share of the harm
@@ -26,7 +26,7 @@ local _, ns = ...
 
 -- ── look ─────────────────────────────────────────────────────────────────────
 -- The kit's, in Second Wind's theme: frost steel, blue-grey titles on cool
--- panels, calm after the fight (the Codex's gold on ink, the Field Journal's
+-- panels, calm after the fight (the Codex's gold on ink, Yonder's
 -- sage, Hearthtale's ember).
 local K = ns.kit
 K.theme({
@@ -163,7 +163,7 @@ local function portrait(p, foe)
     p.tex:SetTexCoord(unpack(crest))
     return
   end
-  -- (its display: the data's, as the Field Journal's portraits; else found
+  -- (its display: the data's, as Yonder's portraits; else found
   -- once in the game by a hidden model, kept on the foe)
   local display = foe.display or (foe.npc and ns.creatures and ns.creatures.models[foe.npc])
   if display and SetPortraitTextureFromCreatureDisplayID then

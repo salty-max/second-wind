@@ -1,7 +1,7 @@
 # Project logo
 
 An original painted fantasy-item logo in the same family as Lorekeeper's Codex,
-Explorer's Field Journal and Hearthtale, inspired by the visual style of
+Yonder and Hearthtale, inspired by the visual style of
 [Archivist for Forever](https://www.curseforge.com/wow/addons/archivist-for-forever).
 Generated using the built-in image generation tool.
 

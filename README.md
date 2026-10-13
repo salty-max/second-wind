@@ -45,7 +45,7 @@ low-health warning or death recap. Keep that warning enabled under
 - `/wind reset` clears this character's debriefs after confirmation.
 
 Second Wind shares its book style with Hearthtale, Lorekeeper's Codex and
-Explorer's Field Journal. Each addon works independently. Keyring can gather
+Yonder. Each addon works independently. Keyring can gather
 their minimap buttons.
 
 The full store description is in [addon/CURSEFORGE.md](addon/CURSEFORGE.md).
