@@ -4,7 +4,7 @@
 ## Notes-frFR: Revivez vos morts frôlées et vos morts après le combat. Voyez ce qui vous a frappé, quels recours d'urgence sont restés inutilisés et ce que vos combats dangereux ont en commun.
 ## Category: Combat
 ## Author: salty-max
-## Version: 0.3.0
+## Version: 0.4.0
 ## SavedVariablesPerCharacter: SecondWindChar
 ## SavedVariables: SecondWindSettings, SecondWindAccount
 ## IconTexture: Interface\AddOns\SecondWind\Media\Logo
