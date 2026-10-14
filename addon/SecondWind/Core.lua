@@ -13,6 +13,7 @@
 --   SecondWindChar (SavedVariablesPerCharacter): the record before 0.1.3,
 --     moved into the account's at the login
 local _, ns = ...
+local L = ns.kit.L
 local PREFIX = "|cffa8c7e0Second Wind:|r "
 ns.PREFIX = PREFIX
 
@@ -229,11 +230,8 @@ ns.on("PLAYER_LEVEL_UP", function(level)
 end)
 
 -- ── /secondwind ──────────────────────────────────────────────────────────────
-local USAGE = "/secondwind (or /wind) opens the book; /wind settings; /wind minimap shows or hides the button; "
-  .. "/wind copy gives the open debrief as text; /wind lifelines shows what you carry for the worst moments; "
-  .. "/wind welcome shows the welcome page again; /wind export gives this character's settings as a code, "
-  .. "/wind import CODE takes them; /wind reset forgets this character's debriefs; /wind probe says, after "
-  .. "the next fight, what the game let Second Wind read of it."
+local USAGE =
+  L["/secondwind (or /wind) opens the book, /wind settings its settings. /wind minimap shows or hides the button. /wind copy gives the open debrief as text. /wind lifelines shows what you carry for the worst moments. /wind welcome shows the welcome page again. /wind export gives this character's settings as a code, and /wind import CODE takes them. /wind reset forgets this character's debriefs. /wind probe says, after the next fight, what the game let Second Wind read of it."]
 
 SLASH_SECONDWIND1 = "/secondwind"
 SLASH_SECONDWIND2 = "/wind"
@@ -243,31 +241,31 @@ SlashCmdList.SECONDWIND = function(msg)
   if msg == "" then
     ns.toggle()
   elseif msg == "reset" then
-    print(PREFIX .. "this forgets every debrief of this character. Type /wind reset yes to do it.")
+    print(PREFIX .. L["this forgets every debrief of this character. Type /wind reset yes to do it."])
   elseif msg == "reset yes" then
     newRecord(char.guid)
     ns.refresh()
-    print(PREFIX .. "this character's debriefs are forgotten.")
+    print(PREFIX .. L["this character's debriefs are forgotten."])
   elseif msg == "welcome" then
     ns.showWelcome()
   elseif msg == "export" then
     ns.showWelcome("export")
   elseif msg:match("^import%s") then
     if ns.profiles:import(raw:match("^%a+%s+(.+)$")) then
-      print(PREFIX .. "settings imported for this character.")
+      print(PREFIX .. L["settings imported for this character."])
     else
-      print(PREFIX .. "that isn't a Second Wind settings code (/wind export makes one).")
+      print(PREFIX .. L["that isn't a Second Wind settings code (/wind export makes one)."])
     end
   elseif msg == "probe" then
     ns.probeArm()
   elseif msg == "copy" then
-    if not ns.copyDebrief() then print(PREFIX .. "no debrief to copy yet.") end
+    if not ns.copyDebrief() then print(PREFIX .. L["no debrief to copy yet."]) end
   elseif msg == "lifelines" or msg == "carry" or msg == "kit" then
     ns.openTab(ns.TAB.carry)
   elseif msg == "minimap" then
     ns.setOption("minimapHidden", not ns.option("minimapHidden"))
   elseif msg == "settings" or msg == "options" then
-    if not ns.openSettings() then print(PREFIX .. "no settings page in this client.") end
+    if not ns.openSettings() then print(PREFIX .. L["no settings page in this client."]) end
   else
     print(PREFIX .. USAGE)
   end

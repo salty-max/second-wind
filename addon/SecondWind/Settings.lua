@@ -11,6 +11,7 @@
 --   always shown: a profile's old chat value is left unread)
 local _, ns = ...
 local K = ns.kit
+local L = K.L
 
 -- (threshold: a close call is a fight survived below it, in percent of your
 -- health; minimapAngle: the button's place around the minimap, in degrees,
@@ -69,7 +70,7 @@ function ns.createSettingsPanel()
     category,
     "SECONDWIND_THRESHOLD",
     Settings.VarType.Number,
-    "A close call below",
+    L["A close call below"],
     DEFAULTS.threshold,
     function() return ns.option("threshold") end,
     function(value) ns.setOption("threshold", value) end
@@ -77,10 +78,10 @@ function ns.createSettingsPanel()
   Settings.CreateDropdown(category, threshold, function()
     local options = Settings.CreateControlTextContainer()
     for _, n in ipairs(ns.THRESHOLDS) do
-      options:Add(n, n .. "% health")
+      options:Add(n, L["%d%% health"]:format(n))
     end
     return options:GetData()
-  end, "A fight you survive with your health below this is a close call, and gets a debrief.")
+  end, L["A fight you survive with your health below this is a close call, and gets a debrief."])
 
   local function checkbox(key, name, tooltip, invert)
     invert = invert or false
@@ -97,28 +98,28 @@ function ns.createSettingsPanel()
   end
   checkbox(
     "toast",
-    "An alert after a death",
-    "After a death, a banner among the game's alerts; a click opens the debrief."
+    L["An alert after a death"],
+    L["After a death, a banner among the game's alerts. A click opens the debrief."]
   )
   checkbox(
     "openAfterDeath",
-    "The debrief after a death",
-    "Open the debrief on its own after a death (you aren't playing then). A close call's waits for a click."
+    L["The debrief after a death"],
+    L["Open the debrief on its own after a death (you aren't playing then). A close call's waits for a click."]
   )
   checkbox(
     "prepull",
-    "A word before a pull",
-    "Out of a fight, when you target a foe like those of your close calls (an elite, two levels up, one met before), or you're hurt and that's one of the things they share: a line in chat, with the counts."
+    L["A word before a pull"],
+    L["Out of a fight, when you target a foe like those of your close calls (an elite, two levels up, one met before), or you're hurt and that's one of the things they share: a line in chat, with the counts."]
   )
-  checkbox("minimapHidden", "Minimap button", "The book by the minimap: click to open it, drag to move it.", true)
+  checkbox("minimapHidden", L["Minimap button"], L["The book by the minimap: click to open it, drag to move it."], true)
 
   -- Another character's settings (of this game), for this one.
   K.copySetting(
     category,
     "SECONDWIND_COPYFROM",
     P,
-    "Another character's choices, for this one (of this game: Classic and Forever keep their own). From elsewhere: /wind export there, then /wind import CODE here.",
-    function(other) print(ns.PREFIX .. ("%s's settings copied."):format(other)) end
+    L["Another character's choices, for this one (of this game: Classic and Forever keep their own). From elsewhere: /wind export there, then /wind import CODE here."],
+    function(other) print(ns.PREFIX .. L["%s's settings copied."]:format(other)) end
   )
 
   Settings.RegisterAddOnCategory(category)

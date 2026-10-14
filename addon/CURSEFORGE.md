@@ -72,6 +72,8 @@ Forever hides health values and the combat log from addons. Second Wind uses the
 
 Use `/wind probe` if you need a report of what the game let the addon read after your next fight.
 
+Second Wind speaks English and French. With a French client, every debrief, lesson and page is in French, with the game's own names for your spells, items and foes. Other clients get English.
+
 ## Settings and commands
 
 Open the book with `/secondwind`, `/wind` or the minimap button. The welcome page appears once per character and can be reopened with `/wind welcome`.

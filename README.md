@@ -7,8 +7,8 @@ After a few debriefs, you can compare what your dangerous fights have in
 common.
 
 For Classic Era, Hardcore, Season of Discovery, TBC Anniversary and World of
-Warcraft: Forever. Nothing pops up during combat. Duels and battlegrounds
-are excluded.
+Warcraft: Forever, in English and French. Nothing pops up during combat.
+Duels and battlegrounds are excluded.
 
 Get it from [CurseForge](https://www.curseforge.com/projects/1739380),
 [Wago](https://addons.wago.io/addons/XKqEjbKy) or
@@ -54,7 +54,9 @@ The full store description is in [addon/CURSEFORGE.md](addon/CURSEFORGE.md).
 ## Development
 
 ```bash
-bun run check      # Check Lua, both game simulations and the TOCs
+bun run check      # Check the translations, Lua, both game simulations (and a French client) and the TOCs
+bun run locales    # Write addon/SecondWind/Text_<locale>.lua from i18n/
+bun run creatures  # Write the creatures' portraits from wow-data's databases
 bun run package    # Create dist/SecondWind-<version>.zip
 scripts/release.sh [--version X.Y.Z] [--hold] NOTES.md
 ```

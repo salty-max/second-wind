@@ -3,6 +3,7 @@
 -- character's settings (Settings.lua). Built with the textures of the game's
 -- own minimap buttons (the tracking button's border, the zoom highlight).
 local _, ns = ...
+local L = ns.kit.L
 
 local button
 
@@ -57,9 +58,9 @@ function ns.createMinimapButton()
     GameTooltip:AddLine("Second Wind")
     local record = ns.record()
     local n = record and #record.debriefs or 0
-    GameTooltip:AddLine(n == 1 and "1 debrief" or ("%d debriefs"):format(n), 1, 1, 1)
+    GameTooltip:AddLine(ns.kit.plural(n, "%d debrief", "%d debriefs"):format(n), 1, 1, 1)
     GameTooltip:AddLine(
-      "Click to open the book, right-click for the settings. Drag to move this button.",
+      L["Click to open the book, right-click for the settings. Drag to move this button."],
       0.7,
       0.7,
       0.7,

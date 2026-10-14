@@ -43,11 +43,11 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 // kit's; the kit's month names (K.day)
 function keys(): string[] {
   const found = new Set<string>(MONTHS);
-  const unq = (s: string) => s.replace(/\\"/g, '"').replace(/\\n/g, "\n");
+  const unq = (s: string) => s.replace(/\\(["\\n])/g, (_, c) => (c === "n" ? "\n" : c));
   for (const f of readdirSync(ADDON).sort()) {
     if (!f.endsWith(".lua") || /^(Text|Creatures)_/.test(f)) continue;
     const src = readFileSync(join(ADDON, f), "utf8");
-    for (const m of src.matchAll(/\bL\["((?:[^"\\]|\\.)*)"\]/g)) found.add(unq(m[1]));
+    for (const m of src.matchAll(/\bL\[\s*"((?:[^"\\]|\\.)*)"\s*\]/g)) found.add(unq(m[1]));
     for (const m of src.matchAll(/plural\([^,()]+(?:\([^()]*\))?,\s*"((?:[^"\\]|\\.)*)",\s*"((?:[^"\\]|\\.)*)"\s*\)/g)) {
       found.add(unq(m[1]));
       found.add(unq(m[2]));

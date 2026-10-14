@@ -10,6 +10,8 @@
 --   ns.countsOf(debriefs): the counts themselves, for the word before a pull
 --     (Pull.lua): { total, traits = { key = n }, foes = { name = n } }
 local _, ns = ...
+local K = ns.kit
+local L = K.L
 
 local MIN = 3 -- debriefs before anything is said
 local SHOWN = 0.3 -- a trait listed in at least this share of them (and twice)
@@ -17,22 +19,20 @@ local HEADLINE = 0.5 -- the commonest told above, from this share
 local ROWS = 5 -- places, foes, tools listed
 local FIGHTS = 20 -- fights tallied before a trait is set against them all
 local TRAITS = {
-  { "world", "harm from the world: a fall, the water" },
-  { "low", "you went in below 60% health" },
-  { "many", "three foes or more at once" },
-  { "late", "a foe joined after the start" },
-  { "held", "you were stunned, feared or the like on the way down" },
-  { "fast", "from half health to the low point in three seconds or less" },
-  { "blow", "one blow took a third of your health or more" },
-  { "elite", "an elite" },
-  { "above", "a foe two levels or more above you" },
-  { "magic", "the harm was mostly magic" },
-  { "potion", "a healing potion or healthstone went unused" },
-  { "guard", "something that guards went unused" },
-  { "cure", "a cure went unused, with what it cures on you" },
+  { "world", L["harm from the world: a fall, the water"] },
+  { "low", L["you went in below 60% health"] },
+  { "many", L["three foes or more at once"] },
+  { "late", L["a foe joined after the start"] },
+  { "held", L["you were stunned, feared or the like on the way down"] },
+  { "fast", L["from half health to the low point in three seconds or less"] },
+  { "blow", L["one blow took a third of your health or more"] },
+  { "elite", L["an elite"] },
+  { "above", L["a foe two levels or more above you"] },
+  { "magic", L["the harm was mostly magic"] },
+  { "potion", L["a healing potion or healthstone went unused"] },
+  { "guard", L["something that guards went unused"] },
+  { "cure", L["a cure went unused, with what it cures on you"] },
 }
-
-local function plural(n, one, many) return n == 1 and ("a " .. one) or (n .. " " .. many) end
 
 -- Names counted (a name once a debrief), the commonest first, twice or more.
 local function ranked(counts, first)
@@ -108,21 +108,19 @@ function ns.patternsOf(debriefs, fights)
   local deaths, since = c.deaths, c.since
   local base = fights and fights.n and fights.n >= FIGHTS and fights or nil
 
-  local page = { enough = true, count = total, title = "What your close calls share", lessons = {}, sections = {} }
+  local page = { enough = true, count = total, title = L["What your close calls share"], lessons = {}, sections = {} }
   local closes = total - deaths
   local made = {}
-  if closes > 0 then table.insert(made, plural(closes, "close call", "close calls")) end
-  if deaths > 0 then table.insert(made, plural(deaths, "death", "deaths")) end
-  page.sub = ("From %d debriefs: %s%s"):format(
-    total,
-    table.concat(made, " and "),
-    since and (", since " .. date("%d %b", since)) or ""
-  )
+  if closes > 0 then table.insert(made, closes == 1 and L["a close call"] or L["%d close calls"]:format(closes)) end
+  if deaths > 0 then table.insert(made, deaths == 1 and L["a death"] or L["%d deaths"]:format(deaths)) end
+  local of = #made == 2 and L["%s and %s"]:format(made[1], made[2]) or made[1]
+  page.sub = since and L["From %d debriefs: %s, since %s"]:format(total, of, ns.date(since))
+    or L["From %d debriefs: %s"]:format(total, of)
   page.figures = {
-    { tostring(total), "debriefs" },
-    { tostring(closes), closes == 1 and "close call" or "close calls" },
-    { tostring(deaths), deaths == 1 and "death" or "deaths" },
-    { fights and fights.n and tostring(fights.n) or "0", "fights counted" },
+    { tostring(total), K.plural(total, "debrief", "debriefs") },
+    { tostring(closes), K.plural(closes, "close call", "close calls") },
+    { tostring(deaths), K.plural(deaths, "death", "deaths") },
+    { fights and fights.n and tostring(fights.n) or "0", L["fights counted"] },
   }
 
   local often = {}
@@ -135,8 +133,9 @@ function ns.patternsOf(debriefs, fights)
     return a.i < b.i
   end)
   if often[1] and often[1].n / total >= HEADLINE then
-    local of = deaths > 0 and "close calls and deaths" or "close calls"
-    table.insert(page.lessons, ("In %d of your %d %s, %s."):format(often[1].n, total, of, often[1].phrase))
+    local line = deaths > 0 and L["In %d of your %d close calls and deaths, %s."]
+      or L["In %d of your %d close calls, %s."]
+    table.insert(page.lessons, line:format(often[1].n, total, often[1].phrase))
   end
   -- (line: its text, for the copy and the tests; row: what the book draws)
   local function section(heading, list, line, row)
@@ -148,44 +147,50 @@ function ns.patternsOf(debriefs, fights)
     end
     table.insert(page.sections, { heading = heading, lines = lines, rows = rows })
   end
-  local of = ("of your %d"):format(total)
   -- (against every fight's, once enough are tallied: how common it is at all)
   section(
-    "Most often",
+    L["Most often"],
     often,
     function(t)
-      local all = base and (" (%d of your %d fights)"):format(base.traits[t.key] or 0, base.n) or ""
-      return ("%d of %d: %s%s"):format(t.n, total, t.phrase, all)
+      local all = base and L[" (%d of your %d fights)"]:format(base.traits[t.key] or 0, base.n) or ""
+      return L["%d of %d: %s%s"]:format(t.n, total, t.phrase, all)
     end,
     function(t)
       return {
         kind = "share",
         share = t.n / total,
-        title = t.phrase:gsub("^%l", string.upper),
-        value = ("%d %s"):format(t.n, of),
+        title = (t.phrase:gsub("^%l", string.upper)),
+        value = L["%d of your %d"]:format(t.n, total),
         base = base and (base.traits[t.key] or 0) / base.n or nil,
-        detail = base and ("in %d of your %d fights"):format(base.traits[t.key] or 0, base.n) or nil,
+        detail = base and L["in %d of your %d fights"]:format(base.traits[t.key] or 0, base.n) or nil,
       }
     end
   )
   section(
-    "Where",
+    L["Where"],
     ranked(places, firstSeen),
-    function(p) return ("%s: %d"):format(p.name, p.n) end,
-    function(p) return { kind = "share", share = p.n / total, title = p.name, value = ("%d %s"):format(p.n, of) } end
+    function(p) return L["%s: %d"]:format(p.name, p.n) end,
+    function(p)
+      return { kind = "share", share = p.n / total, title = p.name, value = L["%d of your %d"]:format(p.n, total) }
+    end
   )
   section(
-    "Foes met more than once",
+    L["Foes met more than once"],
     ranked(foes, firstSeen),
-    function(f) return ("%s: in %d"):format(f.name, f.n) end,
-    function(f) return { kind = "foe", foe = c.foeOf[f.name], detail = ("in %d %s"):format(f.n, of) } end
+    function(f) return L["%s: in %d"]:format(f.name, f.n) end,
+    function(f) return { kind = "foe", foe = c.foeOf[f.name], detail = L["in %d of your %d"]:format(f.n, total) } end
   )
   section(
-    "Left unused most often",
+    L["Left unused most often"],
     ranked(unused, firstSeen),
-    function(t) return ("%s: %d times"):format(t.name, t.n) end,
+    function(t) return L["%s: %d times"]:format(t.name, t.n) end,
     function(t)
-      return { kind = "tool", tool = c.toolOf[t.name], title = t.name, detail = ("unused in %d %s"):format(t.n, of) }
+      return {
+        kind = "tool",
+        tool = c.toolOf[t.name],
+        title = t.name,
+        detail = L["unused in %d of your %d"]:format(t.n, total),
+      }
     end
   )
   return page

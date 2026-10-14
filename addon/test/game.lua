@@ -697,7 +697,7 @@ end
 -- The files in the order of the game's own TOC.
 local ns = {}
 -- (the client's language: LOCALE=frFR plays a French client, its own Text file)
-G.locale = os.getenv("LOCALE") or "enUS"
+G.locale = rawget(_G, "LOCALE") or os.getenv("LOCALE") or "enUS"
 for l in io.lines(DIR .. (FOREVER and "SecondWind_Camelot.toc" or "SecondWind_Vanilla.toc")) do
   local f = l:gsub("%[TextLocale%]", G.locale):match("^([%w_]+%.lua)%s*$")
   if f then assert(loadfile(DIR .. f))("SecondWind", ns) end
@@ -729,6 +729,8 @@ function G.reload()
   offer("PLAYER_ENTERING_WORLD", false, true)
 end
 G.ns, G.state, G.panel, G.printed, G.wait, G.offer, G.FOREVER = ns, state, panel, printed, wait, offer, FOREVER
+-- (a spell's name by its id, as this client writes it: French in french.lua)
+function G.spellNamed(id, name) SPELLS[id] = name end
 G.shown = shown
 G.toasted, G.click = toasted, G_click
 function G.banners() return bannersMade end

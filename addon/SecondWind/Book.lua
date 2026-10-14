@@ -11,6 +11,7 @@
 local _, ns = ...
 
 local K = ns.kit
+local L = K.L
 local T = K.T
 local DEATH = ns.DEATH -- (Page.lua: the look, its theme, its pages)
 local label, panel = K.label, K.panel
@@ -19,7 +20,7 @@ local TITLE = "Second Wind"
 local ICON = "Interface\\AddOns\\SecondWind\\Media\\Logo"
 local TAB = { debriefs = 1, patterns = 2, carry = 3 }
 ns.TAB = TAB
-local TAB_TITLES = { "Debriefs", "Patterns", "Lifelines" }
+local TAB_TITLES = { L["Debriefs"], L["Patterns"], L["Lifelines"] }
 -- (a page's text stops 28px short of its frame, as the other books' do: the
 -- scroll thumb sits in that margin)
 local LIST_W, ROW_H, CARD_W, PAGE_W = 236, 38, 440, 676
@@ -27,25 +28,23 @@ local LIST_W, ROW_H, CARD_W, PAGE_W = 236, 38, 440, 676
 -- A tab with nothing to show yet: a page all the same, what it will hold.
 local function emptyText(n, count)
   if n == TAB.patterns then
-    return (
-      "What your close calls have in common shows here once three are written (%s so far): how they "
-      .. "began, how many foes, which kinds, where."
-    ):format(count == 0 and "none" or tostring(count))
+    return L["What your close calls have in common shows here once three are written (%s so far): how they began, how many foes, which kinds, where."]:format(
+      count == 0 and L["none"] or tostring(count)
+    )
   end
-  return (
-    "No close call yet. When a fight leaves you below %d%% health, or ends you, its debrief is written "
-    .. "here: how it went, what you had ready and didn't use, and what to take from it."
-  ):format(ns.option("threshold"))
+  return L["No close call yet. When a fight leaves you below %d%% health, or ends you, its debrief is written here: how it went, what you had ready and didn't use, and what to take from it."]:format(
+    ns.option("threshold")
+  )
 end
 local function emptyPage(n, count)
   local patterns = n == TAB.patterns
   return {
-    title = patterns and "Patterns" or "Debriefs",
-    sub = patterns and ("%s of the three it takes"):format(count == 0 and "None" or tostring(count))
-      or "Nothing written yet",
+    title = patterns and L["Patterns"] or L["Debriefs"],
+    sub = patterns and L["%s of the three it takes"]:format(count == 0 and L["None"] or tostring(count))
+      or L["Nothing written yet"],
     face = { icon = ICON },
     lessons = {},
-    sections = { { heading = "What comes here", lines = { emptyText(n, count) } } },
+    sections = { { heading = L["What comes here"], lines = { emptyText(n, count) } } },
   }
 end
 
@@ -88,7 +87,7 @@ function ns.refresh(keep)
   -- (this character's, or every character's of this game: the select above)
   local every = book.every
   local debriefs = ns.debriefsOf(every)
-  local count = #debriefs == 1 and "1 debrief" or ("%d debriefs"):format(#debriefs)
+  local count = K.plural(#debriefs, "%d debrief", "%d debriefs"):format(#debriefs)
   if every then
     local whose = {}
     for _, d in ipairs(debriefs) do
@@ -98,7 +97,7 @@ function ns.refresh(keep)
     for _ in pairs(whose) do
       n = n + 1
     end
-    count = count .. (n == 1 and ", 1 character" or (", %d characters"):format(n))
+    count = count .. K.plural(n, ", %d character", ", %d characters"):format(n)
   end
   book.count:SetText(count)
   local listing = book.selectedTab == TAB.debriefs and #debriefs > 0
@@ -123,10 +122,10 @@ function ns.refresh(keep)
     n = n + 1
     local d, r = debriefs[i], row(n)
     r.at = d.at
-    r.title:SetText(d.kind == "death" and "Death" or ("Close call: %s"):format(ns.lowOf(d)))
+    r.title:SetText(d.kind == "death" and L["Death"] or L["Close call: %s"]:format(ns.lowOf(d)))
     r.title:SetTextColor(unpack(d.kind == "death" and DEATH or T.text))
     local who = every and ns.whose(d).name and (ns.whose(d).name .. " · ") or ""
-    r.sub:SetText(who .. (d.sub or d.zone or "?") .. " · " .. date("%d %b", d.at))
+    r.sub:SetText(who .. (d.sub or d.zone or "?") .. " · " .. ns.date(d.at))
     r.mark:SetShown(d == open)
     r:Show()
   end
@@ -139,7 +138,7 @@ function ns.refresh(keep)
   local c = ns.cardOf(open)
   local rec = ns.whose(open)
   if every and rec ~= ns.record() and rec.name then
-    local about = { rec.class and rec.class:lower() or nil, rec.fallen and "fallen" or nil }
+    local about = { rec.class and rec.class:lower() or nil, rec.fallen and L["fallen"] or nil }
     c.sub = ("%s%s · %s"):format(rec.name, #about > 0 and (" (" .. table.concat(about, ", ") .. ")") or "", c.sub)
   end
   book.card:draw(c, open, keep)
@@ -152,11 +151,11 @@ end
 local copier
 function ns.showCopy(text)
   if not copier then
-    copier = K.dialog("SecondWindCopy", "The debrief, as text")
+    copier = K.dialog("SecondWindCopy", L["The debrief, as text"])
     K.movable(copier, 540, 400)
     local note = label(copier, K.BODY_FONT, 11, T.soft)
     note:SetPoint("TOPLEFT", 22, -42)
-    note:SetText("Copy it (Ctrl+C), then paste it where you like.")
+    note:SetText(L["Copy it (Ctrl+C), then paste it where you like."])
     copier.scroll = K.scrollArea(copier, 480, "SecondWindCopyScroll")
     copier.scroll:SetPoint("TOPLEFT", 22, -64)
     copier.scroll:SetPoint("BOTTOMRIGHT", -34, 20)
@@ -234,12 +233,15 @@ local function build()
   book.copy = CreateFrame("Button", nil, book, "UIPanelButtonTemplate")
   book.copy:SetSize(120, 22)
   book.copy:SetPoint("TOPRIGHT", -14, -31)
-  book.copy:SetText("Copy as text")
+  book.copy:SetText(L["Copy as text"])
   book.copy:SetScript("OnClick", function() ns.copyDebrief() end)
   -- (whose debriefs: this character's, or every character's of this game)
-  book.scope = K.select(book, 150, "This character")
+  book.scope = K.select(book, 150, L["This character"])
   book.scope:SetPoint("TOPRIGHT", -142, -31)
-  book.scope:SetOptions({ { value = "mine", text = "This character" }, { value = "every", text = "Every character" } })
+  book.scope:SetOptions({
+    { value = "mine", text = L["This character"] },
+    { value = "every", text = L["Every character"] },
+  })
   book.scope:SetValue("mine")
   book.every = false
   book.scope.onChange = function(v)
@@ -302,9 +304,9 @@ local function toast(d)
   banners = banners or K.banners({ name = "SecondWindBanner", art = ICON, seconds = 12 })
   banners:show({
     picture = ICON,
-    kicker = d.kind == "death" and "Death" or ("Close call: %s"):format(ns.lowOf(d)),
+    kicker = d.kind == "death" and L["Death"] or L["Close call: %s"]:format(ns.lowOf(d)),
     title = d.sub or d.zone or "",
-    tip = "Click to read its debrief",
+    tip = L["Click to read its debrief"],
     click = function() ns.openDebrief(d.at) end,
     at = d.at,
   })
@@ -314,7 +316,8 @@ function ns.debriefed(d)
   -- (its weightiest lesson in the line: the gist without opening anything;
   -- the banner after a death only, a close call's line being enough)
   local lesson = ns.lessonsOf(d)[1]
-  print(ns.PREFIX .. ns.summaryOf(d) .. (lesson and (": " .. lesson) or ".") .. " " .. ns.link(d.at, "Debrief"))
+  local line = lesson and L["%s: %s"]:format(ns.summaryOf(d), lesson) or L["%s."]:format(ns.summaryOf(d))
+  print(ns.PREFIX .. line .. " " .. ns.link(d.at, L["Debrief"]))
   if d.kind == "death" and ns.option("toast") then toast(d) end
   if d.kind == "death" and ns.option("openAfterDeath") then ns.openDebrief(d.at) end
   if book and book:IsShown() then ns.refresh() end

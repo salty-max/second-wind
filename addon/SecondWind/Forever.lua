@@ -6,6 +6,7 @@
 -- Every client has the meter; the debriefs ask it only on Forever, where the
 -- combat log tells nothing (the probe asks it everywhere).
 local _, ns = ...
+local L = ns.kit.L
 
 local DAMAGE_TAKEN = Enum and Enum.DamageMeterType and Enum.DamageMeterType.DamageTaken or 7
 local HEALING_DONE = Enum and Enum.DamageMeterType and Enum.DamageMeterType.HealingDone or 2
@@ -148,7 +149,7 @@ function ns.probeArm()
     rows = {},
     healthBefore = ns.secret(UnitHealth("player")) and "hidden" or "readable",
   }
-  print(ns.PREFIX .. "the probe is armed: the next fight is watched. Fight anything, then read the report here.")
+  print(ns.PREFIX .. L["the probe is armed: the next fight is watched. Fight anything, then read the report here."])
 end
 
 -- My health through the heal-prediction calculator (Forever's), read back
@@ -174,45 +175,50 @@ local function report()
     if t.avoidable then avoidable = avoidable + 1 end
   end
   local healed, on = healingRead()
+  local HIDDEN, READABLE = L["hidden"], L["readable"]
+  local lostWhy = p.loc and L["told by the game (%s)"]:format(p.loc)
+    or p.locSecret and (p.lost and L["its account hidden, but you had lost it"] or L["its account hidden"])
+    or p.lost and L["only that you had lost it"]
+    or L["not lost in this fight"]
+  local meter = taken and L["%d of the spells that hit you read, %d marked avoidable"]:format(#taken, avoidable)
+    or (why and why ~= "" and L["nothing read (%s)"]:format(why) or L["nothing read"])
+  local healing = healed
+      and (#on > 0 and L["yours %d (its spells name %s)"]:format(healed, table.concat(on, ", ")) or L["yours %d"]:format(
+        healed
+      ))
+    or L["nothing read"]
+  local warning = GetCVarBool and GetCVarBool("doNotFlashLowHealthWarning") and L["turned off in your settings"]
+    or said(p.lowWarn, L["seen in the fight"], L["not seen (below 35% in the fight?)"])
   local lines = {
-    "the combat log: " .. (ns.forever and "closed (Forever)" or ("%d lines heard"):format(p.log)),
-    "your health in the fight: " .. (p.healthSecret and "hidden" or said(p.healthRead, "readable", "no change seen")),
-    "your health out of a fight: " .. (ns.secret(UnitHealth("player")) and "hidden" or "readable"),
-    "your casts in the fight: " .. (p.castSecret and "hidden" or said(p.castRead, "readable", "none cast")),
-    "the notice before combat's restrictions: " .. said(p.notice, "seen", "not seen"),
-    "losing control: "
-      .. (
-        p.loc and ("told by the game (%s)"):format(p.loc)
-        or p.locSecret and "its account hidden" .. said(p.lost, ", but you had lost it", "")
-        or p.lost and "only that you had lost it"
-        or "not lost in this fight"
-      ),
-    "the damage meter: " .. (taken and ("%d of the spells that hit you read, %d marked avoidable"):format(
-      #taken,
-      avoidable
-    ) or ("nothing read" .. (why and why ~= "" and (" (" .. why .. ")") or ""))),
-    "the meter's healing: " .. (healed and ("yours %d%s"):format(
-      healed,
-      #on > 0 and (" (its spells name " .. table.concat(on, ", ") .. ")") or ""
-    ) or "nothing read"),
-    "the game's low-health warning (35%): "
-      .. (
-        GetCVarBool and GetCVarBool("doNotFlashLowHealthWarning") and "turned off in your settings"
-        or said(p.lowWarn, "seen in the fight", "not seen (below 35% in the fight?)")
-      ),
+    L["the combat log: %s"]:format(ns.forever and L["closed (Forever)"] or L["%d lines heard"]:format(p.log)),
+    L["your health in the fight: %s"]:format(
+      p.healthSecret and HIDDEN or said(p.healthRead, READABLE, L["no change seen"])
+    ),
+    L["your health out of a fight: %s"]:format(ns.secret(UnitHealth("player")) and HIDDEN or READABLE),
+    L["your casts in the fight: %s"]:format(p.castSecret and HIDDEN or said(p.castRead, READABLE, L["none cast"])),
+    L["the notice before combat's restrictions: %s"]:format(said(p.notice, L["seen"], L["not seen"])),
+    L["losing control: %s"]:format(lostWhy),
+    L["the damage meter: %s"]:format(meter),
+    L["the meter's healing: %s"]:format(healing),
+    L["the game's low-health warning (35%%): %s"]:format(warning),
   }
   local build, number = GetBuildInfo()
   local restricted = C_Secrets and C_Secrets.HasSecretRestrictions and C_Secrets.HasSecretRestrictions()
-  table.insert(lines, 1, ("the game: %s.%s, secret values %s"):format(build, number, restricted and "on" or "off"))
   table.insert(
     lines,
-    ("the hits on you (UNIT_COMBAT): %s"):format(
-      p.combat == 0 and "none heard" or ("%d heard, %d with a hidden amount"):format(p.combat, p.combatSecret)
+    1,
+    L["the game: %s.%s, secret values %s"]:format(build, number, restricted and L["on"] or L["off"])
+  )
+  table.insert(
+    lines,
+    L["the hits on you (UNIT_COMBAT): %s"]:format(
+      p.combat == 0 and L["none heard"] or L["%d heard, %d with a hidden amount"]:format(p.combat, p.combatSecret)
     )
   )
   local calc = calculated()
-  if calc then table.insert(lines, "your health through the heal calculator: " .. calc) end
-  print(ns.PREFIX .. "the probe's report:")
+  local CALC = { hidden = HIDDEN, readable = READABLE, refused = L["refused"] }
+  if calc then table.insert(lines, L["your health through the heal calculator: %s"]:format(CALC[calc] or calc)) end
+  print(ns.PREFIX .. L["the probe's report:"])
   for _, l in ipairs(lines) do
     print("  " .. l)
   end
@@ -235,8 +241,7 @@ local function report()
     end
     print(
       "  "
-        .. "kept in SecondWind.lua, the account's saved file (WTF\\Account\\<account>\\SavedVariables), "
-        .. "written at /reload or logout."
+        .. L["kept in SecondWind.lua, the account's saved file (WTF\\Account\\<account>\\SavedVariables), written at /reload or logout."]
     )
   end
 end
@@ -259,9 +264,9 @@ local function controlSeen(event)
     local full = HasFullControl()
     if not ns.secret(full) and full == false then probe.lost = true end
   end
-  local L = C_LossOfControl
-  if not (L and L.GetActiveLossOfControlDataByUnit) then return end
-  local e = L.GetActiveLossOfControlDataByUnit("player", 1)
+  local LOC = C_LossOfControl
+  if not (LOC and LOC.GetActiveLossOfControlDataByUnit) then return end
+  local e = LOC.GetActiveLossOfControlDataByUnit("player", 1)
   if not e or e.displayText == nil then return end
   noted("control", {
     event = event,

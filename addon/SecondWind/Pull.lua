@@ -6,13 +6,15 @@
 -- for this one). Facts and counts, never advice; never in a fight; a foe once, its name
 -- not again for AGAIN seconds. Settings: "A word before a pull".
 local _, ns = ...
+local L = ns.kit.L
 
 local MIN = 3 -- debriefs before a word is said
 local SHARE = 0.3 -- a trait in this share of them (and twice) counts
 local AGAIN = 300 -- seconds before the same name is spoken of again
 local HURT = 60 -- percent of my health: the patterns' "went in below 60%"
 local NEAR = 4 -- levels below mine a foe may be, for a word on my health
-local WORDS = { "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten" }
+local WORDS =
+  { L["one"], L["two"], L["three"], L["four"], L["five"], L["six"], L["seven"], L["eight"], L["nine"], L["ten"] }
 local ELITE = { elite = true, rareelite = true, worldboss = true }
 
 local function often(c, key)
@@ -21,44 +23,51 @@ local function often(c, key)
 end
 local function list(parts)
   if #parts <= 1 then return parts[1] or "" end
-  return table.concat(parts, ", ", 1, #parts - 1) .. " and " .. parts[#parts]
+  return L["%s and %s"]:format(table.concat(parts, ", ", 1, #parts - 1), parts[#parts])
 end
 
 -- The word (pure): c, Patterns.lua's counts; foe = { name, level (-1: far
--- above), rank }; me = { level, pct }. Nil when nothing matches.
+-- above), rank }; me = { level, pct }. Nil when nothing matches; then true
+-- when it speaks of my health alone (said again only after a while, whatever
+-- I target). Each sentence whole, as a language orders its own.
 function ns.wordBefore(c, foe, me)
   if not c or c.total < MIN then return nil end
-  local of = c.deaths > 0 and "close calls and deaths" or "close calls"
-  local desc, counts = {}, {}
+  local deaths = c.deaths > 0
+  local counts = {}
   local elite = ELITE[foe.rank or ""] and often(c, "elite")
-  if elite then
-    table.insert(desc, "an elite")
-    table.insert(counts, ("%d had an elite"):format(elite))
-  end
+  if elite then table.insert(counts, L["%d had an elite"]:format(elite)) end
   local up = foe.level and me.level and (foe.level == -1 and 10 or foe.level - me.level) or 0
   local above = up >= 2 and often(c, "above")
+  local high
   if above then
-    table.insert(desc, foe.level == -1 and "far above you" or ((WORDS[up] or up) .. " levels above you"))
-    table.insert(counts, ("%d had a foe two levels or more above you"):format(above))
+    high = foe.level == -1 and L["far above you"] or L["%s levels above you"]:format(WORDS[up] or up)
+    table.insert(counts, L["%d had a foe two levels or more above you"]:format(above))
   end
+  local desc = elite and high and L["an elite %s"]:format(high) or elite and L["an elite"] or high
   local met = foe.name and c.foes[foe.name] or 0
-  local named = met >= 2 and ("%d were against %s"):format(met, foe.name) or nil
+  local named = met >= 2 and L["%d were against %s"]:format(met, foe.name) or nil
   local near = foe.level == -1 or (foe.level and me.level and foe.level >= me.level - NEAR)
   local low = near and me.pct and me.pct < HURT and often(c, "low")
   local pct = me.pct and math.floor(me.pct + 0.5)
-  local hurt = low and ("you're at %d%% health"):format(pct)
-  local out
   if #counts > 0 then
     if named then table.insert(counts, named) end
-    out = ("%s, %s. Of your %d %s, %s."):format(foe.name, table.concat(desc, " "), c.total, of, list(counts))
-    if hurt then out = out .. (" You're at %d%% health; %d of them began below 60%%."):format(pct, low) end
+    local line = deaths and L["%s, %s. Of your %d close calls and deaths, %s."]
+      or L["%s, %s. Of your %d close calls, %s."]
+    local out = line:format(foe.name, desc, c.total, list(counts))
+    if low then out = out .. L[" You're at %d%% health, and %d of them began below 60%%."]:format(pct, low) end
+    return out
   elseif named then
-    out = ("%d of your %d %s were against %s."):format(met, c.total, of, foe.name)
-    if hurt then out = out .. (" You're at %d%% health; %d began below 60%%."):format(pct, low) end
-  elseif hurt then
-    out = ("%s; %d of your %d %s began below 60%%."):format((hurt:gsub("^%l", string.upper)), low, c.total, of)
+    local line = deaths and L["%d of your %d close calls and deaths were against %s."]
+      or L["%d of your %d close calls were against %s."]
+    local out = line:format(met, c.total, foe.name)
+    if low then out = out .. L[" You're at %d%% health, and %d began below 60%%."]:format(pct, low) end
+    return out
+  elseif low then
+    local line = deaths and L["You're at %d%% health, and %d of your %d close calls and deaths began below 60%%."]
+      or L["You're at %d%% health, and %d of your %d close calls began below 60%%."]
+    return line:format(pct, low, c.total), true
   end
-  return out
+  return nil
 end
 
 -- ── the target ───────────────────────────────────────────────────────────────
@@ -80,7 +89,8 @@ ns.on("PLAYER_TARGET_CHANGED", function()
   if not ns.option("prepull") then return end
   if UnitAffectingCombat("player") or (InCombatLockdown and InCombatLockdown()) then return end
   if not UnitExists("target") or UnitIsDeadOrGhost("target") or UnitIsPlayer("target") then return end
-  if not UnitCanAttack("player", "target") or UnitCreatureType("target") == "Critter" then return end
+  -- (the game's word for its type, in the client's language: its English one)
+  if not UnitCanAttack("player", "target") or ns.typeKey(UnitCreatureType("target")) == "Critter" then return end
   local guid, name = UnitGUID("target"), UnitName("target")
   if not (clear(guid) and clear(name)) or guid == lastGuid then return end
   lastGuid = guid
@@ -92,9 +102,9 @@ ns.on("PLAYER_TARGET_CHANGED", function()
   local foe = { name = name, level = clear(level) and level or nil, rank = clear(rank) and rank or nil }
   local me = { level = UnitLevel("player") }
   if clear(health) and clear(max) and max > 0 then me.pct = health / max * 100 end
-  local word = ns.wordBefore(counts(debriefs), foe, me)
+  local word, hurtAlone = ns.wordBefore(counts(debriefs), foe, me)
   if not word then return end
-  local key = word:find("^You're at") and "hurt" or name
+  local key = hurtAlone and "hurt" or name
   if said[key] and GetTime() - said[key] < AGAIN then return end
   said[key] = GetTime()
   print(ns.PREFIX .. word)

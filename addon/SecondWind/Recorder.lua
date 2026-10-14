@@ -54,6 +54,7 @@
 --   (times t: seconds from the fight's start, or before the death for the
 --   recap; k: hit, miss, heal, debuff)
 local _, ns = ...
+local L = ns.kit.L
 
 local WINDOW = 20 -- seconds of the log kept before a low point
 local QUIET = 3 -- seconds without harm that end a fight out of combat
@@ -199,12 +200,14 @@ local HELD = {
 
 -- The game's account of it, where it gives one: { what, spell, left }.
 local function lossOfControl()
-  local L = C_LossOfControl
-  if not (L and L.GetActiveLossOfControlDataCountByUnit and L.GetActiveLossOfControlDataByUnit) then return nil end
-  local n = L.GetActiveLossOfControlDataCountByUnit("player")
+  local LOC = C_LossOfControl
+  if not (LOC and LOC.GetActiveLossOfControlDataCountByUnit and LOC.GetActiveLossOfControlDataByUnit) then
+    return nil
+  end
+  local n = LOC.GetActiveLossOfControlDataCountByUnit("player")
   if not n or ns.secret(n) then return nil end
   for i = 1, n do
-    local e = L.GetActiveLossOfControlDataByUnit("player", i)
+    local e = LOC.GetActiveLossOfControlDataByUnit("player", i)
     if e and not ns.secret(e.locType) and HELD[e.locType] then
       local left = e.timeRemaining
       return {
@@ -855,13 +858,15 @@ function ns.summaryOf(d)
   local names = {}
   for i, foe in ipairs(d.foes or {}) do
     if i > 3 then
-      table.insert(names, ("%d more"):format(#d.foes - 3))
+      table.insert(names, L["%d more"]:format(#d.foes - 3))
       break
     end
     table.insert(names, foe.name)
   end
   local place = d.sub and (d.sub .. ", " .. d.zone) or d.zone or "?"
-  local what = d.kind == "death" and "Death" or ("Close call, %s"):format(ns.lowOf and ns.lowOf(d) or "?")
-  local by = #names > 0 and (" (" .. table.concat(names, ", ") .. ")") or (d.env and (" (" .. d.env .. ")") or "")
-  return ("%s in %s%s"):format(what, place, by)
+  local what = d.kind == "death" and L["Death"] or L["Close call, %s"]:format(ns.lowOf and ns.lowOf(d) or "?")
+  -- (harm from the world by its word: "a fall")
+  local env = d.env and (ns.ENV and ns.ENV[d.env] or d.env)
+  local by = #names > 0 and L[" (%s)"]:format(table.concat(names, ", ")) or (env and L[" (%s)"]:format(env) or "")
+  return L["%s in %s%s"]:format(what, place, by)
 end

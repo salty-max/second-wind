@@ -9,29 +9,33 @@
 --   ns.marksOf(d): the graph's marks; ns.textOf(d): the card as plain text
 --   ns.lessonsOf(d) = { text, text }
 local _, ns = ...
+local K = ns.kit
+local L = K.L
 
-local WORDS = { "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten" }
+-- (every word through L, each sentence whole: a language orders its own)
+local WORDS =
+  { L["one"], L["two"], L["three"], L["four"], L["five"], L["six"], L["seven"], L["eight"], L["nine"], L["ten"] }
 local function words(n) return WORDS[n] or tostring(n) end
 local function seconds(n)
   n = math.floor(n + 0.5)
-  return n == 1 and "a second" or (words(n) .. " seconds")
+  return n == 1 and L["a second"] or L["%s seconds"]:format(words(n))
 end
--- A share of my health in words: "half", "a third", "a quarter".
+-- A share of my health in words: "half of your health", "a third of it".
 local function share(f)
-  if f >= 0.9 then return "nearly all" end
-  if f >= 0.6 then return "most" end
-  if f >= 0.45 then return "half" end
-  if f >= 0.3 then return "a third" end
-  if f >= 0.22 then return "a quarter" end
+  if f >= 0.9 then return L["nearly all of your health"] end
+  if f >= 0.6 then return L["most of your health"] end
+  if f >= 0.45 then return L["half of your health"] end
+  if f >= 0.3 then return L["a third of your health"] end
+  if f >= 0.22 then return L["a quarter of your health"] end
   return nil
 end
 local LISTED = 3 -- names in a lesson's list, then "and N more"
 local function list(names)
   if #names <= 1 then return names[1] or "" end
-  if #names > LISTED then return table.concat(names, ", ", 1, LISTED) .. (" and %d more"):format(#names - LISTED) end
-  return table.concat(names, ", ", 1, #names - 1) .. " and " .. names[#names]
+  if #names > LISTED then return L["%s and %d more"]:format(table.concat(names, ", ", 1, LISTED), #names - LISTED) end
+  return L["%s and %s"]:format(table.concat(names, ", ", 1, #names - 1), names[#names])
 end
-local AFFLICTION = { Poison = "poison", Disease = "a disease", Curse = "a curse", Magic = "magic" }
+local AFFLICTION = { Poison = L["poison"], Disease = L["a disease"], Curse = L["a curse"], Magic = L["magic"] }
 local HELD_MIN = 1.5 -- seconds of control lost that a lesson tells
 
 -- Control lost on the way down (stunned, feared...): from what was ready (half
@@ -63,15 +67,22 @@ ns.helpless = helpless
 local function above(foe, d) return foe.level and d.level and foe.level > 0 and foe.level - d.level or 0 end
 local ELITE = { elite = true, rareelite = true, worldboss = true }
 -- Harm from the world: what it is among the hits, and its lesson.
-local ENV =
-  { Falling = "a fall", Drowning = "drowning", Lava = "lava", Fire = "fire", Slime = "slime", Fatigue = "fatigue" }
+local ENV = {
+  Falling = L["a fall"],
+  Drowning = L["drowning"],
+  Lava = L["lava"],
+  Fire = L["fire"],
+  Slime = L["slime"],
+  Fatigue = L["fatigue"],
+}
+ns.ENV = ENV
 local ENV_LESSON = {
-  Falling = "A fall took %d%% of your health.",
-  Drowning = "You ran out of breath: the water took %d%% of your health.",
-  Lava = "Lava took %d%% of your health.",
-  Fire = "Fire took %d%% of your health.",
-  Slime = "Slime took %d%% of your health.",
-  Fatigue = "You swam too far out: fatigue took %d%% of your health.",
+  Falling = L["A fall took %d%% of your health."],
+  Drowning = L["You ran out of breath: the water took %d%% of your health."],
+  Lava = L["Lava took %d%% of your health."],
+  Fire = L["Fire took %d%% of your health."],
+  Slime = L["Slime took %d%% of your health."],
+  Fatigue = L["You swam too far out: fatigue took %d%% of your health."],
 }
 
 -- The hits that mattered: the largest of the run-up, the largest first.
@@ -130,14 +141,14 @@ end
 -- keeps my health from addons, "about 20%" (rebuilt, within a blow: Recorder.lua).
 function ns.lowOf(d)
   -- (rebuilt from the game's warning: within a blow's size)
-  if d.lowRange and d.lowRange[1] ~= d.lowRange[2] then return ("about %d%%"):format(d.lowPct or 0) end
+  if d.lowRange and d.lowRange[1] ~= d.lowRange[2] then return L["about %d%%"]:format(d.lowPct or 0) end
   -- (read at the fight's end: an earlier dip may have gone lower)
-  if d.lowAtEnd then return ("%d%% or lower"):format(d.lowPct or 0) end
-  return ("%d%%"):format(d.lowPct or 0)
+  if d.lowAtEnd then return L["%d%% or lower"]:format(d.lowPct or 0) end
+  return L["%d%%"]:format(d.lowPct or 0)
 end
 
 function ns.factsOf(d)
-  local title = d.kind == "death" and "Death" or ("Close call: %s health"):format(ns.lowOf(d))
+  local title = d.kind == "death" and L["Death"] or L["Close call: %s health"]:format(ns.lowOf(d))
   local place = d.sub and (d.sub .. ", " .. (d.zone or "?")) or d.zone or "?"
   local unused, used, ready, left, untold, silent = {}, {}, {}, {}, {}, {}
   -- (Forever: a tool whose use leaves no trace is neither used nor unused)
@@ -180,31 +191,32 @@ local RULES = {
   -- harm from the world, not from a foe
   function(d)
     if not d.env or #(d.foes or {}) > 0 or not d.lowPct then return end
-    local lesson = ENV_LESSON[d.env] or (d.env .. " took %d%% of your health.")
-    return 100, lesson:format((d.startPct or 100) - (d.lowPct or 0))
+    local took = (d.startPct or 100) - (d.lowPct or 0)
+    if ENV_LESSON[d.env] then return 100, ENV_LESSON[d.env]:format(took) end
+    return 100, L["%s took %d%% of your health."]:format(d.env, took)
   end,
   -- went in hurt
   function(d)
     if d.startPct and d.startPct < 60 and not d.env then
-      return 90, ("You went in at %d%% health."):format(d.startPct)
+      return 90, L["You went in at %d%% health."]:format(d.startPct)
     end
   end,
   -- stunned, feared...: on the way down, for a while or all of it
   function(d)
     local h = heldOf(d)
     if not h or h.seconds < HELD_MIN then return end
-    local what = h.what or "Out of your control"
-    local by = h.spell and (" (" .. h.spell .. ")") or ""
-    if d.blind then return 88, ("%s for %s of the fight%s."):format(what, seconds(h.seconds), by) end
-    local low = d.kind == "death" and "your death" or ((d.lowPct or 0) .. "%")
-    if h.all then return 88, ("%s the whole way down to %s%s."):format(what, low, by) end
-    return 88, ("%s for %s on the way down to %s%s."):format(what, seconds(h.seconds), low, by)
+    local what = h.what or L["Out of your control"]
+    local by = h.spell and L[" (%s)"]:format(h.spell) or ""
+    if d.blind then return 88, L["%s for %s of the fight%s."]:format(what, seconds(h.seconds), by) end
+    local low = d.kind == "death" and L["your death"] or L["%d%%"]:format(d.lowPct or 0)
+    if h.all then return 88, L["%s the whole way down to %s%s."]:format(what, low, by) end
+    return 88, L["%s for %s on the way down to %s%s."]:format(what, seconds(h.seconds), low, by)
   end,
   -- a healing potion, a healthstone, ready in the bags
   function(d)
     if helpless(d) then return end
     for _, t in ipairs(d.unused or {}) do
-      if t.k == "heal" then return 85, ("A %s was in your bags, ready."):format(t.n) end
+      if t.k == "heal" then return 85, L["A %s was in your bags, ready."]:format(t.n) end
     end
   end,
   -- a spell that guards, ready
@@ -214,28 +226,29 @@ local RULES = {
     for _, t in ipairs(d.unused or {}) do
       if t.k == "guard" then table.insert(names, t.n) end
     end
-    if #names == 1 then return 80, ("%s was ready and went unused."):format(names[1]) end
-    if #names > 1 then return 80, ("%s were ready and went unused."):format(list(names)) end
+    if #names == 1 then return 80, L["%s was ready and went unused."]:format(names[1]) end
+    if #names > 1 then return 80, L["%s were ready and went unused."]:format(list(names)) end
   end,
   -- a cure, ready, while what it cures was on me
   function(d)
     if helpless(d) then return end
     for _, t in ipairs(d.unused or {}) do
       if type(t) == "table" and t.k == "cure" and t.against then
-        return 78, ("%s was ready, with %s on you."):format(t.n, AFFLICTION[t.against] or t.against:lower())
+        local on = AFFLICTION[t.against] or t.against:lower()
+        return 78, L["%s was ready, with %s on you."]:format(t.n, on)
       end
     end
   end,
   -- too many at once
   function(d)
     local n = #(d.foes or {})
-    if n >= 3 then return 75, ("%s foes at once."):format(words(n):gsub("^%l", string.upper)) end
+    if n >= 3 then return 75, L["%s foes at once."]:format((words(n):gsub("^%l", string.upper))) end
   end,
   -- one that came late
   function(d)
     for _, foe in ipairs(d.foes or {}) do
       if foe.first and foe.first >= 5 and not foe.player then
-        return 72, ("%s joined %s in."):format(foe.name, seconds(foe.first))
+        return 72, L["%s joined %s in."]:format(foe.name, seconds(foe.first))
       end
     end
   end,
@@ -246,18 +259,23 @@ local RULES = {
     for _, t in ipairs(d.unused or {}) do
       if t.k == "stop" or t.k == "away" then table.insert(names, t.n) end
     end
-    if #names == 1 then return 70, ("%s was ready too."):format(names[1]) end
-    if #names > 1 then return 70, ("%s were ready too."):format(list(names)) end
+    if #names == 1 then return 70, L["%s was ready too."]:format(names[1]) end
+    if #names > 1 then return 70, L["%s were ready too."]:format(list(names)) end
   end,
   -- one blow took a big share
   function(d)
     for _, h in ipairs(hits(d)) do
       local s = h.share and share(h.share)
       if s and h.share >= 0.3 then
-        local from = h.src ~= "?" and (" from " .. h.src) or ""
-        local what = h.spell and (h.crit and ("A critical " .. h.spell) or h.spell)
-          or (h.crit and ("A critical blow" .. from) or ("A blow" .. from))
-        return 68, ("%s took %s of your health at once."):format(what, s)
+        local what
+        if h.spell then
+          what = h.crit and L["A critical %s"]:format(h.spell) or h.spell
+        elseif h.src ~= "?" then
+          what = (h.crit and L["A critical blow from %s"] or L["A blow from %s"]):format(h.src)
+        else
+          what = h.crit and L["A critical blow"] or L["A blow"]
+        end
+        return 68, L["%s took %s at once."]:format(what, s)
       end
     end
   end,
@@ -265,23 +283,25 @@ local RULES = {
   function(d)
     local f = fall(d)
     if f and f.seconds <= 3 and d.kind ~= "death" then
-      return 65, ("From half your health to %d%% in %s."):format(d.lowPct or 0, seconds(math.max(1, f.seconds)))
+      return 65, L["From half your health to %d%% in %s."]:format(d.lowPct or 0, seconds(math.max(1, f.seconds)))
     end
   end,
   -- an elite, or a foe above my level
   function(d)
     for _, foe in ipairs(d.foes or {}) do
-      if foe.rank and ELITE[foe.rank] then return 62, ("%s was an elite."):format(foe.name) end
+      if foe.rank and ELITE[foe.rank] then return 62, L["%s was an elite."]:format(foe.name) end
     end
     for _, foe in ipairs(d.foes or {}) do
       local n = above(foe, d)
-      if n >= 2 then return 60, ("%s was %s levels above you."):format(foe.name, words(n)) end
+      if n >= 2 then return 60, L["%s was %s levels above you."]:format(foe.name, words(n)) end
     end
   end,
   -- most of the harm was magic
   function(d)
     local magic, spell = magicOf(d)
-    if magic >= 0.6 then return 50, ("Most of the harm was magic%s."):format(spell and (" (" .. spell .. ")") or "") end
+    if magic >= 0.6 then
+      return 50, L["Most of the harm was magic%s."]:format(spell and L[" (%s)"]:format(spell) or "")
+    end
   end,
 }
 ns.MAX_LESSONS = 2
@@ -334,33 +354,36 @@ end
 -- The card's text: its title, the line under it, the lessons, and its
 -- sections ({ heading, lines }); the book draws it (Book.lua), the health
 -- over the fight from d.samples.
-local function plural(n, one, many) return n == 1 and ("1 " .. one) or (n .. " " .. many) end
 local function when(t)
   t = math.floor((t or 0) + 0.5)
-  if t <= 0 then return "from the start" end
-  return t == 1 and "a second in" or (t .. " seconds in")
+  if t <= 0 then return L["from the start"] end
+  return t == 1 and L["a second in"] or L["%d seconds in"]:format(t)
 end
+ns.when = when
+-- A foe's rank in words (UnitClassification's: the game's own tokens).
+local RANK = { elite = L["elite"], rareelite = L["rare elite"], rare = L["rare"], worldboss = L["boss"] }
+function ns.rankWord(rank) return RANK[rank] end
 local function foeLine(foe)
   local about = {}
-  if foe.level and foe.level > 0 then table.insert(about, "level " .. foe.level) end
-  if foe.level == -1 then table.insert(about, "level ??") end
-  if foe.rank and foe.rank ~= "normal" then
-    table.insert(about, foe.rank == "rareelite" and "rare elite" or foe.rank)
-  end
+  if foe.level and foe.level > 0 then table.insert(about, L["level %d"]:format(foe.level)) end
+  if foe.level == -1 then table.insert(about, L["level ??"]) end
+  if foe.rank and foe.rank ~= "normal" then table.insert(about, ns.rankWord(foe.rank) or foe.rank) end
   if foe.type then table.insert(about, foe.type:lower()) end
   local who = #about > 0 and ("%s (%s)"):format(foe.name, table.concat(about, ", ")) or foe.name
   local did = {}
   if foe.hits and foe.hits > 0 then
-    table.insert(did, plural(foe.hits, "hit", "hits") .. " for " .. (foe.damage or 0))
+    table.insert(did, K.plural(foe.hits, "%d hit for %d", "%d hits for %d"):format(foe.hits, foe.damage or 0))
   elseif foe.damage and foe.damage > 0 then
     -- (the game's damage meter: the harm in all, not the blows)
-    table.insert(did, foe.damage .. " in all")
+    table.insert(did, L["%d in all"]:format(foe.damage))
   end
-  if foe.misses and foe.misses > 0 then table.insert(did, plural(foe.misses, "miss", "misses")) end
+  if foe.misses and foe.misses > 0 then
+    table.insert(did, K.plural(foe.misses, "%d miss", "%d misses"):format(foe.misses))
+  end
   local first = foe.first and when(foe.first)
   local parts = first and { first, unpack(did) } or did
   if #parts == 0 then return who end
-  return ("%s: %s"):format(who, table.concat(parts, ", "))
+  return L["%s: %s"]:format(who, table.concat(parts, ", "))
 end
 local function names(tools)
   local out = {}
@@ -394,9 +417,9 @@ end
 function ns.cardOf(d)
   local f = ns.factsOf(d)
   local sub = { f.place }
-  if d.level then table.insert(sub, "level " .. d.level) end
-  if d.length then table.insert(sub, d.length == 1 and "a second" or (d.length .. " seconds")) end
-  if d.at then table.insert(sub, date("%d %b %H:%M", d.at)) end
+  if d.level then table.insert(sub, L["level %d"]:format(d.level)) end
+  if d.length then table.insert(sub, d.length == 1 and L["a second"] or L["%d seconds"]:format(d.length)) end
+  if d.at then table.insert(sub, ns.date(d.at, true)) end
   local card = {
     title = f.title,
     sub = table.concat(sub, " · "),
@@ -412,9 +435,9 @@ function ns.cardOf(d)
   end
   if d.kind == "death" and d.killer and d.killer.name then
     local k = d.killer
-    local blow = k.spell and ("%s's %s"):format(k.name, k.spell) or k.name
-    local extra = k.overkill and k.overkill > 0 and (" (%d more than you had)"):format(k.overkill) or ""
-    section("The killing blow", { ("%s, %d%s"):format(blow, k.amount or 0, extra) }, {
+    local blow = k.spell and ns.fmt(L["%s's %s"], k.name, k.spell) or k.name
+    local extra = k.overkill and k.overkill > 0 and L[" (%d more than you had)"]:format(k.overkill) or ""
+    section(L["The killing blow"], { ("%s, %d%s"):format(blow, k.amount or 0, extra) }, {
       {
         kind = "blow",
         death = true,
@@ -424,7 +447,7 @@ function ns.cardOf(d)
         what = k.what,
         amount = k.amount or 0,
         title = blow,
-        detail = k.overkill and k.overkill > 0 and ("%d more than you had"):format(k.overkill) or nil,
+        detail = k.overkill and k.overkill > 0 and L["%d more than you had"]:format(k.overkill) or nil,
       },
     })
   end
@@ -436,17 +459,22 @@ function ns.cardOf(d)
     table.insert(foes, foeLine(foe))
     table.insert(foeRows, { kind = "foe", foe = foe, level = d.level, share = total > 0 and (foe.damage or 0) / total })
   end
-  section("Foes", foes, foeRows)
+  section(L["Foes"], foes, foeRows)
   local mattered, hitRows = {}, {}
   for _, h in ipairs(f.hits) do
     -- (who dealt it, where the game said: not on Forever, several foes)
-    local parts =
-      { h.spell and (h.crit and (h.spell .. ", critical") or h.spell) or (h.crit and "a critical blow" or "a blow") }
-    if h.src ~= "?" then table.insert(parts, "from " .. h.src) end
+    local parts = {
+      h.spell and (h.crit and L["%s, critical"]:format(h.spell) or h.spell)
+        or (h.crit and L["a critical blow"] or L["a blow"]),
+    }
+    if h.src ~= "?" then table.insert(parts, L["from %s"]:format(h.src)) end
     if h.before then
-      table.insert(parts, h.before < 0.5 and "at the low point" or ("%.1f s before the low point"):format(h.before))
+      table.insert(
+        parts,
+        h.before < 0.5 and L["at the low point"] or L["%s s before the low point"]:format(ns.tenths(h.before))
+      )
     end
-    table.insert(mattered, ("%d: %s"):format(h.amount, table.concat(parts, ", ")))
+    table.insert(mattered, L["%d: %s"]:format(h.amount, table.concat(parts, ", ")))
     table.insert(hitRows, {
       kind = "blow",
       spell = h.spell,
@@ -459,23 +487,24 @@ function ns.cardOf(d)
       detail = table.concat(parts, ", ", 2),
     })
   end
-  section("The hits that mattered", mattered, hitRows)
+  section(L["The hits that mattered"], mattered, hitRows)
   local lost, lostRows = {}, {}
   for _, h in ipairs(d.held or {}) do
     local len = (h.to or d.length or h.t) - h.t
     if len >= 0.5 then
-      local by = h.spell and (" (" .. h.spell .. ")") or ""
-      table.insert(lost, ("%s%s: %.1f s, %s"):format(h.what or "Control lost", by, len, when(h.t)))
+      local by = h.spell and L[" (%s)"]:format(h.spell) or ""
+      local what = h.what or L["Control lost"]
+      table.insert(lost, L["%s%s: %s s, %s"]:format(what, by, ns.tenths(len), when(h.t)))
       table.insert(lostRows, {
         kind = "held",
         icon = h.icon,
         spell = h.spell,
-        title = (h.what or "Control lost") .. by,
-        detail = ("%.1f seconds, %s"):format(len, when(h.t)),
+        title = what .. by,
+        detail = L["%s seconds, %s"]:format(ns.tenths(len), when(h.t)),
       })
     end
   end
-  section("Out of your control", lost, lostRows)
+  section(L["Out of your control"], lost, lostRows)
   -- (Forever: the game's damage meter, by spell and who cast it, totals; the
   -- blows above, rebuilt, don't name their dealers)
   if d.spells and #d.spells > 0 then
@@ -484,8 +513,8 @@ function ns.cardOf(d)
       all = all + (sp.amount or 0)
     end
     for _, sp in ipairs(d.spells) do
-      local what = sp.spell and sp.src and (sp.spell .. " from " .. sp.src) or sp.spell or sp.src or "?"
-      table.insert(harm, ("%d in all: %s"):format(sp.amount, what))
+      local what = sp.spell and sp.src and L["%s from %s"]:format(sp.spell, sp.src) or sp.spell or sp.src or "?"
+      table.insert(harm, L["%d in all: %s"]:format(sp.amount, what))
       table.insert(harmRows, {
         kind = "blow",
         spell = sp.spell,
@@ -493,39 +522,39 @@ function ns.cardOf(d)
         amount = sp.amount,
         share = all > 0 and sp.amount / all or nil,
         title = sp.spell or "?",
-        detail = sp.src and ("from " .. sp.src) or nil,
+        detail = sp.src and L["from %s"]:format(sp.src) or nil,
       })
     end
-    section("The harm, by spell", harm, harmRows)
+    section(L["The harm, by spell"], harm, harmRows)
   end
   local heals, healRows = {}, {}
   for _, h in ipairs(d.heals or {}) do
     -- ("received": the heals the game told, not who cast them: Forever)
-    local who = h.name == "you" and "Your own" or h.name == "received" and "In all" or h.name
-    table.insert(heals, ("%s: %d"):format(who, h.amount))
+    local who = h.name == "you" and L["Your own"] or h.name == "received" and L["In all"] or h.name
+    table.insert(heals, L["%s: %d"]:format(who, h.amount))
     table.insert(healRows, { kind = "blow", heal = true, amount = h.amount, title = who })
   end
-  section("Heals", heals, healRows)
+  section(L["Heals"], heals, healRows)
   local had, hadRows = {}, {}
   local function tools(head, these, state)
-    table.insert(had, head .. ": " .. names(these))
+    table.insert(had, L["%s: %s"]:format(head, names(these)))
     table.insert(hadRows, { kind = "tools", label = head, tools = these, state = state })
   end
   if #f.unused > 0 then
     local held = helpless(d) and f.held
-    local head = not held and "Ready, unused"
-      or (held.what and ("Ready, but you were %s"):format(held.what:lower()) or "Ready, but out of your control")
+    local head = not held and L["Ready, unused"]
+      or (held.what and L["Ready, but you were %s"]:format(held.what:lower()) or L["Ready, but out of your control"])
     tools(head, f.unused, held and "held" or "unused")
   end
-  if #f.used > 0 then tools("Used", f.used, "used") end
-  if #f.untold > 0 then tools("Ready, no trace either way", f.untold, "untold") end
+  if #f.used > 0 then tools(L["Used"], f.used, "used") end
+  if #f.untold > 0 then tools(L["Ready, no trace either way"], f.untold, "untold") end
   -- (my casts hidden: what was ready, no more said)
-  if not d.unused and #f.ready > 0 then tools("Ready", f.ready, "ready") end
+  if not d.unused and #f.ready > 0 then tools(L["Ready"], f.ready, "ready") end
   if d.ready and #d.ready == 0 then
-    table.insert(had, "Nothing of the kind was ready.")
-    table.insert(hadRows, { kind = "text", text = "Nothing of the kind was ready." })
+    table.insert(had, L["Nothing of the kind was ready."])
+    table.insert(hadRows, { kind = "text", text = L["Nothing of the kind was ready."] })
   end
-  section("What you had", had, hadRows)
+  section(L["What you had"], had, hadRows)
   return card
 end
 
@@ -538,8 +567,8 @@ function ns.marksOf(d)
   for _, h in ipairs(hits(d)) do
     if h.before and d.lowT then
       local from = h.src ~= "?" and h.src or nil
-      local what = h.spell and (from and (h.spell .. " from " .. from) or h.spell) or from or "a blow"
-      table.insert(marks, { kind = "hit", t = d.lowT - h.before, text = ("%d: %s"):format(h.amount, what) })
+      local what = h.spell and (from and L["%s from %s"]:format(h.spell, from) or h.spell) or from or L["a blow"]
+      table.insert(marks, { kind = "hit", t = d.lowT - h.before, text = L["%d: %s"]:format(h.amount, what) })
     end
   end
   for _, foe in ipairs(d.foes or {}) do
@@ -551,7 +580,7 @@ function ns.marksOf(d)
   end
   for _, h in ipairs(d.held or {}) do
     if h.to and h.to > h.t then
-      table.insert(marks, { kind = "held", t = h.t, to = h.to, text = h.what or "Control lost" })
+      table.insert(marks, { kind = "held", t = h.t, to = h.to, text = h.what or L["Control lost"] })
     end
   end
   -- (by time; at the same moment, a foe's coming, its blow, the hold, my answer)
@@ -573,7 +602,7 @@ function ns.textOf(d)
   end
   for _, s in ipairs(c.sections) do
     table.insert(out, "")
-    table.insert(out, s.heading .. ":")
+    table.insert(out, L["%s:"]:format(s.heading))
     for _, l in ipairs(s.lines) do
       table.insert(out, "  " .. l)
     end

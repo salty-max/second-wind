@@ -1309,7 +1309,7 @@ check(
 )
 check(
   ns.wordBefore(counted, { name = "Frostmane Seer", level = 8 }, { level = 8, pct = 45 })
-    == "You're at 45% health; 3 of your 5 close calls and deaths began below 60%.",
+    == "You're at 45% health, and 3 of your 5 close calls and deaths began below 60%.",
   "… going in hurt, as most of them began"
 )
 check(
@@ -1350,7 +1350,7 @@ if G.FOREVER then
   check(#G.printed == before + 1, "… Forever: my health secret, no word on it")
 else
   check(
-    said("You're at 44%% health; 3 of your 5 close calls and deaths began below 60%%%."),
+    said("You're at 44%% health, and 3 of your 5 close calls and deaths began below 60%%%."),
     "… my health, before a foe near my level"
   )
 end

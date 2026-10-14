@@ -4,7 +4,7 @@
   "description": "A World of Warcraft addon: a debrief after each close call and death, what you had ready and what your close calls share",
   "license": "MIT",
   "scripts": {
-    "check": "bun scripts/locales.ts --check && bun run lint:lua && luajit addon/test/sim.lua && FOREVER=1 luajit addon/test/sim.lua && bun scripts/package.ts --check",
+    "check": "bun scripts/locales.ts --check && bun run lint:lua && luajit addon/test/sim.lua && FOREVER=1 luajit addon/test/sim.lua && luajit addon/test/french.lua && FOREVER=1 luajit addon/test/french.lua && bun scripts/package.ts --check",
     "package": "bun scripts/package.ts",
     "lint:lua": "stylua --check addon && selene addon/SecondWind",
     "format:lua": "stylua addon",

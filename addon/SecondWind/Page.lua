@@ -29,6 +29,7 @@ local _, ns = ...
 -- panels, calm after the fight (the Codex's gold on ink, Yonder's
 -- sage, Hearthtale's ember).
 local K = ns.kit
+local L = K.L
 K.theme({
   accent = { 0.66, 0.78, 0.88 },
   text = { 0.90, 0.92, 0.95 },
@@ -59,10 +60,9 @@ local MARK = {
 -- (the marks that need words: what was used and who joined show as
 -- themselves, their slots and faces, named on hover)
 local LEGEND = {
-  { "hit", "Hits that mattered" },
-  { "held", "Out of your control" },
+  { "hit", L["Hits that mattered"] },
+  { "held", L["Out of your control"] },
 }
-local RANK_WORD = { elite = "elite", rareelite = "rare elite", rare = "rare", worldboss = "boss" }
 -- A ring, one of the kit's (K.rankRing: a foe's by its rank, as the target
 -- frame marks one; a death's rose), else the plain bronze.
 local function ringOf(p, r) K.ringColour(p, r and r[1], r and r[2]) end
@@ -104,7 +104,8 @@ end
 local function blowIcon(row)
   if row.heal then return HEALS end
   if row.what and WORLD[row.what] then return WORLD[row.what] end
-  if not row.spell or row.spell == "Attack" or row.spell == "Melee" then return row.icon or MELEE end
+  -- (a swing: the meter's "Attack", spell 6603 in any language)
+  if not row.spell or row.id == 6603 or row.spell == "Attack" or row.spell == "Melee" then return row.icon or MELEE end
   return row.icon or ns.spellIcon(row.id) or ns.spellIcon(row.spell) or QUESTION
 end
 
@@ -173,7 +174,8 @@ local function portrait(p, foe)
   end
   if foe.npc and not display then resolve(foe) end
   if foe.level == -1 then return icon(p.tex, SKULL) end
-  icon(p.tex, KIND[foe.type] or (foe.player and KIND.Humanoid) or FOE)
+  -- (its type the game's word, in the client's language: its English one)
+  icon(p.tex, KIND[ns.typeKey(foe.type)] or (foe.player and KIND.Humanoid) or FOE)
 end
 
 -- A page's face: a foe's portrait, the world's harm, an icon.
@@ -207,15 +209,15 @@ end
 
 local function aboutFoe(foe)
   local about = {}
-  if foe.level and foe.level > 0 then table.insert(about, "level " .. foe.level) end
-  if foe.level == -1 then table.insert(about, "level ??") end
-  if foe.rank and RANK_WORD[foe.rank] then table.insert(about, RANK_WORD[foe.rank]) end
+  if foe.level and foe.level > 0 then table.insert(about, L["level %d"]:format(foe.level)) end
+  if foe.level == -1 then table.insert(about, L["level ??"]) end
+  if ns.rankWord(foe.rank) then table.insert(about, ns.rankWord(foe.rank)) end
   if foe.class then
     table.insert(about, foe.class:lower())
   elseif foe.type then
     table.insert(about, foe.type:lower())
   elseif foe.player then
-    table.insert(about, "a player")
+    table.insert(about, L["a player"])
   end
   return table.concat(about, " · ")
 end
@@ -227,22 +229,21 @@ local function fit(fs, max)
   fs:SetWidth(math.min(fs:GetStringWidth() + 2, max))
 end
 
-local function plural(n, one, many) return n == 1 and ("1 " .. one) or (n .. " " .. many) end
+local function joined(t)
+  t = math.floor(t + 0.5)
+  return t <= 0 and L["from the start"] or t == 1 and L["joined a second in"] or L["joined %d seconds in"]:format(t)
+end
 local function didFoe(foe)
   local did = {}
-  if foe.first then
-    local t = math.floor(foe.first + 0.5)
-    table.insert(
-      did,
-      t <= 0 and "from the start" or t == 1 and "joined a second in" or ("joined %d seconds in"):format(t)
-    )
-  end
+  if foe.first then table.insert(did, joined(foe.first)) end
   if foe.hits and foe.hits > 0 then
-    table.insert(did, plural(foe.hits, "hit", "hits") .. " for " .. (foe.damage or 0))
+    table.insert(did, K.plural(foe.hits, "%d hit for %d", "%d hits for %d"):format(foe.hits, foe.damage or 0))
   elseif foe.damage and foe.damage > 0 then
-    table.insert(did, foe.damage .. " in all")
+    table.insert(did, L["%d in all"]:format(foe.damage))
   end
-  if foe.misses and foe.misses > 0 then table.insert(did, plural(foe.misses, "miss", "misses")) end
+  if foe.misses and foe.misses > 0 then
+    table.insert(did, K.plural(foe.misses, "%d miss", "%d misses"):format(foe.misses))
+  end
   return table.concat(did, " · ")
 end
 
@@ -845,7 +846,7 @@ function G:draw(d, samples, threshold)
         f = self:face(nf)
         portrait(f, ns.foeNamed(d, m.text))
         K.ringColour(f)
-        f.tip = { title = m.text, text = ("joined %d seconds in"):format(math.floor(m.t + 0.5)) }
+        f.tip = { title = m.text, text = joined(m.t) }
       else
         nslot = nslot + 1
         f = self:slot(nslot)
@@ -874,7 +875,7 @@ function G:draw(d, samples, threshold)
       0,
       -3
     )
-    l:SetText(("%d s"):format(math.floor(t + 0.5)))
+    l:SetText(L["%d s"]:format(math.floor(t + 0.5)))
   end
   for i = self.n + 1, #self.pieces do
     self.pieces[i]:Hide()
@@ -901,8 +902,8 @@ function G:hover()
   self.cursor:SetHeight(PLOT_H)
   self.cursor:Show()
   GameTooltip:SetOwner(plot, "ANCHOR_CURSOR")
-  local health = pct and ((d.rebuilt and "about " or "") .. pct .. "% health") or ""
-  GameTooltip:AddLine(("%d s   %s"):format(math.floor(t + 0.5), health), 1, 1, 1)
+  local health = pct and (d.rebuilt and L["about %d%% health"] or L["%d%% health"]):format(pct) or ""
+  GameTooltip:AddLine(L["%d s"]:format(math.floor(t + 0.5)) .. "   " .. health, 1, 1, 1)
   local near = math.max(1, self.span / 40)
   for _, m in ipairs(ns.marksOf(d)) do
     local to = m.to or m.t
@@ -963,7 +964,7 @@ function Page:graphOf(d)
   if #samples <= 1 then return end
   local threshold = ns.option("threshold")
   local kinds = g:draw(d, samples, threshold)
-  local keys = { { "danger", DANGER, ("Below %d%%, your threshold"):format(threshold) } }
+  local keys = { { "danger", DANGER, L["Below %d%%, your threshold"]:format(threshold) } }
   for _, l in ipairs(LEGEND) do
     if kinds[l[1]] then table.insert(keys, { l[1], MARK[l[1]], l[2] }) end
   end
@@ -1010,7 +1011,7 @@ function Page:draw(c, d, keep)
     if d and #(d.samples or {}) > 1 then
       self.y = self.y + 6
       local h = self:take("heading")
-      h.text:SetText("Your health")
+      h.text:SetText(L["Your health"])
       self:place(h, 24, 10)
       self:graphOf(d)
     elseif d then

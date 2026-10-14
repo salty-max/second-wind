@@ -14,6 +14,8 @@
 --     icon }
 --   guard: lessens the harm or heals; stop: holds a foe; away: gets me out
 local _, ns = ...
+local K = ns.kit
+local L = K.L
 
 -- { English name, kind, ids...: any rank's, the first this client has (a
 -- spell of TBC Anniversary's alone, Season of Discovery's and TBC's) }
@@ -436,12 +438,7 @@ local function nameOf(t)
 end
 -- An item's name as this client writes it (the game's, once it knows the
 -- item: one in my bags it does), else the English.
-local function itemName(it)
-  local get = C_Item and C_Item.GetItemNameByID or GetItemInfo
-  local ok, n = pcall(get, it.id)
-  if ok and type(n) == "string" and not ns.secret(n) then return n end
-  return it.n
-end
+local function itemName(it) return K.itemName(it.id, it.n) end
 
 -- A tool's picture (kept on it when noted: another character's debrief shows
 -- it too).
@@ -631,39 +628,44 @@ function ns.carried()
 end
 
 local KINDS = {
-  { "heal", "Heals" },
-  { "bandage", "Bandages" },
-  { "cure", "Cures" },
-  { "guard", "Guards" },
-  { "stop", "Holds" },
-  { "away", "Ways out" },
+  { "heal", L["Heals"] },
+  { "bandage", L["Bandages"] },
+  { "cure", L["Cures"] },
+  { "guard", L["Guards"] },
+  { "stop", L["Holds"] },
+  { "away", L["Ways out"] },
 }
-local SCHOOL = { [2] = "holy", [4] = "fire", [8] = "nature", [16] = "frost", [32] = "shadow", [64] = "arcane" }
-local AGAINST = { Poison = "poison", Disease = "disease", Curse = "curses", Magic = "magic" }
-local ENVS = { Falling = "a fall", Drowning = "the water" }
+local SCHOOL =
+  { [2] = L["holy"], [4] = L["fire"], [8] = L["nature"], [16] = L["frost"], [32] = L["shadow"], [64] = L["arcane"] }
+local AGAINST = { Poison = L["poison"], Disease = L["disease"], Curse = L["curses"], Magic = L["magic"] }
+local ENVS = { Falling = L["a fall"], Drowning = L["the water"] }
 local function span(s)
   s = math.ceil(s)
-  if s < 60 then return s .. " s" end
-  if s < 3600 then return math.ceil(s / 60) .. " min" end
-  return ("%d h %d min"):format(math.floor(s / 3600), math.ceil((s % 3600) / 60))
+  if s < 60 then return L["%d s"]:format(s) end
+  if s < 3600 then return L["%d min"]:format(math.ceil(s / 60)) end
+  return L["%d h %d min"]:format(math.floor(s / 3600), math.ceil((s % 3600) / 60))
 end
 local function stateOf(t)
-  if t.worn == "bags" then return "in your bags, not worn" end
-  if t.wrapped and t.wrapped > 0 then return "Recently Bandaged, " .. span(t.wrapped) end
+  if t.worn == "bags" then return L["in your bags, not worn"] end
+  if t.wrapped and t.wrapped > 0 then return L["Recently Bandaged, %s"]:format(span(t.wrapped)) end
   if t.left == nil then return "?" end
-  return t.left <= 0 and "ready" or ("ready in " .. span(t.left))
+  return t.left <= 0 and L["ready"] or L["ready in %s"]:format(span(t.left))
 end
 local function forWhat(t)
-  local what = {}
+  local what, where = {}, {}
   for _, c in ipairs(t.cures or {}) do
     table.insert(what, AGAINST[c] or c:lower())
   end
-  if t.school then table.insert(what, t.school == 126 and "magic" or SCHOOL[t.school] or "magic") end
-  local out = #what > 0 and (", against " .. table.concat(what, ", ")) or ""
+  if t.school then table.insert(what, t.school == 126 and L["magic"] or SCHOOL[t.school] or L["magic"]) end
   for _, e in ipairs(t.env or {}) do
-    out = out .. (out:find(" in ") and " or " or ", in ") .. (ENVS[e] or e:lower())
+    table.insert(where, ENVS[e] or e:lower())
   end
-  return out
+  local parts = {}
+  if #what > 0 then table.insert(parts, L["against %s"]:format(table.concat(what, ", "))) end
+  if #where > 0 then
+    table.insert(parts, L["in %s"]:format(#where == 2 and L["%s or %s"]:format(where[1], where[2]) or where[1]))
+  end
+  return #parts > 0 and (", " .. table.concat(parts, ", ")) or ""
 end
 
 -- The lifelines (the book's third tab): what I carry for the worst moments,
@@ -671,8 +673,8 @@ end
 -- advice.
 function ns.carryPage(list)
   local page = {
-    title = "Your lifelines",
-    sub = "What you carry for the worst moments, now: ready, or how long until it is.",
+    title = L["Your lifelines"],
+    sub = L["What you carry for the worst moments, now: ready, or how long until it is."],
     lessons = {},
     sections = {},
     face = { icon = "Interface\\AddOns\\SecondWind\\Media\\Logo" },
@@ -684,7 +686,7 @@ function ns.carryPage(list)
       if t.k == kind[1] then
         has[t.k] = true
         local n = t.count and t.count > 1 and ("%s (%d)"):format(t.n, t.count) or t.n
-        table.insert(lines, ("%s: %s%s"):format(n, stateOf(t), forWhat(t)))
+        table.insert(lines, L["%s: %s%s"]:format(n, stateOf(t), forWhat(t)))
         local now = t.left ~= nil and t.left <= 0 and t.worn ~= "bags" and not (t.wrapped and t.wrapped > 0)
         if now then ready = ready + 1 end
         local about = forWhat(t):gsub("^, ", "")
@@ -705,16 +707,16 @@ function ns.carryPage(list)
     table.insert(none, text)
     table.insert(rows, { kind = "tool", missing = true, title = text })
   end
-  if not has.heal then lack("Something that heals at once: a healing potion, a healthstone") end
-  if not has.bandage then lack("A bandage") end
-  if not has.cure then lack("A cure: an anti-venom, a restorative potion") end
-  if not has.stop and not has.away then lack("Anything that holds a foe or gets you out") end
-  if #none > 0 then table.insert(page.sections, { heading = "None of these", lines = none, rows = rows }) end
-  if #page.sections == 0 then page.lessons = { "Nothing of the kind, as yet." } end
+  if not has.heal then lack(L["Something that heals at once: a healing potion, a healthstone"]) end
+  if not has.bandage then lack(L["A bandage"]) end
+  if not has.cure then lack(L["A cure: an anti-venom, a restorative potion"]) end
+  if not has.stop and not has.away then lack(L["Anything that holds a foe or gets you out"]) end
+  if #none > 0 then table.insert(page.sections, { heading = L["None of these"], lines = none, rows = rows }) end
+  if #page.sections == 0 then page.lessons = { L["Nothing of the kind, as yet."] } end
   page.figures = {
-    { tostring(#list), #list == 1 and "lifeline carried" or "lifelines carried" },
-    { tostring(ready), "ready now" },
-    { tostring(#none), #none == 1 and "kind lacking" or "kinds lacking" },
+    { tostring(#list), K.plural(#list, "lifeline carried", "lifelines carried") },
+    { tostring(ready), L["ready now"] },
+    { tostring(#none), K.plural(#none, "kind lacking", "kinds lacking") },
   }
   return page
 end
