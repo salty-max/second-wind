@@ -7,7 +7,7 @@ After a few debriefs, you can compare what your dangerous fights have in
 common.
 
 For Classic Era, Hardcore, Season of Discovery, TBC Anniversary and World of
-Warcraft: Forever, in English and French. Nothing pops up during combat.
+Warcraft: Forever, in English, French and German. Nothing pops up during combat.
 Duels and battlegrounds are excluded.
 
 Get it from [CurseForge](https://www.curseforge.com/projects/1739380),

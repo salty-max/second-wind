@@ -33,8 +33,10 @@ jobs:
         run: luajit addon/test/sim.lua
       - name: Simulation (Forever)
         run: FOREVER=1 luajit addon/test/sim.lua
-      - name: A French client
-        run: luajit addon/test/french.lua && FOREVER=1 luajit addon/test/french.lua
+      - name: A French and a German client
+        run: |
+          luajit addon/test/french.lua && FOREVER=1 luajit addon/test/french.lua
+          luajit addon/test/german.lua && FOREVER=1 luajit addon/test/german.lua
       - name: Package (its TOCs agree)
         run: bun scripts/package.ts
       # The release's package (release.yml), made without publishing: the

@@ -154,7 +154,7 @@ The plan, its research and its decisions: PLAN.md.
     `i18n/words.json`, every word to translate. A creature type is the
     game's word in the client's language (`UnitCreatureType`): its English
     one by `ns.typeKey` (its icon, the critter test). No semicolons in any
-    language. French done 14 October 2026.
+    language. French done 14 October 2026, German (flagged: a first translation) the same day.
   - `Page.lua`: the theme (frost steel) and the pages' renderer
     (`ns.newPage`, `page:draw(c, d, keep)`): a header (a round portrait: the
     foe that did the most harm, `ns.faceOf`; the title, the line under it, a
