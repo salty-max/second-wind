@@ -68,6 +68,7 @@ ns.collect = K.collect({
     if type(SecondWindCollect) ~= "table" then SecondWindCollect = {} end
     return SecondWindCollect
   end,
+  prefix = ns.PREFIX,
 })
 
 local category

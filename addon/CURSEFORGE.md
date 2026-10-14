@@ -87,6 +87,12 @@ Each character has its own settings. Copy another character's settings within th
 - `/wind reset` clears this character's debriefs after confirmation.
 - `/wind minimap` shows or hides the minimap button.
 
+## Share what you see
+
+Forever brings new quests and creatures, and the usual databases take weeks to catch up with them. Tick **Share what you see** on the welcome page or in the options, and Second Wind keeps what the game tells you of quests, creatures and NPCs. **[Ravenpost](https://github.com/salty-max/ravenpost)**, a small free app for Windows and macOS, sends it to the addons' shared database a few seconds after you log out. No account or sign-in is needed. What players share helps Second Wind and its sister addons know Forever's new creatures sooner, in every language they play in.
+
+Your name, class and race are replaced by the game's own placeholders, lines that name another player are left out, and your chat is never kept. Sharing is off until you turn it on, and turning it off forgets everything kept.
+
 ## Other addons
 
 These share Second Wind's book style and work independently:
