@@ -289,3 +289,5 @@ globals:
     any: true
   SecondWindCollect:
     any: true
+  C_Seasons:
+    any: true
