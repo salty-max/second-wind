@@ -241,6 +241,11 @@ bun run kit:sync     # after changing ~/code/wow-addons/addon-kit
 scripts/release.sh [--version X.Y.Z] [--hold] NOTES.md   # tag, push; Actions publish
 ```
 
+- `.github/workflows/game-data.yml`: daily and by hand, wow-data's
+  `addon-data.yml` builds the game data again from wow-data's pins (the creatures' portraits and names, the foes' names and creature types in every language, then the language files);
+  a pull request when a generated file changes, the checks run on it, never
+  merged by itself. The generators' list lives there: a new one goes in too.
+
 ## Conventions
 
 - Conventional Commits, lowercase subjects; commit locally, ask before any

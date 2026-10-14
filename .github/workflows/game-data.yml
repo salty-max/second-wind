@@ -1,0 +1,29 @@
+# Every day, and by hand: Second Wind's game data built again from wow-data's
+# pins (salty-max/wow-data's addon-data.yml: wow-data beside it, the
+# databases downloaded): the creatures' portraits and names, the foes' names
+# and the creature types in every language, then the language files. When one
+# changes, a pull request with the checks run (never merged by itself).
+name: Game data
+
+on:
+  schedule:
+    - cron: "47 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  data:
+    uses: salty-max/wow-data/.github/workflows/addon-data.yml@main
+    with:
+      generate: |
+        bun scripts/creatures.ts
+        for locale in $(ls i18n | grep -E '^[a-z]{2}[A-Z]{2}$'); do
+          bun scripts/creature_names.ts "$locale"
+        done
+        bun scripts/locales.ts
+      paths: |
+        i18n
+        addon/SecondWind
