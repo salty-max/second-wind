@@ -1,5 +1,6 @@
 -- What I had for a bad moment: the tools of every class and people, by name
--- as the spellbook knows them (every rank), and the bag's, by item with the
+-- as the spellbook knows them (every rank: the client's own name, read by
+-- the spell's id, so any language finds them), and the bag's, by item with the
 -- spell its use casts (from the game's own tables: cmangos classic-db, and
 -- the TBC Anniversary client's ItemSparse and ItemEffect on wago.tools, read
 -- 11 October 2026). The recorder (Recorder.lua) asks ns.readyTools() when my
@@ -14,68 +15,70 @@
 --   guard: lessens the harm or heals; stop: holds a foe; away: gets me out
 local _, ns = ...
 
+-- { English name, kind, ids...: any rank's, the first this client has (a
+-- spell of TBC Anniversary's alone, Season of Discovery's and TBC's) }
 local SPELLS = {
   -- warrior
-  { "Shield Wall", "guard" },
-  { "Last Stand", "guard" },
-  { "Retaliation", "guard" },
-  { "Spell Reflection", "guard" },
-  { "Berserker Rage", "guard" },
-  { "Intimidating Shout", "stop" },
-  { "Disarm", "stop" },
+  { "Shield Wall", "guard", 871 },
+  { "Last Stand", "guard", 12975 },
+  { "Retaliation", "guard", 20230 },
+  { "Spell Reflection", "guard", 23920 },
+  { "Berserker Rage", "guard", 18499 },
+  { "Intimidating Shout", "stop", 5246 },
+  { "Disarm", "stop", 676 },
   -- rogue
-  { "Evasion", "guard" },
-  { "Cloak of Shadows", "guard" },
-  { "Gouge", "stop" },
-  { "Blind", "stop" },
-  { "Kidney Shot", "stop" },
-  { "Vanish", "away" },
-  { "Sprint", "away" },
+  { "Evasion", "guard", 5277 },
+  { "Cloak of Shadows", "guard", 31224 },
+  { "Gouge", "stop", 1776 },
+  { "Blind", "stop", 2094 },
+  { "Kidney Shot", "stop", 408 },
+  { "Vanish", "away", 1856 },
+  { "Sprint", "away", 2983 },
   -- mage
-  { "Ice Block", "guard" },
-  { "Ice Barrier", "guard" },
-  { "Mana Shield", "guard" },
-  { "Frost Nova", "stop" },
-  { "Polymorph", "stop" },
-  { "Blink", "away" },
-  { "Invisibility", "away" },
+  { "Ice Block", "guard", 11958 },
+  { "Ice Barrier", "guard", 11426 },
+  { "Mana Shield", "guard", 1463 },
+  { "Frost Nova", "stop", 122 },
+  { "Polymorph", "stop", 118 },
+  { "Blink", "away", 1953 },
+  { "Invisibility", "away", 66 },
   -- priest
-  { "Power Word: Shield", "guard" },
-  { "Desperate Prayer", "guard" },
-  { "Pain Suppression", "guard" },
-  { "Psychic Scream", "stop" },
-  { "Fade", "away" },
+  { "Power Word: Shield", "guard", 17 },
+  { "Desperate Prayer", "guard", 13908 },
+  { "Pain Suppression", "guard", 402004, 33206 },
+  { "Psychic Scream", "stop", 8122 },
+  { "Fade", "away", 586 },
   -- paladin
-  { "Divine Shield", "guard" },
-  { "Divine Protection", "guard" },
-  { "Blessing of Protection", "guard" },
-  { "Lay on Hands", "guard" },
-  { "Hammer of Justice", "stop" },
+  { "Divine Shield", "guard", 642 },
+  { "Divine Protection", "guard", 498 },
+  { "Blessing of Protection", "guard", 1022 },
+  { "Lay on Hands", "guard", 633 },
+  { "Hammer of Justice", "stop", 853 },
   -- hunter
-  { "Deterrence", "guard" },
-  { "Freezing Trap", "stop" },
-  { "Scatter Shot", "stop" },
-  { "Intimidation", "stop" },
-  { "Feign Death", "away" },
-  { "Aspect of the Cheetah", "away" },
+  { "Deterrence", "guard", 19263 },
+  { "Freezing Trap", "stop", 1499 },
+  { "Scatter Shot", "stop", 19503 },
+  { "Intimidation", "stop", 19577 },
+  { "Feign Death", "away", 5384 },
+  { "Aspect of the Cheetah", "away", 5118 },
   -- warlock
-  { "Death Coil", "stop" },
-  { "Howl of Terror", "stop" },
-  { "Fear", "stop" },
+  { "Death Coil", "stop", 6789 },
+  { "Howl of Terror", "stop", 5484 },
+  { "Fear", "stop", 5782 },
   -- shaman (and druid: Nature's Swiftness)
-  { "Nature's Swiftness", "guard" },
-  { "Earthbind Totem", "stop" },
-  { "Ghost Wolf", "away" },
+  { "Nature's Swiftness", "guard", 16188 },
+  { "Earthbind Totem", "stop", 2484 },
+  { "Ghost Wolf", "away", 2645 },
   -- druid
-  { "Barkskin", "guard" },
-  { "Frenzied Regeneration", "guard" },
-  { "Entangling Roots", "stop" },
-  { "Dash", "away" },
+  { "Barkskin", "guard", 22812 },
+  { "Frenzied Regeneration", "guard", 22842 },
+  { "Entangling Roots", "stop", 339 },
+  { "Dash", "away", 1850 },
   -- peoples
-  { "Stoneform", "guard" },
-  { "War Stomp", "stop" },
-  { "Will of the Forsaken", "away" },
-  { "Escape Artist", "away" },
+  { "Stoneform", "guard", 20594 },
+  { "War Stomp", "stop", 20549 },
+  { "Will of the Forsaken", "away", 7744 },
+  { "Escape Artist", "away", 20589 },
 }
 
 -- The bag's and the body's: { id: the item, spell: what its use casts, k: its
@@ -410,6 +413,36 @@ function ns.spellIdOf(name)
   end
   if id and not ns.secret(id) then return id end
 end
+-- A spell's name as this client writes it: the game's own, by the first of
+-- its ids this client has, else the English (a spell no client of ours has).
+local named = {}
+local function nameOf(t)
+  if named[t] then return named[t] end
+  local n
+  for i = 3, #t do
+    if C_Spell and C_Spell.GetSpellName then
+      n = C_Spell.GetSpellName(t[i])
+    elseif C_Spell and C_Spell.GetSpellInfo then
+      local info = C_Spell.GetSpellInfo(t[i])
+      n = info and info.name
+    elseif GetSpellInfo then
+      n = GetSpellInfo(t[i])
+    end
+    if type(n) == "string" and not ns.secret(n) then break end
+    n = nil
+  end
+  named[t] = n or t[1]
+  return named[t]
+end
+-- An item's name as this client writes it (the game's, once it knows the
+-- item: one in my bags it does), else the English.
+local function itemName(it)
+  local get = C_Item and C_Item.GetItemNameByID or GetItemInfo
+  local ok, n = pcall(get, it.id)
+  if ok and type(n) == "string" and not ns.secret(n) then return n end
+  return it.n
+end
+
 -- A tool's picture (kept on it when noted: another character's debrief shows
 -- it too).
 function ns.toolIcon(t) return t.icon or (t.item and ns.itemIcon(t.item)) or ns.spellIcon(t.n) end
@@ -420,8 +453,9 @@ function ns.toolIcon(t) return t.icon or (t.item and ns.itemIcon(t.item)) or ns.
 function ns.readyTools()
   local ready = {}
   for _, t in ipairs(SPELLS) do
-    if known(t[1]) and spellReady(t[1]) and spellUsable(t[1]) then
-      table.insert(ready, { n = t[1], k = t[2], icon = ns.spellIcon(t[1]) })
+    local n = nameOf(t)
+    if known(n) and spellReady(n) and spellUsable(n) then
+      table.insert(ready, { n = n, k = t[2], icon = ns.spellIcon(n) })
     end
   end
   local wrapped, on = bandaged(), afflictions()
@@ -440,7 +474,7 @@ function ns.readyTools()
     if it.cures and not cured then tool = nil end
     if tool and not had[it.id] then
       had[it.id] = true
-      tool.n, tool.k, tool.item, tool.spell = it.n, it.k, it.id, it.spell
+      tool.n, tool.k, tool.item, tool.spell = itemName(it), it.k, it.id, it.spell
       tool.against, tool.school, tool.env = cured, it.school, it.env
       tool.icon = ns.itemIcon(it.id)
       table.insert(ready, tool)
@@ -503,14 +537,24 @@ function ns.unusedOf(ready, casts, since)
 end
 
 -- A cast of mine that was one of the tools: the tool's name, else nil.
-local BY_NAME, BY_SPELL = {}, {}
-for _, t in ipairs(SPELLS) do
-  BY_NAME[t[1]] = t[1]
+-- (the spells by their names as this client writes them, made at the first
+-- cast asked about)
+local BY_NAME, BY_SPELL
+function ns.toolOfCast(c)
+  if not c then return nil end
+  if not BY_NAME then
+    BY_NAME, BY_SPELL = {}, {}
+    for _, t in ipairs(SPELLS) do
+      BY_NAME[nameOf(t)] = true
+    end
+    for _, it in ipairs(ITEMS) do
+      BY_SPELL[it.spell] = it
+    end
+  end
+  if c.id and BY_SPELL[c.id] then return itemName(BY_SPELL[c.id]) end
+  if c.name and BY_NAME[c.name] then return c.name end
+  return nil
 end
-for _, it in ipairs(ITEMS) do
-  BY_SPELL[it.spell] = it.n
-end
-function ns.toolOfCast(c) return c and (c.id and BY_SPELL[c.id] or c.name and BY_NAME[c.name]) or nil end
 
 -- What a use of the tools ready (since t0, GetTime) left behind, read once
 -- the fight is over: one fewer in my bags, a cooldown begun (its start: when;
@@ -548,12 +592,14 @@ end
 -- Everything of the kinds above I carry now, ready or not: { n, k, count,
 -- left (seconds until ready, 0 ready, nil unknown), worn ("worn", or "bags":
 -- a worn kind not worn), wrapped (Recently Bandaged: seconds left), cures,
--- school, env }; the same name once (a healthstone's ranks together).
+-- school, env }; the same name once (a healthstone's ranks together, by the
+-- English name: the same in every language).
 function ns.carried()
   local out, byName = {}, {}
   for _, t in ipairs(SPELLS) do
-    if known(t[1]) then
-      table.insert(out, { n = t[1], k = t[2], left = leftAfter(spellCooldown(t[1])), icon = ns.spellIcon(t[1]) })
+    local n = nameOf(t)
+    if known(n) then
+      table.insert(out, { n = n, k = t[2], left = leftAfter(spellCooldown(n)), icon = ns.spellIcon(n) })
     end
   end
   local wrapped
@@ -574,7 +620,7 @@ function ns.carried()
       local same = byName[it.n]
       same.count = (same.count or 0) + (tool.count or 0)
     elseif tool then
-      tool.n, tool.k, tool.cures, tool.school, tool.env = it.n, it.k, it.cures, it.school, it.env
+      tool.n, tool.k, tool.cures, tool.school, tool.env = itemName(it), it.k, it.cures, it.school, it.env
       tool.item, tool.icon = it.id, ns.itemIcon(it.id)
       if it.k == "bandage" then tool.wrapped = wrapped end
       byName[it.n] = tool

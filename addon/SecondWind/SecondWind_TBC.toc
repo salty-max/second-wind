@@ -1,6 +1,7 @@
 ## Interface: 20506
 ## Title: Second Wind
 ## Notes: Review close calls and deaths after combat. See what hit you, which emergency tools went unused and what your dangerous fights have in common.
+## Notes-frFR: Revivez vos morts frôlées et vos morts après le combat. Voyez ce qui vous a frappé, quels recours d'urgence sont restés inutilisés et ce que vos combats dangereux ont en commun.
 ## Category: Combat
 ## Author: salty-max
 ## Version: 0.3.0
@@ -16,7 +17,9 @@
 # Anniversary, _Camelot: Forever), the same but for the interface
 # (scripts/package.ts checks).
 Kit.lua
-Creatures.lua
+Creatures_Classic.lua
+Locale.lua
+Text_[TextLocale].lua
 Core.lua
 Settings.lua
 Tools.lua

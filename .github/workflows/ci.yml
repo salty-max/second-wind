@@ -25,6 +25,8 @@ jobs:
           curl -sSLo selene.zip https://github.com/Kampfkarren/selene/releases/download/0.32.0/selene-0.32.0-linux.zip
           unzip -qo stylua.zip && unzip -qo selene.zip && chmod +x stylua selene
           echo "$HOME/bin" >> "$GITHUB_PATH"
+      - name: Translations (the language files up to date, every word translated)
+        run: bun scripts/locales.ts --check
       - name: Addon Lua formatted and linted
         run: stylua --check addon && selene addon/SecondWind
       - name: Simulation

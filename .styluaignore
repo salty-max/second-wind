@@ -1,2 +1,3 @@
-# Generated (scripts/creatures.ts)
-addon/SecondWind/Creatures.lua
+# Generated (scripts/creatures.ts, scripts/locales.ts)
+addon/SecondWind/Creatures_*.lua
+addon/SecondWind/Text_*.lua

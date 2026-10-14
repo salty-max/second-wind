@@ -696,8 +696,10 @@ end
 -- ── load the addon ───────────────────────────────────────────────────────────
 -- The files in the order of the game's own TOC.
 local ns = {}
+-- (the client's language: LOCALE=frFR plays a French client, its own Text file)
+G.locale = os.getenv("LOCALE") or "enUS"
 for l in io.lines(DIR .. (FOREVER and "SecondWind_Camelot.toc" or "SecondWind_Vanilla.toc")) do
-  local f = l:match("^([%w_]+%.lua)%s*$")
+  local f = l:gsub("%[TextLocale%]", G.locale):match("^([%w_]+%.lua)%s*$")
   if f then assert(loadfile(DIR .. f))("SecondWind", ns) end
 end
 -- The banners shown: what each said (the kit's banners, as the addon makes

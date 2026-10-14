@@ -241,6 +241,8 @@ globals:
     any: true
   UnitName:
     any: true
+  UnitSex:
+    any: true
   UnitTokenFromGUID:
     any: true
   CLASS_ICON_TCOORDS:
