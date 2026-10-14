@@ -60,6 +60,16 @@ function ns.loadProfile() P:load() end
 function ns.option(key) return P:get(key) end
 function ns.setOption(key, value) P:set(key, value) end
 
+-- The opt-in that shares what the game tells of the world with the addons'
+-- database (the kit's, K.collect): account-wide, in SecondWindCollect, which
+-- Ravenpost sends; off until the player says yes.
+ns.collect = K.collect({
+  saved = function()
+    if type(SecondWindCollect) ~= "table" then SecondWindCollect = {} end
+    return SecondWindCollect
+  end,
+})
+
 local category
 
 function ns.createSettingsPanel()
@@ -112,6 +122,8 @@ function ns.createSettingsPanel()
     L["Out of a fight, when you target a foe like those of your close calls (an elite, two levels up, one met before), or you're hurt and that's one of the things they share: a line in chat, with the counts."]
   )
   checkbox("minimapHidden", L["Minimap button"], L["The book by the minimap: click to open it, drag to move it."], true)
+
+  K.collectSetting(category, "SECONDWIND_SHARE", ns.collect)
 
   -- Another character's settings (of this game), for this one.
   K.copySetting(

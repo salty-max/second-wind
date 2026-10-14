@@ -78,6 +78,7 @@ function UnitClassification(u) return units[u] and units[u].rank or "normal" end
 function UnitCreatureType(u) return units[u] and units[u].type or nil end
 function UnitClass(u) return u == "player" and state.class:sub(1, 1) .. state.class:sub(2):lower(), state.class end
 function UnitRace(u) return state.race, state.race end
+function GetLocale() return "enUS" end
 function UnitHealthMax(u) return u == "player" and state.maxHealth or 0 end
 -- (Forever: secret, in a fight and out of it, as measured on builds 69977
 -- and 70009 (Apotheca's probe); state.healthReadable: out of a fight it

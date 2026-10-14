@@ -255,3 +255,37 @@ globals:
     any: true
   SetPortraitTextureFromCreatureDisplayID:
     any: true
+  C_GossipInfo:
+    any: true
+  GetGossipText:
+    any: true
+  GetObjectiveText:
+    any: true
+  GetProgressText:
+    any: true
+  GetQuestID:
+    any: true
+  GetQuestText:
+    any: true
+  GetRewardText:
+    any: true
+  GetTitleText:
+    any: true
+  UnitReaction:
+    any: true
+  UnitCreatureFamily:
+    any: true
+  GetNumLootItems:
+    any: true
+  GetLootSlotLink:
+    any: true
+  GetLootSourceInfo:
+    any: true
+  UnitRace:
+    any: true
+  C_Map:
+    any: true
+  SaltyMaxCollector:
+    any: true
+  SecondWindCollect:
+    any: true

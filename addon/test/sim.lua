@@ -70,6 +70,21 @@ G.reload()
 G.offer("PLAYER_ENTERING_WORLD", true, false)
 G.wait(5)
 check(not ns.welcome.frame:IsShown(), "… once only")
+-- Its last choice: sharing what the game tells of the world (the kit's
+-- collector), off until the player says yes, account-wide in SecondWindCollect.
+local share = ns.welcome.rows[#ns.welcome.rows]
+check(
+  share and not ns.collect:on() and SaltyMaxCollector == nil,
+  "… the last choice, sharing what you see, off: nothing kept"
+)
+ns.collect:set(true)
+check(
+  ns.collect:on() and SecondWindCollect.share == true and SaltyMaxCollector ~= nil,
+  "… on: account-wide, this addon collects"
+)
+ns.collect:set(false)
+check(not ns.collect:on() and next(SecondWindCollect.facts) == nil, "… off: what was kept forgotten")
+SaltyMaxCollector = nil
 
 -- ── one listener's error ─────────────────────────────────────────────────────
 G.state.errors = {}

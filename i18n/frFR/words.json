@@ -348,5 +348,7 @@
   "your health out of a fight: %s": "votre santé hors combat : %s",
   "your health through the heal calculator: %s": "votre santé par le calculateur de soins : %s",
   "yours %d": "les vôtres %d",
-  "yours %d (its spells name %s)": "les vôtres %d (ses sorts nomment %s)"
+  "yours %d (its spells name %s)": "les vôtres %d (ses sorts nomment %s)",
+  "Share what you see": "Partager ce que vous voyez",
+  "Quests, creatures and NPCs' words, as the game tells you, sent by Ravenpost to the addons' database. Never your name, your character or your chat.": "Les quêtes, les créatures et les paroles des PNJ, telles que le jeu vous les donne, envoyées par Ravenpost à la base de données des addons. Jamais votre nom, votre personnage ni vos discussions."
 }

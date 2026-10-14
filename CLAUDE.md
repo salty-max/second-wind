@@ -201,6 +201,11 @@ The plan, its research and its decisions: PLAN.md.
     (`ns.openDebrief(at)`; settings).
   - `Welcome.lua`: the kit's welcome page, once per character.
   - `Minimap.lua`: the button.
+- The opt-in that shares what the game tells of the world (the kit's
+  `K.collect`: quests' texts, creatures' facts, NPCs' lines, loot by source;
+  off until the player ticks it on the welcome page or the Options page)
+  keeps it account-wide in `SecondWindCollect`, which Ravenpost sends to the
+  addons' database.
 - `addon/test/game.lua`: the fake game: the API the addon calls, its events,
   a character, and fights to replay (`G.pull`, `G.hit`, `G.miss`, `G.heal`,
   `G.debuff`, `G.cast` (a spell's cooldown begun, by its `cd`), `G.use`,

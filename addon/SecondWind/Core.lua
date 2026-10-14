@@ -220,6 +220,7 @@ function ns.login()
   char.name, char.realm, char.class, char.classFile = UnitName("player"), GetRealmName(), className, classFile
   char.level = UnitLevel("player")
   ns.loadProfile()
+  ns.collect:start()
   ns.createMinimapButton()
   ns.createSettingsPanel()
 end
