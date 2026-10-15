@@ -212,6 +212,8 @@ local function lossOfControl()
       local left = e.timeRemaining
       return {
         what = not ns.secret(e.displayText) and e.displayText or nil,
+        loc = e.locType, -- (the game's own key, "STUN": its words in any language)
+        sid = not ns.secret(e.spellID) and e.spellID or nil,
         spell = spellName(e.spellID),
         icon = not ns.secret(e.iconTexture) and e.iconTexture or nil,
         left = left and not ns.secret(left) and left or nil,
@@ -235,6 +237,7 @@ local function control(f)
     end
     if told then
       open.what, open.spell = open.what or told.what, open.spell or told.spell
+      open.loc, open.sid = open.loc or told.loc, open.sid or told.sid
       open.icon = open.icon or told.icon
       if told.left then open.ends = tenth(now + told.left) end
     end

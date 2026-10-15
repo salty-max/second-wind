@@ -176,6 +176,14 @@ function ns.knownFoe(foe)
   end
   return foe
 end
+-- A foe's key across debriefs and languages: its creature's id, else its
+-- name (a player's, or a creature the game named only).
+function ns.foeKey(foe) return foe and (not foe.player and foe.npc or foe.name) or nil end
+-- A creature's id from its GUID ("Creature-0-…-<id>-…"), nil for a player's.
+function ns.npcOf(guid)
+  local id = type(guid) == "string" and not ns.secret(guid) and guid:match("^%a+%-%d+%-%d+%-%d+%-%d+%-(%d+)%-")
+  return id and tonumber(id) or nil
+end
 -- A creature's own name from one the game's death recap gave: Forever's adds
 -- a word to each unit's ("Snow Leopard Nub", "Crag Boar Mcnugg": the same word
 -- on every blow of one unit, no player's, seen on 15 October 2026 with no one
@@ -264,6 +272,18 @@ end
 -- blows; a player's name kept), the spells (cast, the meter's, the recap's,
 -- the killing blow), the tools, the creature types. At each login, and for
 -- each debrief written.
+-- The game's own words for a kind of control lost, in the client's language
+-- (its global strings; nil on a client without them: the words kept)
+local HELD_WORDS = {
+  STUN = LOSS_OF_CONTROL_DISPLAY_STUN,
+  STUN_MECHANIC = LOSS_OF_CONTROL_DISPLAY_STUN_MECHANIC,
+  FEAR = LOSS_OF_CONTROL_DISPLAY_FEAR,
+  FEAR_MECHANIC = LOSS_OF_CONTROL_DISPLAY_FEAR_MECHANIC,
+  CONFUSE = LOSS_OF_CONTROL_DISPLAY_CONFUSE,
+  SLEEP = LOSS_OF_CONTROL_DISPLAY_SLEEP,
+  CHARM = LOSS_OF_CONTROL_DISPLAY_CHARM,
+  POSSESS = LOSS_OF_CONTROL_DISPLAY_POSSESS,
+}
 function ns.localize(d)
   d.zoneArea = d.zoneArea or ns.areaId(d.zone)
   d.subArea = d.subArea or ns.areaId(d.sub)
@@ -290,6 +310,12 @@ function ns.localize(d)
       if n and row.spell then row.spell = n end
       if n and row.name then row.name = n end
     end
+  end
+  -- (control lost: its spell by id, the game's words for its kind)
+  for _, h in ipairs(d.held or {}) do
+    h.spell = ns.spellNameOf(h.sid) or h.spell
+    local words = h.loc and HELD_WORDS[h.loc]
+    if type(words) == "string" and words ~= "" then h.what = words end
   end
   for _, list in ipairs({ d.ready or {}, d.unused or {} }) do
     for _, t in ipairs(list) do

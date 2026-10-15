@@ -1376,6 +1376,33 @@ check(
 
 -- ── a word before a pull ─────────────────────────────────────────────────────
 local counted = ns.countsOf(five)
+-- (one creature written in two languages: one foe, by its id, shown by the
+-- newest debrief's name; a place by its areas the same)
+local mixed = ns.countsOf({
+  {
+    kind = "close",
+    sub = "Das Coldridgetal",
+    subArea = 132,
+    zone = "Dun Morogh",
+    zoneArea = 1,
+    foes = { { name = "Schneeleopard", npc = 1201 } },
+  },
+  {
+    kind = "close",
+    sub = "Coldridge Valley",
+    subArea = 132,
+    zone = "Dun Morogh",
+    zoneArea = 1,
+    foes = { { name = "Snow Leopard", npc = 1201 } },
+  },
+})
+check(
+  mixed.foes[1201] == 2
+    and mixed.label[1201] == "Schneeleopard"
+    and mixed.places["132|1"] == 2
+    and mixed.keyOf["Snow Leopard"] == 1201,
+  "a creature and a place written in two languages: each counted once, by its ids"
+)
 check(
   ns.wordBefore(counted, { name = "Rockjaw Trogg", level = 7 }, { level = 8, pct = 100 })
     == "3 of your 5 close calls and deaths were against Rockjaw Trogg.",

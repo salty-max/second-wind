@@ -368,7 +368,7 @@ local function foeLine(foe)
   if foe.level and foe.level > 0 then table.insert(about, L["level %d"]:format(foe.level)) end
   if foe.level == -1 then table.insert(about, L["level ??"]) end
   if foe.rank and foe.rank ~= "normal" then table.insert(about, ns.rankWord(foe.rank) or foe.rank) end
-  if foe.type then table.insert(about, foe.type:lower()) end
+  if foe.type then table.insert(about, ns.noun(foe.type)) end
   local who = #about > 0 and ("%s (%s)"):format(foe.name, table.concat(about, ", ")) or foe.name
   local did = {}
   if foe.hits and foe.hits > 0 then

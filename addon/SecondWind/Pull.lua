@@ -44,7 +44,8 @@ function ns.wordBefore(c, foe, me)
     table.insert(counts, L["%d had a foe two levels or more above you"]:format(above))
   end
   local desc = elite and high and L["an elite %s"]:format(high) or elite and L["an elite"] or high
-  local met = foe.name and c.foes[foe.name] or 0
+  -- (by its creature's id, a name only where the game gave none)
+  local met = c.foes[ns.foeKey(foe) or ""] or (foe.name and c.foes[(c.keyOf or {})[foe.name] or foe.name]) or 0
   local named = met >= 2 and L["%d were against %s"]:format(met, foe.name) or nil
   local near = foe.level == -1 or (foe.level and me.level and foe.level >= me.level - NEAR)
   local low = near and me.pct and me.pct < HURT and often(c, "low")
@@ -99,7 +100,8 @@ ns.on("PLAYER_TARGET_CHANGED", function()
   if #debriefs < MIN then return end
   local level, rank = UnitLevel("target"), UnitClassification("target")
   local health, max = UnitHealth("player"), UnitHealthMax("player")
-  local foe = { name = name, level = clear(level) and level or nil, rank = clear(rank) and rank or nil }
+  local foe =
+    { name = name, npc = ns.npcOf(guid), level = clear(level) and level or nil, rank = clear(rank) and rank or nil }
   local me = { level = UnitLevel("player") }
   if clear(health) and clear(max) and max > 0 then me.pct = health / max * 100 end
   local word, hurtAlone = ns.wordBefore(counts(debriefs), foe, me)

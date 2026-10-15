@@ -213,9 +213,9 @@ local function aboutFoe(foe)
   if foe.level == -1 then table.insert(about, L["level ??"]) end
   if ns.rankWord(foe.rank) then table.insert(about, ns.rankWord(foe.rank)) end
   if foe.class then
-    table.insert(about, foe.class:lower())
+    table.insert(about, ns.noun(ns.className(foe.class)))
   elseif foe.type then
-    table.insert(about, foe.type:lower())
+    table.insert(about, ns.noun(foe.type))
   elseif foe.player then
     table.insert(about, L["a player"])
   end

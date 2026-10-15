@@ -247,6 +247,24 @@ globals:
     any: true
   CLASS_ICON_TCOORDS:
     any: true
+  LOCALIZED_CLASS_NAMES_MALE:
+    any: true
+  LOSS_OF_CONTROL_DISPLAY_STUN:
+    any: true
+  LOSS_OF_CONTROL_DISPLAY_STUN_MECHANIC:
+    any: true
+  LOSS_OF_CONTROL_DISPLAY_FEAR:
+    any: true
+  LOSS_OF_CONTROL_DISPLAY_FEAR_MECHANIC:
+    any: true
+  LOSS_OF_CONTROL_DISPLAY_CONFUSE:
+    any: true
+  LOSS_OF_CONTROL_DISPLAY_SLEEP:
+    any: true
+  LOSS_OF_CONTROL_DISPLAY_CHARM:
+    any: true
+  LOSS_OF_CONTROL_DISPLAY_POSSESS:
+    any: true
   GetItemIcon:
     any: true
   GetPlayerInfoByGUID:

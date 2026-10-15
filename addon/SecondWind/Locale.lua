@@ -73,6 +73,18 @@ function ns.typeKeyOf(word)
   if not word then return nil end
   return typeKeys[word] or (TYPES[word] and word) or nil
 end
+-- A class's name in today's language, by its token ("WARRIOR"): the game's
+-- own (LOCALIZED_CLASS_NAMES_*), else the name kept.
+function ns.className(token, kept)
+  local names = LOCALIZED_CLASS_NAMES_MALE
+  return token and names and names[token] or kept or (token and token:lower()) or nil
+end
+-- A noun inside a sentence: lower case, as English and French write a kind
+-- ("a beast"), but German keeps its capital ("ein Wildtier").
+function ns.noun(word)
+  if not word then return nil end
+  return ns.locale == "deDE" and word or word:lower()
+end
 -- A type's word in today's language, from its English key.
 function ns.typeWord(key) return key and (typeWords[key] or key) or nil end
 

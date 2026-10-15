@@ -138,7 +138,8 @@ function ns.refresh(keep)
   local c = ns.cardOf(open)
   local rec = ns.whose(open)
   if every and rec ~= ns.record() and rec.name then
-    local about = { rec.class and rec.class:lower() or nil, rec.fallen and L["fallen"] or nil }
+    local class = ns.className(rec.classFile, rec.class)
+    local about = { class and ns.noun(class) or nil, rec.fallen and L["fallen"] or nil }
     c.sub = ("%s%s · %s"):format(rec.name, #about > 0 and (" (" .. table.concat(about, ", ") .. ")") or "", c.sub)
   end
   book.card:draw(c, open, keep)

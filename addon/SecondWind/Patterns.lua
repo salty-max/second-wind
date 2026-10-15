@@ -34,11 +34,13 @@ local TRAITS = {
   { "cure", L["a cure went unused, with what it cures on you"] },
 }
 
--- Names counted (a name once a debrief), the commonest first, twice or more.
-local function ranked(counts, first)
+-- Keys counted (once a debrief: a creature's id, a place's areas, a tool's
+-- id; a name where the game gave none), the commonest first, twice or more,
+-- each shown by its latest name (one creature met in two languages counts once).
+local function ranked(counts, first, label)
   local list = {}
-  for name, n in pairs(counts) do
-    if n >= 2 then table.insert(list, { name = name, n = n, first = first[name] }) end
+  for key, n in pairs(counts) do
+    if n >= 2 then table.insert(list, { key = key, name = label[key] or tostring(key), n = n, first = first[key] }) end
   end
   table.sort(list, function(a, b)
     if a.n ~= b.n then return a.n > b.n end
@@ -50,13 +52,14 @@ end
 local function counted(debriefs)
   local traits, places, foes, unused, firstSeen, order = {}, {}, {}, {}, {}, 0
   -- (each name's record, the latest: a foe's portrait, a tool's icon)
-  local foeOf, toolOf = {}, {}
+  local foeOf, toolOf, label, keyOf = {}, {}, {}, {}
   local deaths, since = 0, nil
-  local function count(map, name)
-    map[name] = (map[name] or 0) + 1
-    if not firstSeen[name] then
+  local function count(map, key, name)
+    map[key] = (map[key] or 0) + 1
+    label[key] = label[key] or name -- (the newest debrief's: today's language)
+    if not firstSeen[key] then
       order = order + 1
-      firstSeen[name] = order
+      firstSeen[key] = order
     end
   end
   for _, d in ipairs(debriefs) do
@@ -66,22 +69,27 @@ local function counted(debriefs)
       traits[key] = (traits[key] or 0) + 1
     end
     local place = d.sub and (d.sub .. ", " .. (d.zone or "?")) or d.zone
-    if place then count(places, place) end
+    if place then
+      count(places, tostring(d.subArea or d.sub or "") .. "|" .. tostring(d.zoneArea or d.zone or ""), place)
+    end
     local met = {}
     for _, foe in ipairs(d.foes or {}) do
-      if foe.name and not met[foe.name] then
-        met[foe.name] = true
-        count(foes, foe.name)
-        foeOf[foe.name] = foe
+      local key = ns.foeKey(foe)
+      if key and not met[key] then
+        met[key] = true
+        count(foes, key, foe.name)
+        foeOf[key] = foeOf[key] or foe
+        if foe.name then keyOf[foe.name] = keyOf[foe.name] or key end
       end
     end
     local left = {}
     -- (held the whole way down: nothing could have been used)
     for _, t in ipairs(not ns.helpless(d) and d.unused or {}) do
-      if type(t) == "table" and t.n and not left[t.n] then
-        left[t.n] = true
-        count(unused, t.n)
-        toolOf[t.n] = t
+      local key = type(t) == "table" and (t.item or t.sid or t.n)
+      if key and not left[key] then
+        left[key] = true
+        count(unused, key, t.n)
+        toolOf[key] = toolOf[key] or t
       end
     end
   end
@@ -96,6 +104,8 @@ local function counted(debriefs)
     since = since,
     foeOf = foeOf,
     toolOf = toolOf,
+    label = label,
+    keyOf = keyOf, -- (a name's key: a target known by its name only)
   }
 end
 function ns.countsOf(debriefs) return counted(debriefs) end
@@ -104,7 +114,7 @@ function ns.patternsOf(debriefs, fights)
   local total = #debriefs
   if total < MIN then return { enough = false, count = total } end
   local c = counted(debriefs)
-  local traits, places, foes, unused, firstSeen = c.traits, c.places, c.foes, c.unused, c.firstSeen
+  local traits, places, foes, unused, firstSeen, label = c.traits, c.places, c.foes, c.unused, c.firstSeen, c.label
   local deaths, since = c.deaths, c.since
   local base = fights and fights.n and fights.n >= FIGHTS and fights or nil
 
@@ -168,7 +178,7 @@ function ns.patternsOf(debriefs, fights)
   )
   section(
     L["Where"],
-    ranked(places, firstSeen),
+    ranked(places, firstSeen, label),
     function(p) return L["%s: %d"]:format(p.name, p.n) end,
     function(p)
       return { kind = "share", share = p.n / total, title = p.name, value = L["%d of your %d"]:format(p.n, total) }
@@ -176,18 +186,18 @@ function ns.patternsOf(debriefs, fights)
   )
   section(
     L["Foes met more than once"],
-    ranked(foes, firstSeen),
+    ranked(foes, firstSeen, label),
     function(f) return L["%s: in %d"]:format(f.name, f.n) end,
-    function(f) return { kind = "foe", foe = c.foeOf[f.name], detail = L["in %d of your %d"]:format(f.n, total) } end
+    function(f) return { kind = "foe", foe = c.foeOf[f.key], detail = L["in %d of your %d"]:format(f.n, total) } end
   )
   section(
     L["Left unused most often"],
-    ranked(unused, firstSeen),
+    ranked(unused, firstSeen, label),
     function(t) return L["%s: %d times"]:format(t.name, t.n) end,
     function(t)
       return {
         kind = "tool",
-        tool = c.toolOf[t.name],
+        tool = c.toolOf[t.key],
         title = t.name,
         detail = L["unused in %d of your %d"]:format(t.n, total),
       }
