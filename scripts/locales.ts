@@ -12,6 +12,7 @@
  *                              and plural(n, "one", "many") of the addon, its
  *                              kit's included; i18n/words.json lists them
  *
+ *   i18n/<locale>/items.json   the tools' items by id (scripts/creature_names.ts)
  *   i18n/<locale>/subzones.json
  *                              the places inside buildings by their ids, each
  *                              game's, every language's (../addon-kit/
@@ -75,12 +76,14 @@ function namesLua(locale: string): string[] {
   const insideFile = join(I18N, NAMES_OF[locale] ?? locale, "subzones.json");
   if (!existsSync(insideFile)) throw new Error(`${relative(ROOT, insideFile)} is missing: python3 ../addon-kit/subzones.py ${NAMES_OF[locale] ?? locale}`);
   const inside: { forever?: Record<string, string>; classic?: Record<string, string> } = json(insideFile);
+  const items: Record<string, string> = json(join(I18N, NAMES_OF[locale] ?? locale, "items.json"));
   const lines = ["ns.names({"];
   for (const [key, list] of [
     ["creatures", t.forever],
     ["creaturesClassic", t.classic],
     ["inside", inside.forever ?? {}],
     ["insideClassic", inside.classic ?? {}],
+    ["items", items],
   ] as const) {
     lines.push(`  ${key} = {`);
     const items = Object.entries(list).sort(([a], [b]) => Number(a) - Number(b));

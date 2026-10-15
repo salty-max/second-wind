@@ -979,10 +979,10 @@ if G.FOREVER then
   )
   local cast = {}
   for _, c in ipairs(d.casts) do
-    cast[c.name or c.id] = c.t
+    cast[c.id] = c.t
   end
-  check(cast["Shield Wall"] == 2 and cast[441] == 3, "… and when: each cooldown's start")
-  check(d.untold and d.untold[1] == "Polymorph", "… a spell without a cooldown: no trace either way")
+  check(cast[871] == 2 and cast[441] == 3, "… and when: each cooldown's start, by its spell's id")
+  check(d.untold and d.untold[1] == "s118", "… a spell without a cooldown: no trace either way (by its key)")
   local had = sectionOf(ns.cardOf(d), "What you had")
   check(
     had
@@ -1576,5 +1576,74 @@ check(
   (G.FOREVER and G.secret(UnitHealth("player")) or UnitHealth("player") == 0) and not InCombatLockdown(),
   "… out of the fight, dead (Forever: my health secret out of it too)"
 )
+
+-- The saved file keeps ids, not the names they give: at the logout every name
+-- an id gives back is let go (a place's, a creature's, a type's, a spell's, a
+-- tool's), the login names them again; a name no id gives stays.
+do
+  local list = ns.record().debriefs
+  table.insert(list, {
+    kind = "close",
+    at = 77,
+    zone = "Dun Morogh",
+    zoneArea = 1,
+    sub = "Coldridge Valley",
+    subArea = 132,
+    foes = {
+      { name = ns.creatureNameOf(6), npc = 6, typeId = 7, type = "Humanoid", hits = 1, damage = 9 },
+      { name = "Kyle", player = true, hits = 1 },
+    },
+    killer = { name = ns.creatureNameOf(6), spell = "Shield Wall", id = 871 },
+    recap = {
+      { src = ns.creatureNameOf(6), spell = "Shield Wall", id = 871, amount = 9 },
+      { src = "Kyle", amount = 3 },
+    },
+    casts = { { t = 1, id = 871, name = "Shield Wall" } },
+    ready = { { n = "Shield Wall", k = "guard", sid = 871 } },
+    unused = {},
+  })
+  G.spellNamed(871, "Shield Wall")
+  G.reload()
+  local saved
+  for _, c in pairs(G.saved().characters) do
+    for _, d in ipairs(c.debriefs or {}) do
+      if d.at == 77 then saved = d end
+    end
+  end
+  check(
+    saved
+      and saved.zone == nil
+      and saved.sub == nil
+      and saved.zoneArea == 1
+      and saved.foes[1].name == nil
+      and saved.foes[1].npc == 6
+      and saved.foes[1].type == nil
+      and saved.foes[2].name == "Kyle"
+      and saved.killer.name == nil
+      and saved.killer.npc == 6
+      and saved.killer.spell == nil
+      and saved.recap[1].src == nil
+      and saved.recap[1].srcNpc == 6
+      and saved.recap[1].spell == nil
+      and saved.recap[2].src == "Kyle"
+      and saved.casts[1].name == nil
+      and saved.ready[1].n == nil,
+    "the saved file keeps a debrief's ids, never the names they give (a player's name kept)"
+  )
+  local d = list[#list]
+  check(
+    d.zone == "Dun Morogh"
+      and d.sub == "Coldridge Valley"
+      and d.foes[1].name == ns.creatureNameOf(6)
+      and d.foes[1].type == "Humanoid"
+      and d.killer.name == ns.creatureNameOf(6)
+      and d.killer.spell == "Shield Wall"
+      and d.recap[1].src == ns.creatureNameOf(6)
+      and d.casts[1].name == "Shield Wall"
+      and d.ready[1].n == "Shield Wall",
+    "… and the login names them again"
+  )
+  table.remove(list)
+end
 
 io.stdout:write(("all good%s: %d checks\n"):format(G.FOREVER and " (Forever)" or "", passed))

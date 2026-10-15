@@ -107,7 +107,7 @@ local function blowIcon(row)
   if row.heal then return HEALS end
   if row.what and WORLD[row.what] then return WORLD[row.what] end
   -- (a swing: the meter's "Attack", spell 6603 in any language)
-  if not row.spell or row.id == 6603 or row.spell == "Attack" or row.spell == "Melee" then return row.icon or MELEE end
+  if not row.spell or row.id == 6603 then return row.icon or MELEE end
   return row.icon or ns.spellIcon(row.id) or ns.spellIcon(row.spell) or QUESTION
 end
 
@@ -272,7 +272,7 @@ end
 
 local function toolTip(t)
   if t.item then return { item = t.item } end
-  local id = ns.spellIdOf(t.n)
+  local id = t.sid or ns.spellIdOf(t.n)
   if id then return { spell = id } end
   return { title = t.n }
 end
@@ -750,14 +750,16 @@ function G:face(i)
   return f
 end
 
--- What a mark's tool looks like: the tool as the debrief kept it, by name.
-local function toolNamed(d, name)
+-- What a mark's tool looks like: the tool as the debrief kept it, by its key.
+local function toolOf(d, m)
   for _, list in ipairs({ d.ready or {}, d.unused or {} }) do
     for _, t in ipairs(list) do
-      if type(t) == "table" and t.n == name then return t end
+      if type(t) == "table" and m.key and ns.toolKey(t) == m.key then return t end
     end
   end
-  return { n = name }
+  local key = m.key or ""
+  local id = tonumber(key:sub(2))
+  return { n = m.text, item = key:sub(1, 1) == "i" and id or nil, sid = key:sub(1, 1) == "s" and id or nil }
 end
 
 function G:draw(d, samples, threshold)
@@ -852,7 +854,7 @@ function G:draw(d, samples, threshold)
       else
         nslot = nslot + 1
         f = self:slot(nslot)
-        local t = toolNamed(d, m.text)
+        local t = toolOf(d, m)
         K.setSlot(f, ns.toolIcon(t))
         f.tip = toolTip(t)
       end

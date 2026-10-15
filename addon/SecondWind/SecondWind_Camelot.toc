@@ -19,6 +19,7 @@
 # (scripts/package.ts checks).
 Kit.lua
 Creatures_Forever.lua
+Spells_Forever.lua
 Locale.lua
 Text_[TextLocale].lua
 Core.lua

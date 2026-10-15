@@ -140,6 +140,9 @@ function ns.insideId(name)
   return insideIds[name]
 end
 function ns.insideName(id) return id and inside()[id] or nil end
+-- A tool's item's name in the client's language, by its id (the language's
+-- list: the game names an item only once loaded).
+function ns.itemNameOf(id) return id and names and names.items and names.items[id] or nil end
 -- A creature's name in the client's language, by its id; nil where the
 -- language's names don't have it.
 function ns.creatureNameOf(id)

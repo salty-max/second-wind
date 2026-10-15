@@ -86,7 +86,7 @@ local function counted(debriefs)
     local left = {}
     -- (held the whole way down: nothing could have been used)
     for _, t in ipairs(not ns.helpless(d) and d.unused or {}) do
-      local key = type(t) == "table" and (t.item or t.sid or t.n)
+      local key = type(t) == "table" and (ns.toolKey(t) or t.n)
       if key and not left[key] then
         left[key] = true
         count(unused, key, t.n)

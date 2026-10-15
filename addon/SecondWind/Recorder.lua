@@ -334,12 +334,12 @@ local function unusedOf(f)
   local unused = ns.unusedOf(f.ready, f.casts, f.readyT)
   if not unused or not f.untold then return unused end
   local silent = {}
-  for _, n in ipairs(f.untold) do
-    silent[n] = true
+  for _, key in ipairs(f.untold) do
+    silent[key] = true
   end
   local out = {}
   for _, t in ipairs(unused) do
-    if not silent[t.n] then table.insert(out, t) end
+    if not silent[ns.toolKey(t)] then table.insert(out, t) end
   end
   return out
 end

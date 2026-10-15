@@ -24,6 +24,7 @@ jobs:
       kit: true
       generate: |
         bun scripts/creatures.ts
+        bun scripts/spells.ts
         for locale in $(ls i18n | grep -E '^[a-z]{2}[A-Z]{2}$'); do
           bun scripts/creature_names.ts "$locale"
           python3 ../addon-kit/subzones.py "$locale"

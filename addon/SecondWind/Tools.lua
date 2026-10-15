@@ -11,7 +11,9 @@
 -- ns.carryPage(): what I carry now, the book's third tab.
 --   a tool: { n = name, k = guard | stop | away | heal | bandage | cure,
 --     sid (a spell's id: its name in any language), item, spell (an item's:
---     what its use casts), count, worn (its slot), icon }
+--     what its use casts), count, worn (its slot), icon }; known by its key
+--     (ns.toolKey: "i<item>", "s<the first id its entry lists>"), never by
+--     its name: a cast by its spell's id, any rank's (Spells_<game>.lua)
 --   guard: lessens the harm or heals; stop: holds a foe; away: gets me out
 local _, ns = ...
 local K = ns.kit
@@ -449,13 +451,50 @@ function ns.toolId(name)
   end
   return nil
 end
--- An item's name as this client writes it (the game's, once it knows the
--- item: one in my bags it does), else the English.
-local function itemName(it) return K.itemName(it.id, it.n) end
+-- An item's name as this client writes it: the language's list (Text_<locale>.lua,
+-- every tool's item but TBC Anniversary's own), else the game's once it knows
+-- the item (one in my bags it does), else the English.
+local function itemName(it) return ns.itemNameOf(it.id) or K.itemName(it.id, it.n) end
+
+-- ── a tool by its key ────────────────────────────────────────────────────────
+-- (any rank's id, its entry's first: Spells_<game>.lua's ranks and the ids the
+-- entry lists; an item's use by the spell it casts)
+local CANON, BY_SPELL
+local function keys()
+  if CANON then return end
+  CANON, BY_SPELL = {}, {}
+  for _, t in ipairs(SPELLS) do
+    for i = 3, #t do
+      CANON[t[i]] = t[3]
+    end
+    for _, id in ipairs((ns.toolRanks or {})[t[3]] or {}) do
+      CANON[id] = CANON[id] or t[3]
+    end
+  end
+  for _, it in ipairs(ITEMS) do
+    BY_SPELL[it.spell] = BY_SPELL[it.spell] or it
+  end
+end
+function ns.toolKey(t)
+  if type(t) ~= "table" then return nil end
+  keys()
+  if t.item then return "i" .. t.item end
+  if t.sid then return "s" .. (CANON[t.sid] or t.sid) end
+end
+-- A cast's tool's key, by its spell's id (an older debrief's cast kept only
+-- its name: today's language's, by the tool of that name).
+function ns.castKey(c)
+  if type(c) ~= "table" then return nil end
+  keys()
+  local id = c.id or (c.name and ns.toolId(c.name))
+  if not id then return nil end
+  if BY_SPELL[id] then return "i" .. BY_SPELL[id].id end
+  if CANON[id] then return "s" .. CANON[id] end
+end
 
 -- A tool's picture (kept on it when noted: another character's debrief shows
 -- it too).
-function ns.toolIcon(t) return t.icon or (t.item and ns.itemIcon(t.item)) or ns.spellIcon(t.n) end
+function ns.toolIcon(t) return t.icon or (t.item and ns.itemIcon(t.item)) or ns.spellIcon(t.sid) or ns.spellIcon(t.n) end
 
 -- The tools ready now: known, off cooldown and usable (an item in my bags,
 -- usable at my level; one worn, in its slot; a bandage unless I was bandaged
@@ -465,7 +504,8 @@ function ns.readyTools()
   for _, t in ipairs(SPELLS) do
     local n = nameOf(t)
     if known(n) and spellReady(n) and spellUsable(n) then
-      table.insert(ready, { n = n, k = t[2], icon = ns.spellIcon(n), sid = idOf[t] })
+      -- (its id: the first this client has, else its entry's, its key's)
+      table.insert(ready, { n = n, k = t[2], icon = ns.spellIcon(n), sid = idOf[t] or t[3] })
     end
   end
   local wrapped, on = bandaged(), afflictions()
@@ -528,49 +568,43 @@ function ns.relevantTools(ready, fight)
 end
 
 -- Of the tools ready at a moment (since: seconds into the fight), those not
--- used after it: no cast of the spell by its name, of the item by its spell.
+-- used after it: no cast of theirs, by its spell's id.
 function ns.unusedOf(ready, casts, since)
   if not ready then return nil end
-  local names, ids = {}, {}
+  local used = {}
   for _, c in ipairs(casts or {}) do
-    if (c.t or 0) >= (since or 0) then
-      if c.name then names[c.name] = true end
-      if c.id then ids[c.id] = true end
-    end
+    local key = (c.t or 0) >= (since or 0) and ns.castKey(c)
+    if key then used[key] = true end
   end
   local unused = {}
   for _, t in ipairs(ready) do
-    local used = t.item and ids[t.spell] or (not t.item and names[t.n])
-    if not used then table.insert(unused, t) end
+    if not used[ns.toolKey(t)] then table.insert(unused, t) end
   end
   return unused
 end
 
--- A cast of mine that was one of the tools: the tool's name, else nil.
--- (the spells by their names as this client writes them, made at the first
--- cast asked about)
-local BY_NAME, BY_SPELL
+-- A cast of mine that was one of the tools: the tool's name in this
+-- client's language, and its key; else nil.
 function ns.toolOfCast(c)
-  if not c then return nil end
-  if not BY_NAME then
-    BY_NAME, BY_SPELL = {}, {}
-    for _, t in ipairs(SPELLS) do
-      BY_NAME[nameOf(t)] = true
-    end
+  local key = ns.castKey(c)
+  if not key then return nil end
+  local id = tonumber(key:sub(2))
+  if key:sub(1, 1) == "i" then
     for _, it in ipairs(ITEMS) do
-      BY_SPELL[it.spell] = it
+      if it.id == id then return itemName(it), key end
     end
   end
-  if c.id and BY_SPELL[c.id] then return itemName(BY_SPELL[c.id]) end
-  if c.name and BY_NAME[c.name] then return c.name end
-  return nil
+  for _, t in ipairs(SPELLS) do
+    if t[3] == id then return nameOf(t), key end
+  end
 end
 
 -- What a use of the tools ready (since t0, GetTime) left behind, read once
 -- the fight is over: one fewer in my bags, a cooldown begun (its start: when;
 -- a spell's or a worn item's: a potion's shared cooldown tells nothing).
--- Casts for ns.unusedOf ({ t, id, name, traced }; t nil where only the bags
--- tell), and the tools whose use leaves no trace (a spell without a cooldown).
+-- Casts for ns.unusedOf ({ t, id, traced }; t nil where only the bags tell),
+-- and the tools whose use leaves no trace (a spell without a cooldown), by
+-- their keys.
 local function tenth(x) return math.floor(x * 10 + 0.5) / 10 end
 function ns.tracesOf(ready, t0)
   local casts, untold = {}, {}
@@ -583,13 +617,12 @@ function ns.tracesOf(ready, t0)
         if t.count and count(t.item) < t.count then at = began(itemCooldown(t.item)) or true end
       else
         at = began(spellCooldown(t.n))
-        if not at and hasCooldown(t.n) ~= true then table.insert(untold, t.n) end
+        if not at and hasCooldown(t.n) ~= true then table.insert(untold, ns.toolKey(t)) end
       end
       if at then
         table.insert(casts, {
           t = at ~= true and tenth(math.max(0, at - t0)) or nil,
-          id = t.item and t.spell or nil,
-          name = not t.item and t.n or nil,
+          id = t.item and t.spell or t.sid,
           traced = true,
         })
       end

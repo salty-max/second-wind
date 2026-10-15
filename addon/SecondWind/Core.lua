@@ -4,11 +4,11 @@
 --
 --   SecondWindAccount (SavedVariables): every character's record of this game,
 --   by GUID, a fallen one's kept (its debriefs read from the next):
---     characters[guid] = { guid, name, realm, class, classFile, level, fallen,
+--     characters[guid] = { guid, name, realm, classFile, level, fallen,
 --       debriefs = { ... },  the close calls and the deaths, newest last
 --       fights = { n, since, traits = { trait = n } } }  every fight, kept or
 --         not, counted by its traits (Recorder.lua): the patterns' measure
---     seen[name] = { npc, level, rank, type, at }  creatures in sight, the
+--     seen[name] = { npc, level, rank, typeId, at }  creatures in sight, the
 --       last 400 (a foe the fight named only: its portrait, what it was)
 --   SecondWindChar (SavedVariablesPerCharacter): the record before 0.1.3,
 --     moved into the account's at the login
@@ -293,10 +293,12 @@ function ns.localize(d)
   local renamed = {}
   for _, foe in ipairs(d.foes or {}) do
     local name = not foe.player and foe.npc and ns.creatureNameOf(foe.npc)
-    if name and foe.name and name ~= foe.name then
-      renamed[foe.name] = name
+    if name and name ~= foe.name then
+      if foe.name then renamed[foe.name] = name end
       foe.name = name
     end
+    -- (a name the saved file let go that this language's list lacks: never none)
+    if not foe.name and foe.npc then foe.name = L["Creature %d"]:format(foe.npc) end
     if not foe.player and not foe.npc then foe.npc = ns.creatureIdOf(foe.name) end
     -- (a type by its id; an older debrief's English key or word of the day)
     if foe.type or foe.typeKey then
@@ -305,14 +307,19 @@ function ns.localize(d)
     end
     foe.type = ns.typeName(foe.typeId) or foe.type
   end
-  if d.killer and renamed[d.killer.name] then d.killer.name = renamed[d.killer.name] end
-  if d.killer and d.killer.id then d.killer.spell = ns.spellNameOf(d.killer.id) or d.killer.spell end
+  local function creature(npc) return ns.creatureNameOf(npc) or L["Creature %d"]:format(npc) end
+  local k = d.killer
+  if k and k.npc then k.name = creature(k.npc) end
+  if k and k.name and renamed[k.name] then k.name = renamed[k.name] end
+  if k and k.id then k.spell = ns.spellNameOf(k.id) or k.spell end
   for _, list in ipairs({ d.recap or {}, d.spells or {}, d.events or {}, d.casts or {} }) do
+    -- (a cast's spell is its name, the others' their spell)
+    local key = list == d.casts and "name" or "spell"
     for _, row in ipairs(list) do
+      if row.srcNpc then row.src = creature(row.srcNpc) end
       if row.src and renamed[row.src] then row.src = renamed[row.src] end
       local n = row.id and ns.spellNameOf(row.id)
-      if n and row.spell then row.spell = n end
-      if n and row.name then row.name = n end
+      if n then row[key] = n end
     end
   end
   -- (control lost: its spell by id, the game's words for its kind)
@@ -325,14 +332,79 @@ function ns.localize(d)
     for _, t in ipairs(list) do
       -- (a tool, never a bare word)
       if type(t) == "table" and t.item then
-        t.n = ns.kit.itemName(t.item, t.n)
+        t.n = ns.itemNameOf(t.item) or ns.kit.itemName(t.item, t.n)
       elseif type(t) == "table" then
         t.sid = t.sid or (ns.toolId and ns.toolId(t.n))
         t.n = ns.spellNameOf(t.sid) or t.n
       end
     end
   end
+  -- (the tools whose use left no trace, by their keys: an older debrief's by
+  -- their names, today's language's)
+  for i, n in ipairs(d.untold or {}) do
+    if not n:match("^[is]%d+$") then
+      local id = ns.toolId and ns.toolId(n)
+      if id then d.untold[i] = ns.toolKey({ sid = id }) end
+    end
+  end
 end
+
+-- The saved file keeps ids, not the names they give (the family's rule, 15
+-- October 2026): at the logout, every name an id gives back exactly is let
+-- go (a place's, a creature's, a type's, a spell's, a tool's, a kind of
+-- control lost); ns.localize names them again at the login, in the client's
+-- language of then. A name no id gives stays (a player's, a foe the game
+-- named only).
+function ns.forSave(d)
+  if d.zoneArea and d.zone == ns.areaName(d.zoneArea) then d.zone = nil end
+  local sub = (d.subArea and ns.areaName(d.subArea)) or (d.subInside and ns.insideName(d.subInside))
+  if sub and d.sub == sub then d.sub = nil end
+  local npcOf = {}
+  for _, foe in ipairs(d.foes or {}) do
+    if not foe.player and foe.npc and foe.name and foe.name == ns.creatureNameOf(foe.npc) then
+      npcOf[foe.name] = foe.npc
+      foe.name = nil
+    end
+    if foe.typeId and foe.type and foe.type == ns.typeName(foe.typeId) then foe.type = nil end
+  end
+  local k = d.killer
+  if k and k.name and npcOf[k.name] then
+    k.npc, k.name = npcOf[k.name], nil
+  end
+  if k and k.id and k.spell and k.spell == ns.spellNameOf(k.id) then k.spell = nil end
+  for _, list in ipairs({ d.recap or {}, d.spells or {}, d.events or {}, d.casts or {} }) do
+    local key = list == d.casts and "name" or "spell"
+    for _, row in ipairs(list) do
+      if row.src and npcOf[row.src] then
+        row.srcNpc, row.src = npcOf[row.src], nil
+      end
+      if row.id and row[key] and row[key] == ns.spellNameOf(row.id) then row[key] = nil end
+    end
+  end
+  for _, h in ipairs(d.held or {}) do
+    if h.sid and h.spell and h.spell == ns.spellNameOf(h.sid) then h.spell = nil end
+    local words = h.loc and HELD_WORDS[h.loc]
+    if type(words) == "string" and h.what == words then h.what = nil end
+  end
+  for _, list in ipairs({ d.ready or {}, d.unused or {} }) do
+    for _, t in ipairs(list) do
+      if type(t) == "table" and t.n then
+        if t.item then
+          if t.n == ns.itemNameOf(t.item) then t.n = nil end
+        elseif t.sid and t.n == ns.spellNameOf(t.sid) then
+          t.n = nil
+        end
+      end
+    end
+  end
+end
+ns.on("PLAYER_LOGOUT", function()
+  for _, c in pairs(account().characters) do
+    for _, d in ipairs(c.debriefs or {}) do
+      ns.forSave(d)
+    end
+  end
+end)
 local function forget()
   local seen = type(SecondWindAccount) == "table" and SecondWindAccount.seen
   if not seen then return end
@@ -373,13 +445,17 @@ function ns.login()
   SecondWindChar = nil
   char.debriefs = char.debriefs or {}
   -- (who it is, for the book of every character)
-  local className, classFile = UnitClass("player")
-  char.name, char.realm, char.class, char.classFile = UnitName("player"), GetRealmName(), className, classFile
+  -- (the class by its token: its name the game's, in the client's language of the day)
+  local _, classFile = UnitClass("player")
+  char.name, char.realm, char.class, char.classFile = UnitName("player"), GetRealmName(), nil, classFile
   char.level = UnitLevel("player")
-  -- (every character's debriefs: a recap's names made the creatures' own,
-  -- for those saved before; their creatures named in today's language)
+  -- (every character's debriefs: their names again, from the ids the saved
+  -- file keeps; a recap's names made the creatures' own, for those saved
+  -- before; their creatures named in today's language; a class by its token)
   for _, c in pairs(account().characters) do
+    if c.classFile then c.class = nil end
     for _, d in ipairs(c.debriefs or {}) do
+      ns.localize(d)
       if d.recap then ns.ownNames(d) end
       for _, foe in ipairs(d.foes or {}) do
         ns.knownFoe(foe)

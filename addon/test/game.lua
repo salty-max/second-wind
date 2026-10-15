@@ -798,8 +798,21 @@ function G.login()
   offer("PLAYER_LOGIN")
   offer("PLAYER_ENTERING_WORLD", true, false)
 end
+-- (a reload: the saved file written at the logout, its copy kept, G.saved(),
+-- then the login reads it)
+local savedFile
+local function copy(t)
+  if type(t) ~= "table" then return t end
+  local out = {}
+  for k, v in pairs(t) do
+    out[k] = copy(v)
+  end
+  return out
+end
+function G.saved() return savedFile end
 function G.reload()
   offer("PLAYER_LOGOUT")
+  savedFile = copy(SecondWindAccount)
   offer("PLAYER_LOGIN")
   offer("PLAYER_ENTERING_WORLD", false, true)
 end

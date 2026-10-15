@@ -151,23 +151,25 @@ function ns.factsOf(d)
   local title = d.kind == "death" and L["Death"] or L["Close call: %s health"]:format(ns.lowOf(d))
   local place = d.sub and (d.sub .. ", " .. (d.zone or "?")) or d.zone or "?"
   local unused, used, ready, left, untold, silent = {}, {}, {}, {}, {}, {}
-  -- (Forever: a tool whose use leaves no trace is neither used nor unused)
-  for _, n in ipairs(d.untold or {}) do
-    silent[n] = true
+  -- (Forever: a tool whose use leaves no trace is neither used nor unused;
+  -- the tools by their keys, never their names)
+  for _, key in ipairs(d.untold or {}) do
+    silent[key] = true
   end
   for _, t in ipairs(d.unused or {}) do
     if type(t) == "table" and t.n then
       table.insert(unused, t)
-      left[t.n] = true
+      left[ns.toolKey(t) or t.n] = true
     end
   end
   for _, t in ipairs(d.ready or {}) do
     if type(t) == "table" and t.n then
       table.insert(ready, t)
+      local key = ns.toolKey(t) or t.n
       -- (what went unused unknown, my casts hidden: none called used either)
-      if silent[t.n] then
+      if silent[key] then
         table.insert(untold, t)
-      elseif d.unused and not left[t.n] then
+      elseif d.unused and not left[key] then
         table.insert(used, t)
       end
     end
@@ -575,8 +577,8 @@ function ns.marksOf(d)
     if foe.first and foe.first >= 1 then table.insert(marks, { kind = "foe", t = foe.first, text = foe.name }) end
   end
   for _, c in ipairs(d.casts or {}) do
-    local tool = ns.toolOfCast and ns.toolOfCast(c)
-    if tool and c.t then table.insert(marks, { kind = "used", t = c.t, text = tool }) end
+    local tool, key = ns.toolOfCast(c)
+    if tool and c.t then table.insert(marks, { kind = "used", t = c.t, text = tool, key = key }) end
   end
   for _, h in ipairs(d.held or {}) do
     if h.to and h.to > h.t then

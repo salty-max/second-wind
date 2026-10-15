@@ -18,7 +18,7 @@ The plan, its research and its decisions: PLAN.md.
     the look, the window's pieces, the figures, the banners): never edit the copy; `bun run kit:sync` after changing the kit, `bun run
     kit:check` to verify.
   - `Core.lua`: every character's record of this game, account-wide
-    (`SecondWindAccount.characters[guid]`: who, level, fallen, debriefs,
+    (`SecondWindAccount.characters[guid]`: who (a class by its token), level, fallen, debriefs,
     fights: every fight's tally; a fallen Hardcore life's kept, read from the
     next; the per-character `SecondWindChar` of before 0.1.3 moved in at the
     login), `ns.record()` this character's, `ns.debriefsOf(every)`,
@@ -34,7 +34,11 @@ The plan, its research and its decisions: PLAN.md.
     its Text file, `i18n/<locale>/subzones.json`, the kit's; spells, tool
     spells, creatures, creature types by their ids) and every name with an
     id is written again in the client's language, at each login and for each
-    debrief written (never store a name without its id: the family's rule);
+    debrief written; the saved file keeps the ids alone (`ns.forSave` at the
+    logout: every name an id gives back exactly let go, a foe's sources and
+    killer by its creature's id, `srcNpc`, `npc`; a player's name and a name
+    no id gives kept), `ns.localize` naming them again at the login (the
+    family's rule: ids, never names);
     the events (`ns.on`, `ns.onUnit` for one
     unit's), the login, `/secondwind` and `/wind` (`/sw` is the game's
     stopwatch; `/wind copy`, `/wind lifelines` (or `carry`, `kit`)).
@@ -57,6 +61,12 @@ The plan, its research and its decisions: PLAN.md.
     `ns.readyTools()` (known, off cooldown but for the global one, usable;
     a bandage not while Recently Bandaged), `ns.relevantTools(ready, fight)`
     (a bandage only with LULL seconds without harm below half health),
+    a tool known by its key, never its name (`ns.toolKey`: "i<item>",
+    "s<the first id its entry lists>"; a cast by its spell's id, any rank's:
+    `Spells_<game>.lua`, `bun scripts/spells.ts`, from wow-data's
+    SkillLineAbility; `ns.castKey`), an item's name the language's
+    (`i18n/<locale>/items.json`, every tool's item but TBC Anniversary's own,
+    which no database of ours has),
     `ns.unusedOf(ready, casts, since)`, `ns.tracesOf(ready, t0)` (Forever:
     what a use left, read after the fight: one fewer in my
     bags, a cooldown begun, its start the moment; a spell without a cooldown
