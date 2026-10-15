@@ -107,4 +107,4 @@ Second Wind is free and will stay free. If the debriefs have helped you survive 
 
 ## Source
 
-MIT licensed: [github.com/salty-max/second-wind](https://github.com/salty-max/second-wind). Item and spell data comes from the CMaNGOS Classic database and the TBC Anniversary client's tables. Not affiliated with Blizzard Entertainment.
+MIT licensed: [github.com/salty-max/second-wind](https://github.com/salty-max/second-wind). Item and spell data comes from the CMaNGOS Classic database and the TBC Anniversary client's tables. Foes' portraits and names come from QuestieDB and the CMaNGOS Classic database, Forever's own creatures from Wowhead. Thanks to their contributors. Not affiliated with Blizzard Entertainment.
