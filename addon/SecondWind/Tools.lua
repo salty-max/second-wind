@@ -373,7 +373,8 @@ local function afflictions()
     else
       break
     end
-    if clear(kind) and kind ~= "" then found[kind] = true end
+    -- (a debuff no cure removes has no kind: nothing to note)
+    if kind ~= nil and clear(kind) and kind ~= "" then found[kind] = true end
   end
   return found
 end

@@ -462,7 +462,11 @@ check(
   "… not a trinket carried, nor boots on cooldown"
 )
 check(not now:find("Anti%-Venom"), "… a cure only with what it cures on me")
-G.state.debuffs = { { name = "Poison", type = "Poison" } }
+-- (a debuff no cure removes, a Charge's daze or a zone's, has no kind: the
+-- 0.4.0 bug, "table index is nil" at the fight's start)
+G.state.debuffs = { { name = "Dazed" } }
+check(pcall(ns.readyTools), "… a debuff without a kind on me: no error")
+G.state.debuffs = { { name = "Dazed" }, { name = "Poison", type = "Poison" } }
 local antivenom
 for _, t in ipairs(ns.readyTools()) do
   if t.n == "Anti-Venom" then antivenom = t end
