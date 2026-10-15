@@ -155,7 +155,7 @@ G.wait(3)
 G.leave()
 local probe = SecondWindSettings.probes[#SecondWindSettings.probes]
 check(
-  table.concat(probe.lines, "\n"):find("Kontrollverlust: nur der Kontrollverlust festgestellt", 1, true),
+  table.concat(probe.lines, "\n"):find("Kontrollverlust: festgestellt, ohne Angaben des Spiels", 1, true),
   "the diagnostic fallback names the known fact without inventing a cause"
 )
 
