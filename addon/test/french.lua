@@ -102,6 +102,37 @@ if G.FOREVER then
     old.foes[1].name
   )
 end
+-- (a debrief written on an English client, its place, spells, tools and
+-- types by their ids, reads in French; one with no id, its English name kept)
+G.spellNamed(78, "Frappe héroïque")
+G.spellNamed(20594, "Forme de pierre")
+local list = ns.record().debriefs
+table.insert(list, {
+  kind = "close",
+  at = 8,
+  zone = "Dun Morogh",
+  zoneArea = 1,
+  sub = "Coldridge Valley",
+  subArea = 132,
+  casts = { { id = 78, t = 1, name = "Heroic Strike" } },
+  ready = { { n = "Stoneform", k = "guard", sid = 20594 } },
+  unused = { { n = "Stoneform", k = "guard", sid = 20594 } },
+  foes = { { name = "Grrr", type = "Beast", hits = 1 } },
+})
+table.insert(list, { kind = "close", at = 9, zone = "Westfall", sub = "Moonbrook", foes = {} })
+G.reload()
+local was, plain = list[#list - 1], list[#list]
+check(
+  was.sub == "Vallée des Frigères"
+    and was.zone == "Dun Morogh"
+    and was.casts[1].name == "Frappe héroïque"
+    and was.ready[1].n == "Forme de pierre"
+    and was.unused[1].n == "Forme de pierre"
+    and was.foes[1].type == "Bête",
+  "a debrief written in English reads in French: its place, spells, tools and types by their ids",
+  was.sub
+)
+check(plain.sub == "Moonbrook" and not plain.subArea, "… one whose place the game can't name by id keeps its name")
 
 -- The word before a pull, in French.
 local counts = { total = 4, deaths = 0, traits = { elite = 3 }, foes = {} }

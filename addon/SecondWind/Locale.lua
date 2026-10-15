@@ -48,8 +48,33 @@ end
 
 -- A creature type's English word (the game's own, UnitCreatureType's, in the
 -- client's language: "Bête" is "Beast"), for its icon and the critter test.
-local typeKeys = {}
+local typeKeys, typeWords = {}, {}
 function ns.typeKey(name) return name and (typeKeys[name] or name) or nil end
+-- (the English keys, the game's own words on an English client)
+local TYPES = {
+  Beast = true,
+  Critter = true,
+  Demon = true,
+  Dragonkin = true,
+  Elemental = true,
+  Giant = true,
+  Humanoid = true,
+  Mechanical = true,
+  ["Non-combat Pet"] = true,
+  ["Not specified"] = true,
+  Undead = true,
+  ["Wild Pet"] = true,
+  Totem = true,
+  ["Gas Cloud"] = true,
+}
+-- A type's English key from a word of today's language or English's; nil
+-- for a word of another (a debrief written on another client's language).
+function ns.typeKeyOf(word)
+  if not word then return nil end
+  return typeKeys[word] or (TYPES[word] and word) or nil
+end
+-- A type's word in today's language, from its English key.
+function ns.typeWord(key) return key and (typeWords[key] or key) or nil end
 
 function ns.translate(t)
   ns.locale = t.locale
@@ -63,6 +88,7 @@ function ns.translate(t)
   end
   for name, key in pairs(t.types or {}) do
     typeKeys[name] = key
+    if not typeWords[key] or name < typeWords[key] then typeWords[key] = name end
   end
   -- (a foe Forever's damage meter names only, in the client's language: its
   -- creature, for its portrait; and each creature's name in this language by

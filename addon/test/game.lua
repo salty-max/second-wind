@@ -56,6 +56,15 @@ end
 function strtrim(s) return (s:gsub("^%s+", ""):gsub("%s+$", "")) end
 function GetRealZoneText() return state.zone end
 function GetSubZoneText() return state.sub end
+-- The client's areas by id, in its language (C_Map.GetAreaInfo): the few the
+-- tests name, as each client writes them (wow-data's AreaTable).
+local AREAS = {
+  enUS = { [1] = "Dun Morogh", [38] = "Loch Modan", [132] = "Coldridge Valley" },
+  frFR = { [1] = "Dun Morogh", [38] = "Loch Modan", [132] = "Vall\195\169e des Frig\195\168res" },
+  deDE = { [1] = "Dun Morogh", [38] = "Loch Modan", [132] = "Das Coldridgetal" },
+}
+C_Map = C_Map or {}
+C_Map.GetAreaInfo = function(id) return (AREAS[rawget(_G, "LOCALE") or os.getenv("LOCALE") or "enUS"] or AREAS.enUS)[id] end
 function GetRealmName() return state.realm end
 local units = {} -- token = what the game can tell of a creature in sight
 -- (my target: units.target = { name, guid, level, rank, dead, player, friendly })
@@ -362,11 +371,15 @@ end
 -- ── fights ───────────────────────────────────────────────────────────────────
 -- Creatures by name: their GUIDs ("Creature-0-...-<npc id>-<spawn>").
 local npcs, nextSpawn = {}, 0
+local ns -- (the addon's, made below: a creature's own id from its shipped names)
 local function creature(name, player)
   if not npcs[name] then
     nextSpawn = nextSpawn + 1
+    -- (a creature's own id where the shipped names know it, as the game's
+    -- GUID gives it; else one past every real creature's)
+    local known = ns and ns.creatures and ns.creatures.names and ns.creatures.names[name]
     npcs[name] = player and ("Player-6113-%08X"):format(nextSpawn)
-      or ("Creature-0-4170-0-12-%d-%08X"):format(1000 + nextSpawn, nextSpawn)
+      or ("Creature-0-4170-0-12-%d-%08X"):format(known or (900000 + nextSpawn), nextSpawn)
   end
   return npcs[name]
 end
@@ -696,7 +709,7 @@ end
 
 -- ── load the addon ───────────────────────────────────────────────────────────
 -- The files in the order of the game's own TOC.
-local ns = {}
+ns = {}
 -- (the client's language: LOCALE=frFR plays a French client, its own Text file)
 G.locale = rawget(_G, "LOCALE") or os.getenv("LOCALE") or "enUS"
 for l in io.lines(DIR .. (FOREVER and "SecondWind_Camelot.toc" or "SecondWind_Vanilla.toc")) do

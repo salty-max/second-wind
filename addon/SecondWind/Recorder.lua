@@ -501,6 +501,7 @@ local function recapOf(d)
   for _, foe in ipairs(d.foes) do
     ns.knownFoe(foe)
   end
+  ns.localize(d)
   if ns.refresh then ns.refresh() end
 end
 
@@ -681,6 +682,8 @@ local function finish(death)
   -- (rebuilt: a close call if its lowest point could have gone below the threshold)
   local lowest = f.lowRange and f.lowRange[1] or f.low
   if not death and not (lowest and lowest < ns.option("threshold")) then return end
+  -- (its ids where the game gave names: places, tools, types)
+  ns.localize(d)
   store(d)
   -- (a Hardcore life ended: its record kept, read from the next character's)
   if death and d.hardcore then ns.record().fallen = true end

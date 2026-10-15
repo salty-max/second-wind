@@ -10,8 +10,8 @@
 -- my bags, a cooldown begun in the fight (its start: when). ns.carried() and
 -- ns.carryPage(): what I carry now, the book's third tab.
 --   a tool: { n = name, k = guard | stop | away | heal | bandage | cure,
---     item, spell (an item's: what its use casts), count, worn (its slot),
---     icon }
+--     sid (a spell's id: its name in any language), item, spell (an item's:
+--     what its use casts), count, worn (its slot), icon }
 --   guard: lessens the harm or heals; stop: holds a foe; away: gets me out
 local _, ns = ...
 local K = ns.kit
@@ -418,11 +418,12 @@ function ns.spellIdOf(name)
 end
 -- A spell's name as this client writes it: the game's own, by the first of
 -- its ids this client has, else the English (a spell no client of ours has).
-local named = {}
+local named, idOf = {}, {}
 local function nameOf(t)
   if named[t] then return named[t] end
   local n
   for i = 3, #t do
+    idOf[t] = t[i]
     if C_Spell and C_Spell.GetSpellName then
       n = C_Spell.GetSpellName(t[i])
     elseif C_Spell and C_Spell.GetSpellInfo then
@@ -435,7 +436,18 @@ local function nameOf(t)
     n = nil
   end
   named[t] = n or t[1]
+  if not n then idOf[t] = nil end
   return named[t]
+end
+-- A tool spell's id from its name as this client writes it (a debrief kept
+-- only the name before 15 October 2026): the tool whose name it is, the id its
+-- name came from; nil for a name of another language.
+function ns.toolId(name)
+  if not name then return nil end
+  for _, t in ipairs(SPELLS) do
+    if nameOf(t) == name then return idOf[t] end
+  end
+  return nil
 end
 -- An item's name as this client writes it (the game's, once it knows the
 -- item: one in my bags it does), else the English.
@@ -453,7 +465,7 @@ function ns.readyTools()
   for _, t in ipairs(SPELLS) do
     local n = nameOf(t)
     if known(n) and spellReady(n) and spellUsable(n) then
-      table.insert(ready, { n = n, k = t[2], icon = ns.spellIcon(n) })
+      table.insert(ready, { n = n, k = t[2], icon = ns.spellIcon(n), sid = idOf[t] })
     end
   end
   local wrapped, on = bandaged(), afflictions()

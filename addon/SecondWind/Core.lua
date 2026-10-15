@@ -224,11 +224,51 @@ function ns.ownNames(d)
   end
   d.foes = foes
 end
--- A debrief's creatures named in the client's language of today, by their ids
--- (a debrief keeps the names of the day it was written: one written on
--- another client's language would read in it): its foes, and the killer, the
--- recap, the meter's rows and the blows that named them.
-function ns.speak(d)
+-- An area's id from its name in the client's language: the game's own
+-- C_Map.GetAreaInfo over every id once, the reverse kept (no table shipped);
+-- nil for a name of another language. And an area's name, by its id.
+local areaIds
+function ns.areaId(name)
+  if type(name) ~= "string" or name == "" or not (C_Map and C_Map.GetAreaInfo) then return nil end
+  if not areaIds then
+    areaIds = {}
+    for id = 1, 20000 do
+      local n = C_Map.GetAreaInfo(id)
+      if type(n) == "string" and n ~= "" and not areaIds[n] then areaIds[n] = id end
+    end
+  end
+  return areaIds[name]
+end
+function ns.areaName(id)
+  local n = id and C_Map and C_Map.GetAreaInfo and C_Map.GetAreaInfo(id)
+  return type(n) == "string" and n ~= "" and n or nil
+end
+-- A spell's name in the client's language, by its id.
+function ns.spellNameOf(id)
+  if not id or ns.secret(id) then return nil end
+  local n
+  if C_Spell and C_Spell.GetSpellName then
+    n = C_Spell.GetSpellName(id)
+  elseif GetSpellInfo then
+    n = GetSpellInfo(id)
+  end
+  return type(n) == "string" and n ~= "" and not ns.secret(n) and n or nil
+end
+
+-- A debrief in the client's language of today: a debrief keeps the names of
+-- the day it was written (the game's, in that client's language), and its ids
+-- where the game gave them. Where an id is missing, today's name finds it
+-- (one written in today's language; another's waits for a client of its
+-- own); every name with an id is then written again in today's: the places,
+-- the creatures (the foes, the killer, the recap, the meter's rows and the
+-- blows; a player's name kept), the spells (cast, the meter's, the recap's,
+-- the killing blow), the tools, the creature types. At each login, and for
+-- each debrief written.
+function ns.localize(d)
+  d.zoneArea = d.zoneArea or ns.areaId(d.zone)
+  d.subArea = d.subArea or ns.areaId(d.sub)
+  d.zone = ns.areaName(d.zoneArea) or d.zone
+  d.sub = ns.areaName(d.subArea) or d.sub
   local renamed = {}
   for _, foe in ipairs(d.foes or {}) do
     local name = not foe.player and foe.npc and ns.creatureNameOf(foe.npc)
@@ -236,12 +276,30 @@ function ns.speak(d)
       renamed[foe.name] = name
       foe.name = name
     end
+    if foe.type then
+      foe.typeKey = foe.typeKey or ns.typeKeyOf(foe.type)
+      foe.type = foe.typeKey and ns.typeWord(foe.typeKey) or foe.type
+    end
   end
-  if not next(renamed) then return end
   if d.killer and renamed[d.killer.name] then d.killer.name = renamed[d.killer.name] end
-  for _, list in ipairs({ d.recap or {}, d.spells or {}, d.events or {} }) do
+  if d.killer and d.killer.id then d.killer.spell = ns.spellNameOf(d.killer.id) or d.killer.spell end
+  for _, list in ipairs({ d.recap or {}, d.spells or {}, d.events or {}, d.casts or {} }) do
     for _, row in ipairs(list) do
       if row.src and renamed[row.src] then row.src = renamed[row.src] end
+      local n = row.id and ns.spellNameOf(row.id)
+      if n and row.spell then row.spell = n end
+      if n and row.name then row.name = n end
+    end
+  end
+  for _, list in ipairs({ d.ready or {}, d.unused or {} }) do
+    for _, t in ipairs(list) do
+      -- (a tool, never a bare word)
+      if type(t) == "table" and t.item then
+        t.n = ns.kit.itemName(t.item, t.n)
+      elseif type(t) == "table" then
+        t.sid = t.sid or (ns.toolId and ns.toolId(t.n))
+        t.n = ns.spellNameOf(t.sid) or t.n
+      end
     end
   end
 end
@@ -296,7 +354,7 @@ function ns.login()
       for _, foe in ipairs(d.foes or {}) do
         ns.knownFoe(foe)
       end
-      ns.speak(d)
+      ns.localize(d)
     end
   end
   ns.loadProfile()
