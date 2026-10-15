@@ -84,14 +84,16 @@ local WORLD = {
   Fire = ICONS .. "Spell_Fire_Fire",
   Slime = ICONS .. "Spell_Nature_Acid_01",
 }
+-- (by the creature type's id: beast, dragonkin, demon, elemental, undead,
+-- humanoid, mechanical)
 local KIND = {
-  Beast = ICONS .. "Ability_Hunter_Pet_Wolf",
-  Humanoid = ICONS .. "INV_Misc_Head_Human_01",
-  Undead = ICONS .. "Spell_Shadow_RaiseDead",
-  Demon = ICONS .. "Spell_Shadow_SummonFelHunter",
-  Dragonkin = ICONS .. "INV_Misc_Head_Dragon_01",
-  Mechanical = ICONS .. "INV_Gizmo_01",
-  Elemental = ICONS .. "Spell_Fire_Fire",
+  [1] = ICONS .. "Ability_Hunter_Pet_Wolf",
+  [2] = ICONS .. "INV_Misc_Head_Dragon_01",
+  [3] = ICONS .. "Spell_Shadow_SummonFelHunter",
+  [4] = ICONS .. "Spell_Fire_Fire",
+  [6] = ICONS .. "Spell_Shadow_RaiseDead",
+  [7] = ICONS .. "INV_Misc_Head_Human_01",
+  [9] = ICONS .. "INV_Gizmo_01",
 }
 
 local function icon(tex, path)
@@ -174,8 +176,8 @@ local function portrait(p, foe)
   end
   if foe.npc and not display then resolve(foe) end
   if foe.level == -1 then return icon(p.tex, SKULL) end
-  -- (its type the game's word, in the client's language: its English one)
-  icon(p.tex, KIND[ns.typeKey(foe.type)] or (foe.player and KIND.Humanoid) or FOE)
+  -- (its type by its id; a player, a humanoid)
+  icon(p.tex, KIND[foe.typeId or ns.typeIdOf(foe.type)] or (foe.player and KIND[7]) or FOE)
 end
 
 -- A page's face: a foe's portrait, the world's harm, an icon.

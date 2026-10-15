@@ -72,14 +72,15 @@ check(
   page.sections[1].lines[1]
 )
 
--- The creature types: the game's French word, its English key.
+-- The creature types: the game's French word, its id; the id, its word.
 check(
-  ns.typeKey("Bestiole") == "Critter" and ns.typeKey("Bête") == "Beast",
-  "a creature type's French word: its English one"
+  ns.typeIdOf("Bestiole") == ns.CRITTER and ns.typeIdOf("Bête") == 1 and ns.typeName(1) == "Bête",
+  "a creature type's French word: its id, and back"
 )
-if G.FOREVER then
-  -- (Forever's meter names a foe only: its creature by its French name)
-  check(ns.creatures.names["Vermine kobold"] == 6, "Forever: a foe's French name finds its creature")
+-- (Forever's meter names a foe only: its creature by its French name; the
+-- same names on Classic)
+check(ns.creatureIdOf("Vermine kobold") == 6, "a foe's French name finds its creature")
+do
   -- (a debrief written on an English client reads in French, by its creatures' ids)
   local list = ns.record().debriefs
   table.insert(list, {
@@ -98,7 +99,7 @@ if G.FOREVER then
       and old.recap[1].src == "Léopard des neiges"
       and old.spells[1].src == "Léopard des neiges"
       and old.foes[2].name == "Kyle",
-    "Forever: a debrief written in English reads in French, its creatures by their ids (a player's name kept)",
+    "a debrief written in English reads in French, its creatures by their ids (a player's name kept)",
     old.foes[1].name
   )
 end
@@ -117,7 +118,10 @@ table.insert(list, {
   casts = { { id = 78, t = 1, name = "Heroic Strike" } },
   ready = { { n = "Stoneform", k = "guard", sid = 20594 } },
   unused = { { n = "Stoneform", k = "guard", sid = 20594 } },
-  foes = { { name = "Grrr", type = "Beast", hits = 1 } },
+  foes = {
+    { name = "Grrr", type = "Beast", hits = 1 },
+    { name = "Trrr", typeKey = "Undead", type = "Undead", hits = 1 },
+  },
 })
 table.insert(list, { kind = "close", at = 9, zone = "Westfall", sub = "Moonbrook", foes = {} })
 G.reload()
@@ -128,7 +132,11 @@ check(
     and was.casts[1].name == "Frappe héroïque"
     and was.ready[1].n == "Forme de pierre"
     and was.unused[1].n == "Forme de pierre"
-    and was.foes[1].type == "Bête",
+    and was.foes[1].type == "Bête"
+    and was.foes[1].typeId == 1
+    and was.foes[2].typeId == 6
+    and was.foes[2].typeKey == nil
+    and was.foes[2].type == "Mort-vivant",
   "a debrief written in English reads in French: its place, spells, tools and types by their ids",
   was.sub
 )

@@ -188,8 +188,8 @@ else
     "… what each did: hits, misses, damage"
   )
   check(
-    trogg.level == 9 and trogg.type == "Humanoid" and not wolf.level,
-    "… a foe's level and kind when the game could tell"
+    trogg.level == 9 and trogg.typeId == 7 and trogg.type == "Humanoid" and not wolf.level,
+    "… a foe's level and kind (by its id) when the game could tell"
   )
   check(d.heals[1].name == "Brother Paxton" and d.heals[1].amount == 60, "… the heals, by whom")
   check(d.casts[1].name == "Retaliation" and d.casts[1].t == 4, "… my casts")
@@ -343,7 +343,6 @@ if G.FOREVER then
       { name = "Snow Leopard Prowler", hits = 1, damage = 3 },
     },
   })
-  G.ns.creatures.names["Snow Leopard Prowler"] = G.ns.creatures.names["Snow Leopard Prowler"] or 269075
   G.reload()
   local old = debriefs[#debriefs]
   check(
@@ -1125,7 +1124,11 @@ if G.FOREVER then
   d = only(debriefs, "close")
   local foe = d and d.foes[1]
   check(
-    foe and foe.npc and foe.type == "Humanoid" and ns.seenNamed("Dark Iron Insurgent").npc == foe.npc,
+    foe
+      and foe.npc
+      and foe.typeId == 7
+      and foe.type == "Humanoid"
+      and ns.seenNamed("Dark Iron Insurgent").npc == foe.npc,
     "Forever: a foe the meter names only, made whole from what was seen of it (its portrait's id, its kind)"
   )
   local older = { name = "Dark Iron Insurgent" }

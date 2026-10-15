@@ -47,8 +47,8 @@ check(
 local lessons = table.concat(card.lessons, " | ")
 check(lessons:find("Schildwall war bereit und blieb ungenutzt%."), "… a lesson: the guard unused", lessons)
 check(
-  ns.typeKey("Tier") == "Critter" and ns.typeKey("Wildtier") == "Beast",
-  "a creature type's German word: its English one"
+  ns.typeIdOf("Tier") == ns.CRITTER and ns.typeIdOf("Wildtier") == 1 and ns.typeName(1) == "Wildtier",
+  "a creature type's German word: its id, and back"
 )
 
 local counts = { total = 4, deaths = 0, traits = { elite = 3 }, foes = {} }

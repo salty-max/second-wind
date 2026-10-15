@@ -23,15 +23,15 @@ The plan, its research and its decisions: PLAN.md.
     next; the per-character `SecondWindChar` of before 0.1.3 moved in at the
     login), `ns.record()` this character's, `ns.debriefsOf(every)`,
     `ns.whose(d)`, `ns.fightsOf(every)`; the creatures seen (my target, under
-    the mouse, a nameplate: `SecondWindAccount.seen[name]` = npc id, kind,
+    the mouse, a nameplate: `SecondWindAccount.seen[name]` = npc id, type id,
     rank, the last 400), `ns.knownFoe(foe)` making whole a foe a fight named
     only (Forever's meter: its portrait, its kind); `ns.ownNames(d)`: a
     death recap's names the creatures' own (Forever's adds a word after
     each unit's, "Snow Leopard Nub"), the units of one name one foe;
     `ns.localize(d)`: a debrief keeps ids beside the names of its day (the
     places' area ids, found by name with `C_Map.GetAreaInfo`; spells, tool
-    spells, creatures, types' English keys) and every name with an id is
-    written again in the client's language, at each login and for each
+    spells, creatures, creature types by their ids) and every name with an
+    id is written again in the client's language, at each login and for each
     debrief written (never store a name without its id: the family's rule);
     the events (`ns.on`, `ns.onUnit` for one
     unit's), the login, `/secondwind` and `/wind` (`/sw` is the game's
@@ -143,9 +143,8 @@ The plan, its research and its decisions: PLAN.md.
     from wow-data's databases, `../wow-data`: every creature that can be a
     foe, not critters, totems, pets or the databases' helpers; committed,
     never edited, kept out of StyLua and selene): each creature's display id
-    (its portrait) by its id, and on Forever its id by its name (a foe
-    Forever's meter names only; Forever's own creatures named too, their
-    portrait found in the game).
+    (its portrait) by its id (Forever's own creatures have none: their
+    portrait found in the game). Their names are each language's.
   - `Locale.lua` and `Text_<locale>.lua`: the reader's language. Every word
     goes through `L["..."]` (the kit's `K.L`, English by default; plurals
     through `K.plural(n, "one", "many")`), each sentence whole, as a
@@ -156,12 +155,16 @@ The plan, its research and its decisions: PLAN.md.
     `scripts/locales.ts` (`bun run locales`, its `--check` in `bun run
     check`) writes them for the game's twelve languages from
     `i18n/<locale>/` (`words.json`; `meta.json`: plural rule, decimal,
-    flagged; `creatures.json` and `types.json`: the foes' names and the
-    creature types' in the language, from wow-data's Forever database,
-    `bun scripts/creature_names.ts <locale>`); `--keys` writes
-    `i18n/words.json`, every word to translate. A creature type is the
-    game's word in the client's language (`UnitCreatureType`): its English
-    one by `ns.typeKey` (its icon, the critter test). No semicolons in any
+    flagged; `creatures.json`: every foe's name in the language by its id,
+    each game's, complete, for every language, English one of them (enGB
+    takes enUS's), from wow-data's databases, `bun
+    scripts/creature_names.ts <locale>`, loaded by `ns.names`:
+    `ns.creatureNameOf(id)`, `ns.creatureIdOf(name)` for a foe Forever's
+    meter names only; no English fallback); `--keys` writes
+    `i18n/words.json`, every word to translate. A creature type is kept by
+    its id (`ns.typeIdOf`, from the game's word through `C_CreatureInfo`),
+    its word the game's (`ns.typeName`), its icon and the critter test by
+    the id. No semicolons in any
     language. French done 14 October 2026, German (flagged: a first translation) the same day.
   - `Page.lua`: the theme (frost steel) and the pages' renderer
     (`ns.newPage`, `page:draw(c, d, keep)`): a header (a round portrait: the
@@ -255,7 +258,7 @@ scripts/release.sh [--version X.Y.Z] [--hold] NOTES.md   # tag, push; Actions pu
 ```
 
 - `.github/workflows/game-data.yml`: daily and by hand, wow-data's
-  `addon-data.yml` builds the game data again from wow-data's pins (the creatures' portraits and names, the foes' names and creature types in every language, then the language files);
+  `addon-data.yml` builds the game data again from wow-data's pins (the creatures' portraits, every foe's name in every language, then the language files);
   a pull request when a generated file changes, the checks run on it, then
   rebased onto main by itself and told to the owner's phone in words
   (Ravenpost's inbox). The generators' list lives there: a new one goes in too.

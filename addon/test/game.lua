@@ -65,6 +65,67 @@ local AREAS = {
 }
 C_Map = C_Map or {}
 C_Map.GetAreaInfo = function(id) return (AREAS[rawget(_G, "LOCALE") or os.getenv("LOCALE") or "enUS"] or AREAS.enUS)[id] end
+-- The creature types by id, in the client's language (C_CreatureInfo; wow-data's
+-- CreatureType).
+local TYPES = {
+  enUS = {
+    [1] = "Beast",
+    [2] = "Dragonkin",
+    [3] = "Demon",
+    [4] = "Elemental",
+    [5] = "Giant",
+    [6] = "Undead",
+    [7] = "Humanoid",
+    [8] = "Critter",
+    [9] = "Mechanical",
+    [10] = "Not specified",
+    [11] = "Totem",
+    [12] = "Non-combat Pet",
+    [14] = "Wild Pet",
+  },
+  frFR = {
+    [1] = "B\195\170te",
+    [2] = "Draconien",
+    [3] = "D\195\169mon",
+    [4] = "El\195\169mentaire",
+    [5] = "G\195\169ant",
+    [6] = "Mort-vivant",
+    [7] = "Humano\195\175de",
+    [8] = "Bestiole",
+    [9] = "M\195\169canique",
+    [10] = "Non sp\195\169cifi\195\169",
+    [11] = "Totem",
+    [12] = "Familier pacifique",
+    [14] = "Mascotte sauvage",
+  },
+  deDE = {
+    [1] = "Wildtier",
+    [2] = "Drachkin",
+    [3] = "D\195\164mon",
+    [4] = "Elementar",
+    [5] = "Riese",
+    [6] = "Untoter",
+    [7] = "Humanoid",
+    [8] = "Tier",
+    [9] = "Mechanisch",
+    [10] = "Nicht spezifiziert",
+    [11] = "Totem",
+    [12] = "Haustier",
+    [14] = "Ungez\195\164hmtes Tier",
+  },
+}
+local function types() return TYPES[rawget(_G, "LOCALE") or os.getenv("LOCALE") or "enUS"] or TYPES.enUS end
+C_CreatureInfo = {
+  GetCreatureTypeIDs = function()
+    local ids = {}
+    for id in pairs(types()) do
+      table.insert(ids, id)
+    end
+    table.sort(ids)
+    return ids
+  end,
+  GetCreatureTypeInfo = function(id) return types()[id] and { name = types()[id] } or nil end,
+}
 function GetRealmName() return state.realm end
 local units = {} -- token = what the game can tell of a creature in sight
 -- (my target: units.target = { name, guid, level, rank, dead, player, friendly })
@@ -375,9 +436,9 @@ local ns -- (the addon's, made below: a creature's own id from its shipped names
 local function creature(name, player)
   if not npcs[name] then
     nextSpawn = nextSpawn + 1
-    -- (a creature's own id where the shipped names know it, as the game's
+    -- (a creature's own id where the client's names know it, as the game's
     -- GUID gives it; else one past every real creature's)
-    local known = ns and ns.creatures and ns.creatures.names and ns.creatures.names[name]
+    local known = ns and ns.creatureIdOf and ns.creatureIdOf(name)
     npcs[name] = player and ("Player-6113-%08X"):format(nextSpawn)
       or ("Creature-0-4170-0-12-%d-%08X"):format(known or (900000 + nextSpawn), nextSpawn)
   end

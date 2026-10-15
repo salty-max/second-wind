@@ -90,8 +90,8 @@ ns.on("PLAYER_TARGET_CHANGED", function()
   if not ns.option("prepull") then return end
   if UnitAffectingCombat("player") or (InCombatLockdown and InCombatLockdown()) then return end
   if not UnitExists("target") or UnitIsDeadOrGhost("target") or UnitIsPlayer("target") then return end
-  -- (the game's word for its type, in the client's language: its English one)
-  if not UnitCanAttack("player", "target") or ns.typeKey(UnitCreatureType("target")) == "Critter" then return end
+  -- (its type by its id, from the game's word for it)
+  if not UnitCanAttack("player", "target") or ns.typeIdOf(UnitCreatureType("target")) == ns.CRITTER then return end
   local guid, name = UnitGUID("target"), UnitName("target")
   if not (clear(guid) and clear(name)) or guid == lastGuid then return end
   lastGuid = guid

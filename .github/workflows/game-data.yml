@@ -1,7 +1,7 @@
 # Every day, and by hand: Second Wind's game data built again from wow-data's
 # pins (salty-max/wow-data's addon-data.yml: wow-data beside it, the
-# databases downloaded): the creatures' portraits and names, the foes' names
-# and the creature types in every language, then the language files. When one
+# databases downloaded): the creatures' portraits, every foe's name in every
+# language (English one of them), then the language files. When one
 # changes, a pull request with the checks run, then merged by itself and told
 # to the owner's phone.
 name: Game data

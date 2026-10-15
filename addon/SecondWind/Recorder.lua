@@ -45,8 +45,9 @@
 -- are read as on Classic.
 --     (tools: Tools.lua), killer = { name, spell, id,
 --     amount, overkill }, foes = { { name, npc, first, hits, misses, damage,
---     level, rank, type, player, class, display (its portrait's, found
---     when the book first shows it) } }, heals = { { name, amount } }, casts = {
+--     level, rank, typeId (and type: its word in today's language), player,
+--     class, display (its portrait's, found when the book first shows it)
+--     } }, heals = { { name, amount } }, casts = {
 --     { t, id, name } }, events = { { t, k, src, spell, id,
 --     amount, over, crit, school, what } }, samples = { { t, pct } }, recap =
 --     { { t, amount, overkill, hp, src, school, spell, id } }, recapHidden = {
@@ -157,7 +158,9 @@ local function foeOf(f, guid, name)
     local level, rank, kind = UnitLevel(token), UnitClassification(token), UnitCreatureType(token)
     if not ns.secret(level) then foe.level = level end
     if not ns.secret(rank) and rank ~= "normal" then foe.rank = rank end
-    if not ns.secret(kind) then foe.type = kind end
+    if not ns.secret(kind) then
+      foe.typeId, foe.type = ns.typeIdOf(kind), kind
+    end
   end
   f.foes[guid] = foe
   table.insert(f.order, guid)

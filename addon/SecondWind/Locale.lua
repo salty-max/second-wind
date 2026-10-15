@@ -1,8 +1,8 @@
 -- The reader's language. The client loads its own Text_<locale>.lua next (the
 -- TOCs name Text_[TextLocale].lua; scripts/locales.ts writes them from
--- i18n/), which hands its words to ns.translate; English stays wherever it
--- says nothing. Loaded after the kit and Creatures.lua, before any file reads
--- a word.
+-- i18n/), which hands its words to ns.translate (English stays wherever it
+-- says nothing) and the game's names in the language to ns.names. Loaded
+-- after the kit and Creatures.lua, before any file reads a word.
 local _, ns = ...
 local K = ns.kit
 
@@ -46,32 +46,46 @@ function ns.date(at, time)
   return time and L["%s %02d:%02d"]:format(day, d.hour, d.min) or day
 end
 
--- A creature type's English word (the game's own, UnitCreatureType's, in the
--- client's language: "Bête" is "Beast"), for its icon and the critter test.
-local typeKeys, typeWords = {}, {}
-function ns.typeKey(name) return name and (typeKeys[name] or name) or nil end
--- (the English keys, the game's own words on an English client)
-local TYPES = {
-  Beast = true,
-  Critter = true,
-  Demon = true,
-  Dragonkin = true,
-  Elemental = true,
-  Giant = true,
-  Humanoid = true,
-  Mechanical = true,
-  ["Non-combat Pet"] = true,
-  ["Not specified"] = true,
-  Undead = true,
-  ["Wild Pet"] = true,
-  Totem = true,
-  ["Gas Cloud"] = true,
+-- A creature type by its id (the game's, C_CreatureInfo's: a debrief keeps
+-- the id, its icon and the critter test by it, its word the client's).
+ns.CRITTER = 8
+local typeIds
+-- (an older debrief's English key, before 15 October 2026)
+local ENGLISH_TYPES = {
+  Beast = 1,
+  Dragonkin = 2,
+  Demon = 3,
+  Elemental = 4,
+  Giant = 5,
+  Undead = 6,
+  Humanoid = 7,
+  Critter = 8,
+  Mechanical = 9,
+  ["Not specified"] = 10,
+  Totem = 11,
+  ["Non-combat Pet"] = 12,
+  ["Gas Cloud"] = 13,
+  ["Wild Pet"] = 14,
 }
--- A type's English key from a word of today's language or English's; nil
--- for a word of another (a debrief written on another client's language).
-function ns.typeKeyOf(word)
-  if not word then return nil end
-  return typeKeys[word] or (TYPES[word] and word) or nil
+-- A type's id from the game's word for it (UnitCreatureType's, in the
+-- client's language), or an older debrief's English key; nil for a word of
+-- another language (a debrief written on another client's).
+function ns.typeIdOf(word)
+  if type(word) ~= "string" or word == "" or ns.secret(word) then return nil end
+  if not typeIds then
+    typeIds = {}
+    local info = C_CreatureInfo or {}
+    for _, id in ipairs(info.GetCreatureTypeIDs and info.GetCreatureTypeIDs() or {}) do
+      local t = info.GetCreatureTypeInfo(id)
+      if t and type(t.name) == "string" and t.name ~= "" then typeIds[t.name] = id end
+    end
+  end
+  return typeIds[word] or ENGLISH_TYPES[word]
+end
+-- A type's word in the client's language, by its id.
+function ns.typeName(id)
+  local t = id and C_CreatureInfo and C_CreatureInfo.GetCreatureTypeInfo and C_CreatureInfo.GetCreatureTypeInfo(id)
+  return t and type(t.name) == "string" and t.name ~= "" and t.name or nil
 end
 -- A class's name in today's language, by its token ("WARRIOR"): the game's
 -- own (LOCALIZED_CLASS_NAMES_*), else the name kept.
@@ -85,9 +99,6 @@ function ns.noun(word)
   if not word then return nil end
   return ns.locale == "deDE" and word or word:lower()
 end
--- A type's word in today's language, from its English key.
-function ns.typeWord(key) return key and (typeWords[key] or key) or nil end
-
 function ns.translate(t)
   ns.locale = t.locale
   K.isOne = PLURALS[t.plural] or K.isOne
@@ -98,41 +109,35 @@ function ns.translate(t)
   for english, word in pairs(t.words or {}) do
     L[english] = word:gsub("%$g([^:;]*):([^;]*);", function(m, f) return female and f or m end)
   end
-  for name, key in pairs(t.types or {}) do
-    typeKeys[name] = key
-    if not typeWords[key] or name < typeWords[key] then typeWords[key] = name end
-  end
-  -- (a foe Forever's damage meter names only, in the client's language: its
-  -- creature, for its portrait; and each creature's name in this language by
-  -- its id, the English ones taken first, for ns.creatureNameOf)
-  local names = ns.creatures and ns.creatures.names
-  if names then
-    ns.creatureEnglish = ns.creatureEnglish or ns.byId(names)
-    ns.creatureLocal = ns.byId(t.creatures or {})
-    for name, id in pairs(t.creatures or {}) do
-      names[name] = names[name] or id
+end
+
+-- The game's names in the client's language (its Text file's, from
+-- i18n/<locale>/creatures.json, English one language among them): every
+-- foe's name by its id, each game's, complete.
+local names, idOfName
+function ns.names(t)
+  names, idOfName = t, nil
+end
+local function ownNames()
+  if not names then return nil end
+  return ns.forever and names.creatures or names.creaturesClassic
+end
+
+-- A creature's name in the client's language, by its id; nil where the
+-- language's names don't have it.
+function ns.creatureNameOf(id)
+  local own = id and ownNames()
+  return own and own[id] or nil
+end
+-- A creature's id from its name in the client's language (Forever's damage
+-- meter names a foe only: the first id of a name).
+function ns.creatureIdOf(name)
+  if type(name) ~= "string" or ns.secret(name) then return nil end
+  if not idOfName then
+    idOfName = {}
+    for id, n in pairs(ownNames() or {}) do
+      if not idOfName[n] or id < idOfName[n] then idOfName[n] = id end
     end
   end
-end
-
--- { name = id } turned { id = name } (of two names, the first in order: the
--- same every time)
-function ns.byId(names)
-  local out = {}
-  for name, id in pairs(names) do
-    if not out[id] or name < out[id] then out[id] = name end
-  end
-  return out
-end
-
--- A creature's name in the client's language, by its id (the names Second
--- Wind ships, Forever's: this language's, else the English the game keeps
--- where it has no other); nil where none is known (Classic's, whose foes the
--- combat log names).
-function ns.creatureNameOf(id)
-  if not id then return nil end
-  if not ns.creatureEnglish and ns.creatures and ns.creatures.names then
-    ns.creatureEnglish = ns.byId(ns.creatures.names)
-  end
-  return (ns.creatureLocal and ns.creatureLocal[id]) or (ns.creatureEnglish and ns.creatureEnglish[id])
+  return idOfName[name]
 end

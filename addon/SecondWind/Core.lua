@@ -135,7 +135,7 @@ end
 
 -- ── creatures seen ───────────────────────────────────────────────────────────
 -- What the game told of a creature in sight (my target, under the mouse, a
--- nameplate): its npc id, kind, rank and level, by name, account-wide
+-- nameplate): its npc id, its type's id, rank and level, by its name of the day, account-wide
 -- (SecondWindAccount.seen), the last SEEN names kept. For a foe a fight named
 -- only (Forever's meter) or met out of sight: its portrait and what it was.
 local SEEN = 400
@@ -153,7 +153,7 @@ function ns.see(unit)
     npc = npc,
     level = clear(level) and level > 0 and level or nil,
     rank = clear(rank) and rank ~= "normal" and rank or nil,
-    type = clear(kind) and kind or nil,
+    typeId = clear(kind) and ns.typeIdOf(kind) or nil,
     at = time(),
   }
 end
@@ -161,18 +161,19 @@ function ns.seenNamed(name)
   local seen = type(SecondWindAccount) == "table" and SecondWindAccount.seen
   return seen and name and seen[name] or nil
 end
--- A foe made whole from what was seen of its name (its npc id, its kind and
+-- A foe made whole from what was seen of its name (its npc id, its type and
 -- rank where the fight didn't tell them; its level the fight's own), else
--- from the creatures of the original world (Creatures.lua: its npc id).
+-- from the game's names in the client's language (its npc id).
 function ns.knownFoe(foe)
   if foe.npc or foe.player or not foe.name then return foe end
   local s = ns.seenNamed(foe.name)
   if s then
     foe.npc = s.npc
-    foe.type = foe.type or s.type
+    foe.typeId = foe.typeId or s.typeId or ns.typeIdOf(s.type)
+    foe.type = foe.type or ns.typeName(foe.typeId)
     foe.rank = foe.rank or s.rank
   else
-    foe.npc = ns.creatures and ns.creatures.names[foe.name] or nil
+    foe.npc = ns.creatureIdOf(foe.name)
   end
   return foe
 end
@@ -190,12 +191,10 @@ end
 -- near), which no table knows and which splits one kind of foe into many. The
 -- name itself where it is known, else the longest known name it begins with
 -- ("Snow Leopard"); known: the fight's own meter names (`also`), the
--- creatures seen, the game's (Creatures_<game>.lua, in the client's language).
+-- creatures seen, the game's (its names in the client's language).
 function ns.ownName(name, also)
   if type(name) ~= "string" then return name end
-  local function known(n)
-    return (also and also[n]) or ns.seenNamed(n) or (ns.creatures and ns.creatures.names and ns.creatures.names[n])
-  end
+  local function known(n) return (also and also[n]) or ns.seenNamed(n) or ns.creatureIdOf(n) end
   if known(name) then return name end
   local cut = name:match("^(.+) %S+$")
   while cut do
@@ -270,7 +269,7 @@ end
 -- own); every name with an id is then written again in today's: the places,
 -- the creatures (the foes, the killer, the recap, the meter's rows and the
 -- blows; a player's name kept), the spells (cast, the meter's, the recap's,
--- the killing blow), the tools, the creature types. At each login, and for
+-- the killing blow), the tools, the creature types (by their ids, the game's). At each login, and for
 -- each debrief written.
 -- The game's own words for a kind of control lost, in the client's language
 -- (its global strings; nil on a client without them: the words kept)
@@ -296,10 +295,13 @@ function ns.localize(d)
       renamed[foe.name] = name
       foe.name = name
     end
-    if foe.type then
-      foe.typeKey = foe.typeKey or ns.typeKeyOf(foe.type)
-      foe.type = foe.typeKey and ns.typeWord(foe.typeKey) or foe.type
+    if not foe.player and not foe.npc then foe.npc = ns.creatureIdOf(foe.name) end
+    -- (a type by its id; an older debrief's English key or word of the day)
+    if foe.type or foe.typeKey then
+      foe.typeId = foe.typeId or ns.typeIdOf(foe.typeKey) or ns.typeIdOf(foe.type)
+      foe.typeKey = nil
     end
+    foe.type = ns.typeName(foe.typeId) or foe.type
   end
   if d.killer and renamed[d.killer.name] then d.killer.name = renamed[d.killer.name] end
   if d.killer and d.killer.id then d.killer.spell = ns.spellNameOf(d.killer.id) or d.killer.spell end
