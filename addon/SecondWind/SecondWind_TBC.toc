@@ -19,7 +19,7 @@
 # (scripts/package.ts checks).
 Kit.lua
 Creatures_Classic.lua
-Spells_Classic.lua
+Game_Classic.lua
 Locale.lua
 Text_[TextLocale].lua
 Core.lua

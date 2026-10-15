@@ -246,6 +246,19 @@ function ns.areaId(name)
   end
   return areaIds[name]
 end
+-- An area's id from its English name (Game_<game>.lua: an older debrief's,
+-- whatever the client's language).
+local byEnglish
+function ns.areaIdOfEnglish(name)
+  if type(name) ~= "string" or name == "" then return nil end
+  if not byEnglish then
+    byEnglish = {}
+    for id, n in pairs(ns.areaEnglish or {}) do
+      if not byEnglish[n] or id < byEnglish[n] then byEnglish[n] = id end
+    end
+  end
+  return byEnglish[name]
+end
 function ns.areaName(id)
   local n = id and C_Map and C_Map.GetAreaInfo and C_Map.GetAreaInfo(id)
   return type(n) == "string" and n ~= "" and n or nil
@@ -284,8 +297,8 @@ local HELD_WORDS = {
   POSSESS = LOSS_OF_CONTROL_DISPLAY_POSSESS,
 }
 function ns.localize(d)
-  d.zoneArea = d.zoneArea or ns.areaId(d.zone)
-  d.subArea = d.subArea or ns.areaId(d.sub)
+  d.zoneArea = d.zoneArea or ns.areaId(d.zone) or ns.areaIdOfEnglish(d.zone)
+  d.subArea = d.subArea or ns.areaId(d.sub) or ns.areaIdOfEnglish(d.sub)
   -- (inside a building: no area id, its building area's)
   d.subInside = not d.subArea and (d.subInside or ns.insideId(d.sub)) or nil
   d.zone = ns.areaName(d.zoneArea) or d.zone

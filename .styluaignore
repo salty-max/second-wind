@@ -1,4 +1,4 @@
 # Generated (scripts/creatures.ts, scripts/locales.ts)
 addon/SecondWind/Creatures_*.lua
-addon/SecondWind/Spells_*.lua
+addon/SecondWind/Game_*.lua
 addon/SecondWind/Text_*.lua

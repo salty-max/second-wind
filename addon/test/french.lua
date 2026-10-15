@@ -150,7 +150,10 @@ check(
   "a debrief written in English reads in French: its place, spells, tools and types by their ids",
   was.sub
 )
-check(plain.sub == "Moonbrook" and not plain.subArea, "… one whose place the game can't name by id keeps its name")
+check(
+  plain.subArea == 20 and plain.zoneArea == 40 and plain.sub == "Moonbrook",
+  "… one kept by its English names finds its ids on a French client too (a name the client can't give stays)"
+)
 
 -- The word before a pull, in French.
 local counts = { total = 4, deaths = 0, traits = { elite = 3 }, foes = {} }

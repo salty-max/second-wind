@@ -29,7 +29,8 @@ The plan, its research and its decisions: PLAN.md.
     death recap's names the creatures' own (Forever's adds a word after
     each unit's, "Snow Leopard Nub"), the units of one name one foe;
     `ns.localize(d)`: a debrief keeps ids beside the names of its day (the
-    places' area ids, found by name with `C_Map.GetAreaInfo`, a place inside
+    places' area ids, found by name with `C_Map.GetAreaInfo` (an older
+    debrief's English names by `Game_<game>.lua`'s, on any client), a place inside
     a building its building area's, `subInside`, by the language's list in
     its Text file, `i18n/<locale>/subzones.json`, the kit's; spells, tool
     spells, creatures, creature types by their ids) and every name with an
@@ -63,7 +64,7 @@ The plan, its research and its decisions: PLAN.md.
     (a bandage only with LULL seconds without harm below half health),
     a tool known by its key, never its name (`ns.toolKey`: "i<item>",
     "s<the first id its entry lists>"; a cast by its spell's id, any rank's:
-    `Spells_<game>.lua`, `bun scripts/spells.ts`, from wow-data's
+    `Game_<game>.lua`, `bun scripts/game.ts`, from wow-data's
     SkillLineAbility; `ns.castKey`), an item's name the language's
     (`i18n/<locale>/items.json`, every tool's item but TBC Anniversary's own,
     which no database of ours has),

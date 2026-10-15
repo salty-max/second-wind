@@ -13,7 +13,7 @@
 --     sid (a spell's id: its name in any language), item, spell (an item's:
 --     what its use casts), count, worn (its slot), icon }; known by its key
 --     (ns.toolKey: "i<item>", "s<the first id its entry lists>"), never by
---     its name: a cast by its spell's id, any rank's (Spells_<game>.lua)
+--     its name: a cast by its spell's id, any rank's (Game_<game>.lua)
 --   guard: lessens the harm or heals; stop: holds a foe; away: gets me out
 local _, ns = ...
 local K = ns.kit
@@ -457,7 +457,7 @@ end
 local function itemName(it) return ns.itemNameOf(it.id) or K.itemName(it.id, it.n) end
 
 -- ── a tool by its key ────────────────────────────────────────────────────────
--- (any rank's id, its entry's first: Spells_<game>.lua's ranks and the ids the
+-- (any rank's id, its entry's first: Game_<game>.lua's ranks and the ids the
 -- entry lists; an item's use by the spell it casts)
 local CANON, BY_SPELL
 local function keys()
