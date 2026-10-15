@@ -25,7 +25,15 @@ The plan, its research and its decisions: PLAN.md.
     `ns.whose(d)`, `ns.fightsOf(every)`; the creatures seen (my target, under
     the mouse, a nameplate: `SecondWindAccount.seen[name]` = npc id, kind,
     rank, the last 400), `ns.knownFoe(foe)` making whole a foe a fight named
-    only (Forever's meter: its portrait, its kind); the events (`ns.on`, `ns.onUnit` for one
+    only (Forever's meter: its portrait, its kind); `ns.ownNames(d)`: a
+    death recap's names the creatures' own (Forever's adds a word after
+    each unit's, "Snow Leopard Nub"), the units of one name one foe;
+    `ns.localize(d)`: a debrief keeps ids beside the names of its day (the
+    places' area ids, found by name with `C_Map.GetAreaInfo`; spells, tool
+    spells, creatures, types' English keys) and every name with an id is
+    written again in the client's language, at each login and for each
+    debrief written (never store a name without its id: the family's rule);
+    the events (`ns.on`, `ns.onUnit` for one
     unit's), the login, `/secondwind` and `/wind` (`/sw` is the game's
     stopwatch; `/wind copy`, `/wind lifelines` (or `carry`, `kit`)).
   - `Settings.lua`: each character's settings (the kit's profiles, code
