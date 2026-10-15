@@ -5,7 +5,7 @@
 ## Notes-deDE: Nachbesprechung von Beinahe-Toden und Toden nach dem Kampf. Sieh, was dich getroffen hat, welche Notfallmittel ungenutzt blieben und was deine gefährlichen Kämpfe gemeinsam haben.
 ## Category: Combat
 ## Author: salty-max
-## Version: 0.5.0
+## Version: 0.5.1
 ## SavedVariablesPerCharacter: SecondWindChar
 ## SavedVariables: SecondWindSettings, SecondWindAccount, SecondWindCollect
 ## IconTexture: Interface\AddOns\SecondWind\Media\Logo
