@@ -80,6 +80,27 @@ check(
 if G.FOREVER then
   -- (Forever's meter names a foe only: its creature by its French name)
   check(ns.creatures.names["Vermine kobold"] == 6, "Forever: a foe's French name finds its creature")
+  -- (a debrief written on an English client reads in French, by its creatures' ids)
+  local list = ns.record().debriefs
+  table.insert(list, {
+    kind = "death",
+    at = 7,
+    killer = { name = "Snow Leopard" },
+    recap = { { src = "Snow Leopard", amount = 9 } },
+    spells = { { src = "Snow Leopard", amount = 9 } },
+    foes = { { name = "Snow Leopard", npc = 1201, hits = 1, damage = 9 }, { name = "Kyle", player = true, hits = 1 } },
+  })
+  G.reload()
+  local old = list[#list]
+  check(
+    old.foes[1].name == "Léopard des neiges"
+      and old.killer.name == "Léopard des neiges"
+      and old.recap[1].src == "Léopard des neiges"
+      and old.spells[1].src == "Léopard des neiges"
+      and old.foes[2].name == "Kyle",
+    "Forever: a debrief written in English reads in French, its creatures by their ids (a player's name kept)",
+    old.foes[1].name
+  )
 end
 
 -- The word before a pull, in French.

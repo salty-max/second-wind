@@ -65,11 +65,36 @@ function ns.translate(t)
     typeKeys[name] = key
   end
   -- (a foe Forever's damage meter names only, in the client's language: its
-  -- creature, for its portrait)
+  -- creature, for its portrait; and each creature's name in this language by
+  -- its id, the English ones taken first, for ns.creatureNameOf)
   local names = ns.creatures and ns.creatures.names
   if names then
+    ns.creatureEnglish = ns.creatureEnglish or ns.byId(names)
+    ns.creatureLocal = ns.byId(t.creatures or {})
     for name, id in pairs(t.creatures or {}) do
       names[name] = names[name] or id
     end
   end
+end
+
+-- { name = id } turned { id = name } (of two names, the first in order: the
+-- same every time)
+function ns.byId(names)
+  local out = {}
+  for name, id in pairs(names) do
+    if not out[id] or name < out[id] then out[id] = name end
+  end
+  return out
+end
+
+-- A creature's name in the client's language, by its id (the names Second
+-- Wind ships, Forever's: this language's, else the English the game keeps
+-- where it has no other); nil where none is known (Classic's, whose foes the
+-- combat log names).
+function ns.creatureNameOf(id)
+  if not id then return nil end
+  if not ns.creatureEnglish and ns.creatures and ns.creatures.names then
+    ns.creatureEnglish = ns.byId(ns.creatures.names)
+  end
+  return (ns.creatureLocal and ns.creatureLocal[id]) or (ns.creatureEnglish and ns.creatureEnglish[id])
 end

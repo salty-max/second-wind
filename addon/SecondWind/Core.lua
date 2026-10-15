@@ -224,6 +224,27 @@ function ns.ownNames(d)
   end
   d.foes = foes
 end
+-- A debrief's creatures named in the client's language of today, by their ids
+-- (a debrief keeps the names of the day it was written: one written on
+-- another client's language would read in it): its foes, and the killer, the
+-- recap, the meter's rows and the blows that named them.
+function ns.speak(d)
+  local renamed = {}
+  for _, foe in ipairs(d.foes or {}) do
+    local name = not foe.player and foe.npc and ns.creatureNameOf(foe.npc)
+    if name and foe.name and name ~= foe.name then
+      renamed[foe.name] = name
+      foe.name = name
+    end
+  end
+  if not next(renamed) then return end
+  if d.killer and renamed[d.killer.name] then d.killer.name = renamed[d.killer.name] end
+  for _, list in ipairs({ d.recap or {}, d.spells or {}, d.events or {} }) do
+    for _, row in ipairs(list) do
+      if row.src and renamed[row.src] then row.src = renamed[row.src] end
+    end
+  end
+end
 local function forget()
   local seen = type(SecondWindAccount) == "table" and SecondWindAccount.seen
   if not seen then return end
@@ -267,16 +288,15 @@ function ns.login()
   local className, classFile = UnitClass("player")
   char.name, char.realm, char.class, char.classFile = UnitName("player"), GetRealmName(), className, classFile
   char.level = UnitLevel("player")
-  -- (debriefs saved before a recap's names were made the creatures' own:
-  -- mended, every character's)
+  -- (every character's debriefs: a recap's names made the creatures' own,
+  -- for those saved before; their creatures named in today's language)
   for _, c in pairs(account().characters) do
     for _, d in ipairs(c.debriefs or {}) do
-      if d.recap then
-        ns.ownNames(d)
-        for _, foe in ipairs(d.foes or {}) do
-          ns.knownFoe(foe)
-        end
+      if d.recap then ns.ownNames(d) end
+      for _, foe in ipairs(d.foes or {}) do
+        ns.knownFoe(foe)
       end
+      ns.speak(d)
     end
   end
   ns.loadProfile()
