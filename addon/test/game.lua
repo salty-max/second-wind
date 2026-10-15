@@ -531,7 +531,7 @@ function G.hit(h)
     amount = h.amount,
     overkill = overkill > 0 and overkill or nil,
     currentHP = state.recapSecret and secret() or state.health,
-    sourceName = h.from,
+    sourceName = h.recapAs or h.from, -- (Forever's recap: a word after the name, "Snow Leopard Nub")
     school = h.spell and h.spell[3] or 1,
     spellId = h.spell and h.spell[1] or nil,
   })

@@ -496,6 +496,8 @@ local function recapOf(d)
   end
   -- (the damage meter, hidden at the death (still in combat), read now)
   if ns.meterFill then ns.meterFill(d) end
+  -- (Forever's recap names a unit with a word after its creature's name)
+  ns.ownNames(d)
   for _, foe in ipairs(d.foes) do
     ns.knownFoe(foe)
   end

@@ -301,6 +301,61 @@ else
   check(d.killer.spell == "Fireball" and #d.foes == 2, "… the foes from the log")
 end
 
+if G.FOREVER then
+  -- (Forever's recap names each unit with a word after its creature's name,
+  -- "Snow Leopard Nub", seen on 15 October 2026; the meter names it plainly)
+  debriefs = life()
+  G.pull()
+  G.hit({ from = "Snow Leopard", recapAs = "Snow Leopard Nub", amount = 50 })
+  G.wait(1)
+  G.hit({ from = "Snow Leopard", recapAs = "Snow Leopard Shimsham", amount = 60 })
+  G.hit({ from = "Crag Boar", recapAs = "Crag Boar Mcnugg", amount = 70 })
+  G.die()
+  G.wait(1.5)
+  local d = only(debriefs, "death")
+  local function foeNamed(name)
+    for _, f in ipairs(d and d.foes or {}) do
+      if f.name == name then return f end
+    end
+  end
+  local leopard, boar = foeNamed("Snow Leopard"), foeNamed("Crag Boar")
+  check(
+    d
+      and #d.foes == 2
+      and leopard
+      and leopard.hits == 2
+      and leopard.damage == 110
+      and boar
+      and d.killer.name == "Crag Boar"
+      and d.recap[1].src == "Crag Boar",
+    "Forever: the recap's word after a creature's name left out, its units one foe, as the meter names them"
+  )
+  -- (one saved before, mended at the login; a creature named so stays itself)
+  table.insert(debriefs, {
+    kind = "death",
+    at = 5,
+    recap = { { src = "Snow Leopard Nub", amount = 4 } },
+    spells = { { src = "Snow Leopard", amount = 9 } },
+    killer = { name = "Snow Leopard Nub" },
+    foes = {
+      { name = "Snow Leopard Nub", hits = 1, damage = 4 },
+      { name = "Snow Leopard Altarboy", hits = 2, damage = 5 },
+      { name = "Snow Leopard Prowler", hits = 1, damage = 3 },
+    },
+  })
+  G.ns.creatures.names["Snow Leopard Prowler"] = G.ns.creatures.names["Snow Leopard Prowler"] or 269075
+  G.reload()
+  local old = debriefs[#debriefs]
+  check(
+    #old.foes == 2
+      and old.foes[1].name == "Snow Leopard"
+      and old.foes[1].hits == 3
+      and old.foes[2].name == "Snow Leopard Prowler"
+      and old.killer.name == "Snow Leopard",
+    "… and a debrief saved before, mended at the login, a real name kept"
+  )
+end
+
 debriefs = life()
 G.pull()
 G.hit({ from = "Ragged Young Wolf", amount = 170 })

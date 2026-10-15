@@ -176,6 +176,54 @@ function ns.knownFoe(foe)
   end
   return foe
 end
+-- A creature's own name from one the game's death recap gave: Forever's adds
+-- a word to each unit's ("Snow Leopard Nub", "Crag Boar Mcnugg": the same word
+-- on every blow of one unit, no player's, seen on 15 October 2026 with no one
+-- near), which no table knows and which splits one kind of foe into many. The
+-- name itself where it is known, else the longest known name it begins with
+-- ("Snow Leopard"); known: the fight's own meter names (`also`), the
+-- creatures seen, the game's (Creatures_<game>.lua, in the client's language).
+function ns.ownName(name, also)
+  if type(name) ~= "string" then return name end
+  local function known(n)
+    return (also and also[n]) or ns.seenNamed(n) or (ns.creatures and ns.creatures.names and ns.creatures.names[n])
+  end
+  if known(name) then return name end
+  local cut = name:match("^(.+) %S+$")
+  while cut do
+    if known(cut) then return cut end
+    cut = cut:match("^(.+) %S+$")
+  end
+  return name
+end
+-- A debrief's recap, killer and foes by their own names (ns.ownName), the
+-- foes of one name one foe, as the combat log's are: at a death's recap, and
+-- at the login for debriefs saved before.
+function ns.ownNames(d)
+  local also = {}
+  for _, sp in ipairs(d.spells or {}) do
+    if sp.src then also[sp.src] = true end
+  end
+  for _, r in ipairs(d.recap or {}) do
+    r.src = ns.ownName(r.src, also)
+  end
+  if d.killer then d.killer.name = ns.ownName(d.killer.name, also) end
+  local foes, byName = {}, {}
+  for _, foe in ipairs(d.foes or {}) do
+    if not foe.player then foe.name = ns.ownName(foe.name, also) end
+    local same = foe.name and not foe.player and byName[foe.name]
+    if same then
+      same.hits = (same.hits or 0) + (foe.hits or 0)
+      same.damage = (same.damage or 0) + (foe.damage or 0)
+      if foe.misses then same.misses = (same.misses or 0) + foe.misses end
+      if foe.first and (not same.first or foe.first < same.first) then same.first = foe.first end
+    else
+      table.insert(foes, foe)
+      if foe.name and not foe.player then byName[foe.name] = foe end
+    end
+  end
+  d.foes = foes
+end
 local function forget()
   local seen = type(SecondWindAccount) == "table" and SecondWindAccount.seen
   if not seen then return end
@@ -219,6 +267,18 @@ function ns.login()
   local className, classFile = UnitClass("player")
   char.name, char.realm, char.class, char.classFile = UnitName("player"), GetRealmName(), className, classFile
   char.level = UnitLevel("player")
+  -- (debriefs saved before a recap's names were made the creatures' own:
+  -- mended, every character's)
+  for _, c in pairs(account().characters) do
+    for _, d in ipairs(c.debriefs or {}) do
+      if d.recap then
+        ns.ownNames(d)
+        for _, foe in ipairs(d.foes or {}) do
+          ns.knownFoe(foe)
+        end
+      end
+    end
+  end
   ns.loadProfile()
   ns.collect:start()
   ns.createMinimapButton()
