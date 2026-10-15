@@ -72,7 +72,7 @@ Forever hides health values and the combat log from addons. Second Wind uses the
 
 Use `/wind probe` if you need a report of what the game let the addon read after your next fight.
 
-Second Wind speaks English, French and German. With a French or German client, every debrief, lesson and page is in that language, with the game's own names for your spells, items and foes. The German is a first translation: corrections are welcome on GitHub. Other clients get English.
+Second Wind speaks English, French and German. With a French or German client, every debrief, lesson and page is in that language, with the game's own names for your spells, items and foes. The German is a first translation: corrections are welcome on GitHub. Other clients get English, with the game's own names in their language: your foes, spells, items and places. A debrief keeps them by the game's ids, so it follows your client's language, even after you switch.
 
 ## Settings and commands
 
@@ -107,4 +107,4 @@ Second Wind is free and will stay free. If the debriefs have helped you survive 
 
 ## Source
 
-MIT licensed: [github.com/salty-max/second-wind](https://github.com/salty-max/second-wind). Item and spell data comes from the CMaNGOS Classic database and the TBC Anniversary client's tables. Foes' portraits and names come from QuestieDB and the CMaNGOS Classic database, Forever's own creatures from Wowhead. Thanks to their contributors. Not affiliated with Blizzard Entertainment.
+MIT licensed: [github.com/salty-max/second-wind](https://github.com/salty-max/second-wind). Item and spell data comes from the CMaNGOS Classic database and the TBC Anniversary client's tables. Foes' portraits and names come from QuestieDB and the CMaNGOS Classic database, Forever's own creatures and the names no database translates from Wowhead. Thanks to their contributors. Not affiliated with Blizzard Entertainment.
