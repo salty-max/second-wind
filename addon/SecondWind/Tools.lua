@@ -452,8 +452,7 @@ function ns.toolId(name)
   return nil
 end
 -- An item's name as this client writes it: the language's list (Text_<locale>.lua,
--- every tool's item but TBC Anniversary's own), else the game's once it knows
--- the item (one in my bags it does), else the English.
+-- every tool's item), else the game's once it knows the item.
 local function itemName(it) return ns.itemNameOf(it.id) or K.itemName(it.id, it.n) end
 
 -- ── a tool by its key ────────────────────────────────────────────────────────

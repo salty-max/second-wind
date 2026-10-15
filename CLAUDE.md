@@ -66,8 +66,8 @@ The plan, its research and its decisions: PLAN.md.
     "s<the first id its entry lists>"; a cast by its spell's id, any rank's:
     `Game_<game>.lua`, `bun scripts/game.ts`, from wow-data's
     SkillLineAbility; `ns.castKey`), an item's name the language's
-    (`i18n/<locale>/items.json`, every tool's item but TBC Anniversary's own,
-    which no database of ours has),
+    (`i18n/<locale>/items.json`, every tool's item, TBC Anniversary's own
+    from wow-data's frozen TBC client names),
     `ns.unusedOf(ready, casts, since)`, `ns.tracesOf(ready, t0)` (Forever:
     what a use left, read after the fight: one fewer in my
     bags, a cooldown begun, its start the moment; a spell without a cooldown
