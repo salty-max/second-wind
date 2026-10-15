@@ -2,7 +2,8 @@
 # pins (salty-max/wow-data's addon-data.yml: wow-data beside it, the
 # databases downloaded): the creatures' portraits and names, the foes' names
 # and the creature types in every language, then the language files. When one
-# changes, a pull request with the checks run (never merged by itself).
+# changes, a pull request with the checks run, then merged by itself and told
+# to the owner's phone.
 name: Game data
 
 on:
@@ -17,6 +18,7 @@ permissions:
 jobs:
   data:
     uses: salty-max/wow-data/.github/workflows/addon-data.yml@main
+    secrets: inherit
     with:
       generate: |
         bun scripts/creatures.ts
