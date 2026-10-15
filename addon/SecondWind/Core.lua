@@ -286,8 +286,10 @@ local HELD_WORDS = {
 function ns.localize(d)
   d.zoneArea = d.zoneArea or ns.areaId(d.zone)
   d.subArea = d.subArea or ns.areaId(d.sub)
+  -- (inside a building: no area id, its building area's)
+  d.subInside = not d.subArea and (d.subInside or ns.insideId(d.sub)) or nil
   d.zone = ns.areaName(d.zoneArea) or d.zone
-  d.sub = ns.areaName(d.subArea) or d.sub
+  d.sub = ns.areaName(d.subArea) or ns.insideName(d.subInside) or d.sub
   local renamed = {}
   for _, foe in ipairs(d.foes or {}) do
     local name = not foe.player and foe.npc and ns.creatureNameOf(foe.npc)

@@ -124,7 +124,17 @@ table.insert(list, {
   },
 })
 table.insert(list, { kind = "close", at = 9, zone = "Westfall", sub = "Moonbrook", foes = {} })
+-- (inside a building, no area id: by its building area's, the language's list)
+table.insert(list, { kind = "close", at = 10, zone = "Ironforge", sub = "The Library", subInside = 15660, foes = {} })
+table.insert(list, { kind = "close", at = 11, zone = "Ironforge", sub = "La Bibliothèque", foes = {} })
 G.reload()
+local library, here = list[#list - 1], list[#list]
+check(
+  library.sub == "La Bibliothèque" and here.subInside == 15660 and here.sub == "La Bibliothèque",
+  "a place inside a building, kept by its building area's id: read in French, found from the French"
+)
+table.remove(list)
+table.remove(list)
 local was, plain = list[#list - 1], list[#list]
 check(
   was.sub == "Vallée des Frigères"

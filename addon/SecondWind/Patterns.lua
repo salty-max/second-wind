@@ -70,7 +70,8 @@ local function counted(debriefs)
     end
     local place = d.sub and (d.sub .. ", " .. (d.zone or "?")) or d.zone
     if place then
-      count(places, tostring(d.subArea or d.sub or "") .. "|" .. tostring(d.zoneArea or d.zone or ""), place)
+      local sub = d.subArea or (d.subInside and ("w" .. d.subInside)) or d.sub or ""
+      count(places, tostring(sub) .. "|" .. tostring(d.zoneArea or d.zone or ""), place)
     end
     local met = {}
     for _, foe in ipairs(d.foes or {}) do

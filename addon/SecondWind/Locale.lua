@@ -112,17 +112,34 @@ function ns.translate(t)
 end
 
 -- The game's names in the client's language (its Text file's, from
--- i18n/<locale>/creatures.json, English one language among them): every
--- foe's name by its id, each game's, complete.
-local names, idOfName
+-- i18n/<locale>/, English one language among them): every foe's name by its
+-- id, each game's, complete; the places inside buildings by their ids.
+local names, idOfName, insideIds
 function ns.names(t)
-  names, idOfName = t, nil
+  names, idOfName, insideIds = t, nil, nil
 end
 local function ownNames()
   if not names then return nil end
   return ns.forever and names.creatures or names.creaturesClassic
 end
 
+-- A place inside a building, which has no area id: its id from the client's
+-- name for it (the building areas' list, the kit's), and its name by its id.
+local function inside()
+  if not names then return {} end
+  return (ns.forever and names.inside or names.insideClassic) or {}
+end
+function ns.insideId(name)
+  if type(name) ~= "string" or name == "" or ns.secret(name) then return nil end
+  if not insideIds then
+    insideIds = {}
+    for id, n in pairs(inside()) do
+      if not insideIds[n] or id < insideIds[n] then insideIds[n] = id end
+    end
+  end
+  return insideIds[name]
+end
+function ns.insideName(id) return id and inside()[id] or nil end
 -- A creature's name in the client's language, by its id; nil where the
 -- language's names don't have it.
 function ns.creatureNameOf(id)

@@ -12,6 +12,11 @@
  *                              and plural(n, "one", "many") of the addon, its
  *                              kit's included; i18n/words.json lists them
  *
+ *   i18n/<locale>/subzones.json
+ *                              the places inside buildings by their ids, each
+ *                              game's, every language's (../addon-kit/
+ *                              subzones.py <locale>): a debrief's place inside
+ *                              a building kept by its id
  *   i18n/<locale>/creatures.json
  *                              every foe's name in the language, English one
  *                              of them, by its id, each game's, from
@@ -67,10 +72,15 @@ function namesLua(locale: string): string[] {
   const file = join(I18N, NAMES_OF[locale] ?? locale, "creatures.json");
   if (!existsSync(file)) throw new Error(`${relative(ROOT, file)} is missing: run bun scripts/creature_names.ts ${NAMES_OF[locale] ?? locale}`);
   const t: { forever: Record<string, string>; classic: Record<string, string> } = json(file);
+  const insideFile = join(I18N, NAMES_OF[locale] ?? locale, "subzones.json");
+  if (!existsSync(insideFile)) throw new Error(`${relative(ROOT, insideFile)} is missing: python3 ../addon-kit/subzones.py ${NAMES_OF[locale] ?? locale}`);
+  const inside: { forever?: Record<string, string>; classic?: Record<string, string> } = json(insideFile);
   const lines = ["ns.names({"];
   for (const [key, list] of [
     ["creatures", t.forever],
     ["creaturesClassic", t.classic],
+    ["inside", inside.forever ?? {}],
+    ["insideClassic", inside.classic ?? {}],
   ] as const) {
     lines.push(`  ${key} = {`);
     const items = Object.entries(list).sort(([a], [b]) => Number(a) - Number(b));

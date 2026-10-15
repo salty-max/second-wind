@@ -29,7 +29,9 @@ The plan, its research and its decisions: PLAN.md.
     death recap's names the creatures' own (Forever's adds a word after
     each unit's, "Snow Leopard Nub"), the units of one name one foe;
     `ns.localize(d)`: a debrief keeps ids beside the names of its day (the
-    places' area ids, found by name with `C_Map.GetAreaInfo`; spells, tool
+    places' area ids, found by name with `C_Map.GetAreaInfo`, a place inside
+    a building its building area's, `subInside`, by the language's list in
+    its Text file, `i18n/<locale>/subzones.json`, the kit's; spells, tool
     spells, creatures, creature types by their ids) and every name with an
     id is written again in the client's language, at each login and for each
     debrief written (never store a name without its id: the family's rule);
@@ -258,7 +260,7 @@ scripts/release.sh [--version X.Y.Z] [--hold] NOTES.md   # tag, push; Actions pu
 ```
 
 - `.github/workflows/game-data.yml`: daily and by hand, wow-data's
-  `addon-data.yml` builds the game data again from wow-data's pins (the creatures' portraits, every foe's name in every language, then the language files);
+  `addon-data.yml` builds the game data again from wow-data's pins (the creatures' portraits, every foe's name and every building area's in every language, then the language files);
   a pull request when a generated file changes, the checks run on it, then
   rebased onto main by itself and told to the owner's phone in words
   (Ravenpost's inbox). The generators' list lives there: a new one goes in too.
