@@ -59,6 +59,8 @@ function GetSubZoneText() return state.sub end
 -- The client's areas by id, in its language (C_Map.GetAreaInfo): the few the
 -- tests name, as each client writes them (wow-data's AreaTable).
 local AREAS = {
+  esES = { [1] = "Dun Morogh", [38] = "Loch Modan", [132] = "Valle de Crestanevada" },
+  esMX = { [1] = "Dun Morogh", [38] = "Loch Modan", [132] = "Valle de Crestanevada" },
   enUS = { [1] = "Dun Morogh", [38] = "Loch Modan", [132] = "Coldridge Valley" },
   frFR = { [1] = "Dun Morogh", [38] = "Loch Modan", [132] = "Vall\195\169e des Frig\195\168res" },
   deDE = { [1] = "Dun Morogh", [38] = "Loch Modan", [132] = "Das Coldridgetal" },
@@ -68,6 +70,32 @@ C_Map.GetAreaInfo = function(id) return (AREAS[rawget(_G, "LOCALE") or os.getenv
 -- The creature types by id, in the client's language (C_CreatureInfo; wow-data's
 -- CreatureType).
 local TYPES = {
+  esES = {
+    [1] = "Bestia",
+    [2] = "Dragonante",
+    [3] = "Demonio",
+    [4] = "Elemental",
+    [5] = "Gigante",
+    [6] = "No-muerto",
+    [7] = "Humanoide",
+    [8] = "Alimaña",
+    [9] = "Mecánico",
+    [10] = "Sin especificar",
+    [11] = "Tótem",
+  },
+  esMX = {
+    [1] = "Bestia",
+    [2] = "Dragonante",
+    [3] = "Demonio",
+    [4] = "Elemental",
+    [5] = "Gigante",
+    [6] = "No-muerto",
+    [7] = "Humanoide",
+    [8] = "Alimaña",
+    [9] = "Mecánico",
+    [10] = "Sin especificar",
+    [11] = "Tótem",
+  },
   enUS = {
     [1] = "Beast",
     [2] = "Dragonkin",
@@ -149,7 +177,7 @@ function UnitClassification(u) return units[u] and units[u].rank or "normal" end
 function UnitCreatureType(u) return units[u] and units[u].type or nil end
 function UnitClass(u) return u == "player" and state.class:sub(1, 1) .. state.class:sub(2):lower(), state.class end
 function UnitRace(u) return state.race, state.race end
-function GetLocale() return "enUS" end
+function GetLocale() return rawget(_G, "LOCALE") or os.getenv("LOCALE") or "enUS" end
 function UnitHealthMax(u) return u == "player" and state.maxHealth or 0 end
 -- (Forever: secret, in a fight and out of it, as measured on builds 69977
 -- and 70009 (Apotheca's probe); state.healthReadable: out of a fight it

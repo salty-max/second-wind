@@ -27,7 +27,8 @@
  *                              by its name; every Text file has them, its
  *                              language's own (enGB: enUS's)
  *
- * A language without its own words may borrow another's (esMX: esES).
+ * A language without its own words may borrow another's (esMX: esES), with
+ * its own metadata overriding the shared catalog's (decimal point in esMX).
  *
  *   bun scripts/locales.ts            write the Text files
  *   bun scripts/locales.ts --check    fail if one isn't up to date, a word has
@@ -67,6 +68,16 @@ function keys(): string[] {
 const q = (s: string) => `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n")}"`;
 const json = (file: string) => (existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : {});
 
+// Numbered blanks may change order, but must keep each argument's type and
+// multiplicity. Literal percent signs in a formatted sentence stay escaped.
+function formatArgs(s: string): string[] {
+  let next = 0;
+  return [...s.matchAll(/%%|%(?:(\d+)\$)?(0?\d*(?:\.\d+)?[sdfi])/g)]
+    .filter(([token]) => token !== "%%")
+    .map(([, index, spec]) => `${index ? Number(index) : ++next}:${spec.slice(-1)}`)
+    .sort();
+}
+
 // Every foe's name in a language, by its id, each game's (i18n/<locale>/,
 // written from wow-data's databases by scripts/creature_names.ts).
 function namesLua(locale: string): string[] {
@@ -101,7 +112,7 @@ function luaFor(locale: string): string {
   if (ENGLISH.has(locale) || !from)
     lines.push(`-- (${ENGLISH.has(locale) ? "English: the words as the addon writes them" : "no translation yet: English words"}; the game's names)`);
   else {
-    const meta = json(join(I18N, from, "meta.json"));
+    const meta = { ...json(join(I18N, from, "meta.json")), ...json(join(I18N, locale, "meta.json")) };
     const words: Record<string, string> = json(join(I18N, from, "words.json"));
     lines.push("ns.translate({", `  locale = ${q(locale)},`, `  plural = ${q(meta.plural ?? "one")},`);
     if (meta.decimal) lines.push(`  decimal = ${q(meta.decimal)},`);
@@ -145,6 +156,16 @@ for (const locale of LOCALES) {
     if (check) bad = true;
   }
   if (unused.length) console.log(`  words no longer used: ${unused.join(" | ")}`);
+  for (const [english, word] of Object.entries(words)) {
+    const expected = formatArgs(english);
+    if (!expected.length) continue;
+    const actual = formatArgs(word);
+    const strayPercent = word.replace(/%%|%(?:\d+\$)?0?\d*(?:\.\d+)?[sdfi]/g, "").includes("%");
+    if (expected.join() !== actual.join() || strayPercent) {
+      console.error(`  ✗ format arguments differ: ${english} → ${word}`);
+      bad = true;
+    }
+  }
   // (no semicolons in what players read, in any language: the gender token's own aside)
   for (const v of Object.values(words))
     if (v.replace(/\$g[^:;]*:[^;]*;/g, "").includes(";")) {

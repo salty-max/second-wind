@@ -7,8 +7,8 @@ After a few debriefs, you can compare what your dangerous fights have in
 common.
 
 For Classic Era, Hardcore, Season of Discovery, TBC Anniversary and World of
-Warcraft: Forever, in English, French and German. Nothing pops up during combat.
-Duels and battlegrounds are excluded.
+Warcraft: Forever, in English, French, German and Spanish. Nothing pops up
+during combat. Duels and battlegrounds are excluded.
 
 Get it from [CurseForge](https://www.curseforge.com/projects/1739380),
 [Wago](https://addons.wago.io/addons/XKqEjbKy) or
@@ -35,10 +35,12 @@ Wind reconstructs health estimates from damage, healing and the game's
 low-health warning or death recap. Keep that warning enabled under
 **Options > Combat**. The debrief shows when a health value is an estimate.
 
-Second Wind reads in English, French and German (the German a first
-translation). Other clients get English, with the game's own names for your
-foes, spells, items and places in their language. Debriefs keep them by the
-game's ids, so they follow your client's language, even after you switch.
+Second Wind reads in English, French, German and Spanish. German and Spanish
+are first translations, with corrections welcome. Both Spanish clients share
+the interface translation, with their own game names and decimal separator.
+Other clients get English, with the game's own names for your foes, spells,
+items and places in their language. Debriefs keep them by the game's ids, so
+they follow your client's language, even after you switch.
 
 - `/wind copy` opens a text version of the debrief for you to copy.
 - `/wind lifelines` opens your emergency supplies.
@@ -59,7 +61,7 @@ The full store description is in [addon/CURSEFORGE.md](addon/CURSEFORGE.md).
 ## Development
 
 ```bash
-bun run check      # Check the translations, Lua, both game simulations (and a French client) and the TOCs
+bun run check      # Translations, Lua, game and locale simulations, TOCs
 bun run locales    # Write addon/SecondWind/Text_<locale>.lua from i18n/
 bun run creatures  # Write the creatures' portraits from wow-data's databases
 bun run package    # Create dist/SecondWind-<version>.zip

@@ -72,7 +72,7 @@ Forever hides health values and the combat log from addons. Second Wind uses the
 
 Use `/wind probe` if you need a report of what the game let the addon read after your next fight.
 
-Second Wind speaks English, French and German. With a French or German client, every debrief, lesson and page is in that language, with the game's own names for your spells, items and foes. The German is a first translation: corrections are welcome on GitHub. Other clients get English, with the game's own names in their language: your foes, spells, items and places. A debrief keeps them by the game's ids, so it follows your client's language, even after you switch.
+Second Wind speaks English, French, German and Spanish. With a French, German or Spanish client, every debrief, lesson and page is in that language, with the game's own names for your spells, items and foes. German and Spanish are first translations: corrections are welcome on GitHub. Both Spanish clients share the interface translation, with their own game names and decimal separator. Other clients get English, with the game's own names in their language: your foes, spells, items and places. A debrief keeps them by the game's ids, so it follows your client's language, even after you switch.
 
 ## Settings and commands
 

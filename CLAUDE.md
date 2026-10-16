@@ -179,6 +179,11 @@ The plan, its research and its decisions: PLAN.md.
     its word the game's (`ns.typeName`), its icon and the critter test by
     the id. No semicolons in any
     language. French done 14 October 2026, German (flagged: a first translation) the same day.
+    Spanish added 16 October 2026, flagged until native review: esMX borrows
+    esES prose but keeps its own names and metadata (decimal point, not comma).
+    Spanish uses tú, informe, combate casi mortal and recursos de emergencia.
+    Keep unknown usage separate from unused tools and control loss from a
+    missed opportunity. Test complete assembled sentences in both regions.
   - `Page.lua`: the theme (frost steel) and the pages' renderer
     (`ns.newPage`, `page:draw(c, d, keep)`): a header (a round portrait: the
     foe that did the most harm, `ns.faceOf`; the title, the line under it, a
@@ -247,6 +252,9 @@ The plan, its research and its decisions: PLAN.md.
   game.lua: its own language file, French spell names by id with
   `G.spellNamed`), a close call's card and lessons, the lifelines, the word
   before a pull.
+- `addon/test/spanish.lua`: both Spanish clients, on both games: complete
+  debriefs, uncertainty, control loss, patterns, regional names and decimal
+  separators, and saved reports re-localized by id.
 - `addon/CURSEFORGE.md`: the project page (its summary in a comment, the TOCs'
   Notes), the siblings linked on CurseForge and Wago.
 
@@ -280,7 +288,7 @@ scripts/release.sh [--version X.Y.Z] [--hold] NOTES.md   # tag, push; Actions pu
 
 - Conventional Commits, lowercase subjects; commit locally, ask before any
   push, release or deploy.
-- Every language the game has, through `L` (French translated; the others
-  English until they are), as the siblings.
+- Every language the game has, through `L` (French, German and Spanish
+  translated, the others English until they are), as the siblings.
 - Lua: StyLua (`stylua.toml`) and selene (`selene.toml`, the game's globals
   in `wow.yml`: add one when the addon calls a new game function).
