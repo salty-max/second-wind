@@ -9,6 +9,8 @@
  * - every area's English name by id: a debrief of before 15 October 2026,
  *   kept by its places' English names, finds their ids on a client of any
  *   language (the game names an area only in the client's).
+ * - creature-type names in every language, to recover ids in older saved
+ *   reports after a client-language change. Only unambiguous names are kept.
  *
  *   bun scripts/game.ts           write them
  *   bun scripts/game.ts --check   fail if one isn't up to date
@@ -54,6 +56,17 @@ function lua(game: Game): string {
   lines.push("}", "", "ns.areaEnglish = {");
   const areas = db.query("SELECT ID AS id, AreaName_lang AS name FROM client_AreaTable WHERE AreaName_lang <> '' ORDER BY ID").all() as { id: number; name: string }[];
   for (let i = 0; i < areas.length; i += 6) lines.push(`  ${areas.slice(i, i + 6).map((a) => `[${a.id}]=${JSON.stringify(a.name.trim())},`).join(" ")}`);
+  lines.push("}", "", "ns.legacyTypeIds = {");
+  const types = db.query("SELECT name, id FROM name WHERE kind = 'creature_type' ORDER BY name, id").all() as { name: string; id: number }[];
+  const byName = new Map<string, Set<number>>();
+  for (const { name, id } of types) {
+    if (!name.trim()) continue;
+    const ids = byName.get(name) ?? new Set<number>();
+    ids.add(id);
+    byName.set(name, ids);
+  }
+  for (const [name, ids] of byName)
+    if (ids.size === 1) lines.push(`  [${JSON.stringify(name)}] = ${[...ids][0]},`);
   lines.push("}", "");
   db.close();
   return lines.join("\n");

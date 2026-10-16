@@ -347,6 +347,94 @@ check(
   "the saved file keeps ids and player names"
 )
 
+-- Before type ids were saved, reports kept localized labels. Recover every
+-- supported language's labels, including the user's French humanoid report.
+local foreignTypes = {
+  { "Beast", 1 },
+  { "Bestia", 1 },
+  { "Bête", 1 },
+  { "Fera", 1 },
+  { "Wildtier", 1 },
+  { "Животное", 1 },
+  { "野兽", 1 },
+  { "野獸", 1 },
+  { "야수", 1 },
+  { "Draconien", 2 },
+  { "Démon", 3 },
+  { "Elémentaire", 4 },
+  { "Géant", 5 },
+  { "Mort-vivant", 6 },
+  { "Morto-vivo", 6 },
+  { "No-muerto", 6 },
+  { "Undead", 6 },
+  { "Untoter", 6 },
+  { "Нежить", 6 },
+  { "不死族", 6 },
+  { "亡灵", 6 },
+  { "언데드", 6 },
+  { "Humanoid", 7 },
+  { "Humanoide", 7 },
+  { "Humanoïde", 7 },
+  { "Гуманоид", 7 },
+  { "人型生物", 7 },
+  { "인간형", 7 },
+  { "Bestiole", 8 },
+  { "Mécanique", 9 },
+  { "Non spécifié", 10 },
+  { "Totem", 11 },
+}
+for _, kind in ipairs(foreignTypes) do
+  check(ns.typeIdOf(kind[1]) == kind[2], "recover a saved type id from " .. kind[1])
+end
+local legacy = { kind = "close", lowPct = 5, foes = {} }
+for _, kind in ipairs(foreignTypes) do
+  table.insert(legacy.foes, { name = "old foe", type = kind[1] })
+end
+ns.localize(legacy)
+for i, foe in ipairs(legacy.foes) do
+  check(
+    foe.typeId == foreignTypes[i][2] and foe.type == ns.typeName(foe.typeId),
+    "the recovered type displays in the current language: " .. foreignTypes[i][1]
+  )
+end
+check(ns.typeIdOf("unknown creature kind") == nil, "unknown legacy types aren't guessed")
+
+local trollReports = {}
+for i, kind in ipairs({ "Humanoïde", "Humanoid", "Humanoide" }) do
+  trollReports[i] = {
+    kind = "close",
+    at = 20 + i,
+    lowPct = 5,
+    foes = { { npc = 706, name = "Jeune troll Frostmane", type = kind, hits = 1, damage = 3 } },
+  }
+  ns.localize(trollReports[i])
+end
+local trollPattern = ns.patternsOf(trollReports)
+local row = section(trollPattern, "Enemigos recurrentes").rows[1]
+check(
+  row.foe.npc == 706 and row.foe.typeId == 7 and row.foe.type == "Humanoide" and row.detail == "en 3 de tus 3",
+  "the user's troll pattern re-localizes French, English and Spanish records together"
+)
+check(
+  section(ns.cardOf(trollReports[1]), "Enemigos").lines[1]:find("humanoide", 1, true),
+  "the report displays humanoide without a diaeresis"
+)
+ns.forSave(trollReports[1])
+check(
+  trollReports[1].foes[1].type == nil and trollReports[1].foes[1].typeId == 7,
+  "the repaired report saves its type id instead of the old French label"
+)
+ns.localize(trollReports[1])
+check(trollReports[1].foes[1].type == "Humanoide", "the migrated report reloads in Spanish")
+SecondWindAccount.seen = SecondWindAccount.seen or {}
+SecondWindAccount.seen["legacy French foe"] = { npc = 706, type = "Humanoïde" }
+local seen = ns.knownFoe({ name = "legacy French foe" })
+check(
+  seen.npc == 706 and seen.typeId == 7 and seen.type == "Humanoide",
+  "old creature-sighting caches also recover their type id"
+)
+SecondWindAccount.seen["legacy French foe"] = nil
+
 -- A real diagnostic must not invent a cause for an unknown control effect.
 G.state.health = G.state.maxHealth
 G.slash("probe")

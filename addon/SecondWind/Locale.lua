@@ -67,9 +67,9 @@ local ENGLISH_TYPES = {
   ["Gas Cloud"] = 13,
   ["Wild Pet"] = 14,
 }
--- A type's id from the game's word for it (UnitCreatureType's, in the
--- client's language), or an older debrief's English key; nil for a word of
--- another language (a debrief written on another client's).
+-- A type's id from the game's current word, an older English key, or a
+-- saved report's word in another language. The generated aliases only
+-- recover ids: display names still come from the current client's API.
 function ns.typeIdOf(word)
   if type(word) ~= "string" or word == "" or ns.secret(word) then return nil end
   if not typeIds then
@@ -80,7 +80,7 @@ function ns.typeIdOf(word)
       if t and type(t.name) == "string" and t.name ~= "" then typeIds[t.name] = id end
     end
   end
-  return typeIds[word] or ENGLISH_TYPES[word]
+  return typeIds[word] or ENGLISH_TYPES[word] or (ns.legacyTypeIds and ns.legacyTypeIds[word])
 end
 -- A type's word in the client's language, by its id.
 function ns.typeName(id)
