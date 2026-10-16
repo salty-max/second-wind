@@ -138,6 +138,7 @@ function UnitName(u)
   return units[u] and units[u].name or nil
 end
 function UnitExists(u) return u == "player" or units[u] ~= nil end
+function UnitPlayerControlled() return false end
 function UnitIsPlayer(u) return u == "player" or (units[u] and units[u].player) or false end
 function UnitCanAttack(_, u) return units[u] ~= nil and not units[u].friendly end
 function UnitLevel(u)
