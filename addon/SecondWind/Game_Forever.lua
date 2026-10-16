@@ -286,5 +286,6 @@ ns.areaEnglish = {
   [17145]="Cradle of Tranquility", [17191]="Manor Mistmantle", [17203]="Stormwind Harbor", [17221]="Skywall", [17223]="Camp Gev'rek", [17674]="West Pylon Watchtower",
   [17675]="East Pylon Watchtower", [17676]="Windsong Standing Stones", [17677]="Overlook Standing Stones", [17678]="Thendal Standing Stones", [17684]="Fairweather Stables", [17707]="Old Dalaran Ruins",
   [17716]="Dragonmaw Retreat", [17732]="Excavation Site: Wetlands", [17738]="The Drunken Dwarf", [17780]="Krol'dok Stronghold", [17803]="Blackrock Depths", [17804]="Blackrock Spire",
-  [17808]="Ashwood's Fall", [17809]="Forlorn Pit", [17824]="The Eventide", [17845]="Dreambound Pinnacle", [17847]="Twilight Hollow",
+  [17808]="Ashwood's Fall", [17809]="Forlorn Pit", [17824]="The Eventide", [17845]="Dreambound Pinnacle", [17847]="Twilight Hollow", [17852]="Hyjal Crater",
+  [17853]="Sunken Hollow",
 }
