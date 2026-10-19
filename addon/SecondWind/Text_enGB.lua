@@ -3169,7 +3169,7 @@ ns.names({
     [277729]="Arcane Elemental", [277730]="Rabid Forest Wolf", [277765]="Botika Montes", [277766]="Angie Cilas",
     [277769]="Rown Leaftender", [277818]="Wormhole", [277849]="Portable Repair Bot", [277860]="Ancient Crocolisk",
     [277864]="\"Reliable\" Mike", [277865]="Wind", [277868]="Plague Spreader", [277881]="Bloodwing Bat",
-    [277882]="Foothills Duskbat",
+    [277882]="Foothills Duskbat", [278166]="Mountaineer Cornelius",
   },
   creaturesClassic = {
     [2]="Spawn Point (Only GM can see it)", [3]="Flesh Eater", [6]="Kobold Vermin", [19]="Benny Questgiver",
