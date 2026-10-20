@@ -111,6 +111,26 @@ do
     "a debrief written in English reads in French, its creatures by their ids (a player's name kept)",
     old.foes[1].name
   )
+  if G.FOREVER then
+    -- (a debrief saved with a foe wow-data now leaves out, by its id alone, as
+    -- the saved file kept it: named again at the login, never "Creature 213077";
+    -- and its name still let go at the logout)
+    table.insert(list, {
+      kind = "death",
+      at = 8,
+      killer = { npc = 213077 },
+      foes = { { npc = 213077, hits = 1, damage = 9 } },
+    })
+    G.reload()
+    local left = list[#list]
+    local saved = { foes = { { npc = 213077, name = "Elaine Compton" } } }
+    ns.forSave(saved)
+    check(
+      left.foes[1].name == "Elaine Compton" and left.killer.name == "Elaine Compton" and saved.foes[1].name == nil,
+      "… a foe wow-data leaves out, saved by its id: named again at the login",
+      left.foes[1].name
+    )
+  end
 end
 -- (a debrief written on an English client, its place, spells, tools and
 -- types by their ids, reads in French; one with no id, its English name kept)
