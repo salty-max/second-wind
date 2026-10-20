@@ -15,9 +15,13 @@
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { openDb } from "../../wow-data/src/db";
+import type * as WowDb from "../../wow-data/src/db";
 import { foes } from "./creatures";
 import { readFileSync } from "node:fs";
+import { familyPath } from "./root";
+
+// through the family folder, from a worktree too (scripts/root.ts)
+const { openDb } = (await import(familyPath("wow-data", "src", "db.ts"))) as typeof WowDb;
 
 const locale = process.argv[2];
 if (!locale || !/^[a-z]{2}[A-Z]{2}$/.test(locale)) {

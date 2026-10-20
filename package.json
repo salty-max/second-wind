@@ -10,7 +10,7 @@
     "format:lua": "stylua addon",
     "creatures": "bun scripts/creatures.ts",
     "locales": "bun scripts/locales.ts",
-    "kit:sync": "bun ../addon-kit/sync.ts addon/SecondWind",
-    "kit:check": "bun ../addon-kit/sync.ts --check addon/SecondWind"
+    "kit:sync": "bun scripts/root.ts --run addon-kit/sync.ts addon/SecondWind",
+    "kit:check": "bun scripts/root.ts --run addon-kit/sync.ts --check addon/SecondWind"
   }
 }
