@@ -23,6 +23,7 @@ ignore:
   - LICENSE
   - PLAN.md
   - README.md
+  - saved-ids.json
   - package.json
   - selene.toml
   - stylua.toml
