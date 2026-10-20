@@ -23,7 +23,7 @@ force-added, anything else there is a local note, absent from a worktree.
 ## Commands
 
 ```bash
-bun run check        # languages, game tables, lint, the simulation on both games, every language's test, TOCs
+bun run check        # the kit's copies, languages, game tables, lint, the simulation on both games, every language's test, TOCs
 bun scripts/root.ts --run addon-kit/q.ts check -- bun run check   # the same, quiet, stamping the tree for the push
 bun run package      # dist/SecondWind-<version>.zip (git describe), for a test in the game
 bun run format:lua   # StyLua (stylua.toml); selene (selene.toml, the game's globals in wow.yml) runs in check
