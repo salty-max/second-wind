@@ -1,0 +1,13 @@
+{
+  "//": "The tables naming the ids a saved debrief keeps (places, foes, tools' items, creature types): a regeneration never drops one (bun run ids, in check). An id leaves on purpose only with the user's go: under removed, with why and approved.",
+  "tables": {
+    "foes (Forever)": { "json": "i18n/*/creatures.json", "at": ["forever", "foreverLeftOut"] },
+    "foes (Classic)": { "json": "i18n/*/creatures.json", "at": "classic" },
+    "tools' items": { "json": "i18n/*/items.json", "at": "" },
+    "building areas (Forever)": { "json": "i18n/*/subzones.json", "at": "forever" },
+    "building areas (Classic)": { "json": "i18n/*/subzones.json", "at": "classic" },
+    "areas' English names": { "lua": "addon/SecondWind/Game_*.lua", "at": "areaEnglish" },
+    "old creature type labels": { "lua": "addon/SecondWind/Game_*.lua", "at": "legacyTypeIds" }
+  },
+  "removed": []
+}

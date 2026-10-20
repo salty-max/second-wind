@@ -23,7 +23,8 @@ force-added, anything else there is a local note, absent from a worktree.
 ## Commands
 
 ```bash
-bun run check        # the kit's copies, languages, game tables, lint, the simulation on both games, every language's test, TOCs
+bun run ids          # every table saved-ids.json lists keeps the ids it had at the fork point from origin/main (addon-kit's ids.ts)
+bun run check        # the kit's copies, saved ids, languages, game tables, lint, the simulation on both games, every language's test, TOCs
 bun scripts/root.ts --run addon-kit/q.ts check -- bun run check   # the same, quiet, stamping the tree for the push
 bun run package      # dist/SecondWind-<version>.zip (git describe), for a test in the game
 bun run format:lua   # StyLua (stylua.toml); selene (selene.toml, the game's globals in wow.yml) runs in check
@@ -44,7 +45,9 @@ scripts/release.sh [--version X.Y.Z] [--hold] NOTES.md   # check, tag, push; Act
 - The saved file keeps ids, never names (a player's name aside): places,
   spells, tools, creatures and their types, named again in the client's
   language at each login. An old report's type label is turned back into an
-  id first, never translated by matching English.
+  id first, never translated by matching English. A regenerated table keeps
+  every id a saved debrief may hold (`saved-ids.json`, `bun run ids` in the
+  check): an id leaves only with the user's go, under `removed`.
 - The game's data comes from wow-data only (scripts/, through
   `scripts/root.ts`); `Creatures_*.lua`, `Game_*.lua` and the name files
   are generated, never edited, kept out of StyLua and selene. A new
