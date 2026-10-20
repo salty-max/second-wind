@@ -168,7 +168,11 @@ stays there). The plan, its research and its decisions: `PLAN.md`.
     takes enUS's), from wow-data's databases, `bun
     scripts/creature_names.ts <locale>`, loaded by `ns.names`:
     `ns.creatureNameOf(id)`, `ns.creatureIdOf(name)` for a foe Forever's
-    meter names only; no English fallback); `--keys` writes
+    meter names only; no English fallback; its `foreverLeftOut`, the
+    `creaturesLeftOut` of the Text file: what wow-data's build leaves out of
+    Forever, Season of Discovery's `left_out`, by name alone, behind
+    Forever's own (`__index`), so a saved debrief's id is named and no name
+    finds it, `creatureIdOf` going through `pairs`); `--keys` writes
     `i18n/words.json`, every word to translate. A creature type is kept by
     its id (`ns.typeIdOf`, from the game's word through `C_CreatureInfo`),
     its word the game's (`ns.typeName`), its icon and the critter test by

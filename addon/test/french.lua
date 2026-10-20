@@ -80,6 +80,15 @@ check(
 -- (Forever's meter names a foe only: its creature by its French name; the
 -- same names on Classic)
 check(ns.creatureIdOf("Vermine kobold") == 6, "a foe's French name finds its creature")
+if G.FOREVER then
+  -- (what wow-data's build leaves out of Forever, Season of Discovery's: a
+  -- saved debrief's foe named by its id, its name never finding it: Elaine
+  -- Compton, 213077 left out, 256391 Forever's own)
+  check(
+    ns.creatureNameOf(213077) == "Elaine Compton" and ns.creatureIdOf("Elaine Compton") == 256391,
+    "a foe wow-data leaves out: named by its id, never found by its name"
+  )
+end
 do
   -- (a debrief written on an English client reads in French, by its creatures' ids)
   local list = ns.record().debriefs

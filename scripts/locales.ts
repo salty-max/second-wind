@@ -83,7 +83,7 @@ function formatArgs(s: string): string[] {
 function namesLua(locale: string): string[] {
   const file = join(I18N, NAMES_OF[locale] ?? locale, "creatures.json");
   if (!existsSync(file)) throw new Error(`${relative(ROOT, file)} is missing: run bun scripts/creature_names.ts ${NAMES_OF[locale] ?? locale}`);
-  const t: { forever: Record<string, string>; classic: Record<string, string> } = json(file);
+  const t: { forever: Record<string, string>; classic: Record<string, string>; foreverLeftOut?: Record<string, string> } = json(file);
   const insideFile = join(I18N, NAMES_OF[locale] ?? locale, "subzones.json");
   if (!existsSync(insideFile)) throw new Error(`${relative(ROOT, insideFile)} is missing: python3 ../addon-kit/subzones.py ${NAMES_OF[locale] ?? locale}`);
   const inside: { forever?: Record<string, string>; classic?: Record<string, string> } = json(insideFile);
@@ -92,6 +92,8 @@ function namesLua(locale: string): string[] {
   for (const [key, list] of [
     ["creatures", t.forever],
     ["creaturesClassic", t.classic],
+    // (Forever's left out by wow-data's build: a saved debrief's foe by its id alone)
+    ["creaturesLeftOut", t.foreverLeftOut ?? {}],
     ["inside", inside.forever ?? {}],
     ["insideClassic", inside.classic ?? {}],
     ["items", items],

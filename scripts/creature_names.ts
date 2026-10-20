@@ -10,6 +10,9 @@
  * language; Forever's damage meter names a foe only, in the client's
  * language: its id found from this list (the first id of a name). Every foe
  * this language names, none left out for being the English one.
+ * And "foreverLeftOut": what wow-data's build leaves out of Forever though a
+ * source had it (Season of Discovery's, its left_out), by name alone: a saved
+ * debrief may hold its id. Apart, so that no name finds its id (Locale.lua).
  *
  *   bun scripts/creature_names.ts frFR
  */
@@ -45,7 +48,19 @@ function names(game: "forever" | "classic"): Record<string, string> {
   return out;
 }
 
-const out = { forever: names("forever"), classic: names("classic") };
+// (Forever's left-out creatures: their names, nothing else of them)
+function leftOut(): Record<string, string> {
+  const db = openDb("forever");
+  const rows = db
+    .query("SELECT l.id, n.name FROM left_out l JOIN name n ON n.kind = 'creature' AND n.id = l.id AND n.locale = ? WHERE l.kind = 'creature' ORDER BY l.id")
+    .all(locale) as { id: number; name: string }[];
+  db.close();
+  const out: Record<string, string> = {};
+  for (const r of rows) if (!/^[[(]/.test(r.name.trim())) out[r.id] = r.name.trim();
+  return out;
+}
+
+const out = { forever: names("forever"), classic: names("classic"), foreverLeftOut: leftOut() };
 mkdirSync(DIR, { recursive: true });
 writeFileSync(join(DIR, "creatures.json"), `${JSON.stringify(out, null, 1)}\n`);
 
@@ -65,5 +80,5 @@ for (const game of ["forever", "classic"] as const) {
 }
 writeFileSync(join(DIR, "items.json"), `${JSON.stringify(Object.fromEntries(Object.entries(items).sort(([a], [b]) => Number(a) - Number(b))), null, 1)}\n`);
 console.log(
-  `✓ i18n/${locale}/creatures.json: ${Object.keys(out.forever).length} of Forever's foes, ${Object.keys(out.classic).length} of Classic's; items.json: ${Object.keys(items).length} of ${itemIds.length} tools' items`,
+  `✓ i18n/${locale}/creatures.json: ${Object.keys(out.forever).length} of Forever's foes (${Object.keys(out.foreverLeftOut).length} left out, by name only), ${Object.keys(out.classic).length} of Classic's; items.json: ${Object.keys(items).length} of ${itemIds.length} tools' items`,
 );

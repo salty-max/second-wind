@@ -117,6 +117,10 @@ end
 local names, idOfName, insideIds
 function ns.names(t)
   names, idOfName, insideIds = t, nil, nil
+  -- (what wow-data's build leaves out of Forever, Season of Discovery's: a
+  -- saved debrief's foe named by its id alone, never found by a name, which
+  -- pairs doesn't see)
+  if t and t.creatures and t.creaturesLeftOut then setmetatable(t.creatures, { __index = t.creaturesLeftOut }) end
 end
 local function ownNames()
   if not names then return nil end
