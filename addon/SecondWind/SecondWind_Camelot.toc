@@ -7,7 +7,7 @@
 ## Notes-esMX: Revisa tus combates casi mortales y tus muertes al terminar el combate. Consulta qué te golpeó, qué recursos de emergencia quedaron sin usar y qué tienen en común tus combates peligrosos.
 ## Category: Combat
 ## Author: salty-max
-## Version: 0.5.4
+## Version: 0.5.5
 ## SavedVariablesPerCharacter: SecondWindChar
 ## SavedVariables: SecondWindSettings, SecondWindAccount, SecondWindCollect
 ## IconTexture: Interface\AddOns\SecondWind\Media\Logo
