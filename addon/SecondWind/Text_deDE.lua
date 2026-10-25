@@ -322,7 +322,7 @@ ns.translate({
     ["The debrief after a death"] = "Der Bericht nach einem Tod",
     ["The debrief, as text"] = "Der Bericht als Text",
     ["The game: %s.%s, secret values %s"] = "Das Spiel: %s.%s, geheime Werte %s",
-    ["the game's achievement alert could not be set up (%s): the book shows its own banner."] = "die Erfolgsmeldung des Spiels ließ sich nicht einrichten (%s): Das Buch zeigt ein eigenes Banner.",
+    ["The game's achievement alert could not be set up (%s): the book shows its own banner."] = "Die Erfolgsmeldung des Spiels ließ sich nicht einrichten (%s): Das Buch zeigt ein eigenes Banner.",
     ["The game's low-health warning (35%%): %s"] = "Die Warnung des Spiels bei niedriger Gesundheit (35 %%): %s",
     ["The game's Options have no page for addons here."] = "Die Optionen des Spiels haben hier keine Seite für Addons.",
     ["the harm was mostly magic"] = "der Schaden war überwiegend magisch",

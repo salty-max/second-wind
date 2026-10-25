@@ -25,6 +25,7 @@ force-added, anything else there is a local note, absent from a worktree.
 ```bash
 bun run ids          # every table saved-ids.json lists keeps the ids it had at the fork point from origin/main (addon-kit's ids.ts)
 bun run check        # the kit's copies, saved ids, languages, game tables, lint, the simulation on both games, every language's test, TOCs
+bun run check:ci     # what CI and the release gate run: no family folder (the kit, the saved ids and the generators' checks aside)
 bun scripts/root.ts --run addon-kit/q.ts check -- bun run check   # the same, quiet, stamping the tree for the push
 bun run package      # dist/SecondWind-<version>.zip (git describe), for a test in the game
 bun run format:lua   # StyLua (stylua.toml); selene (selene.toml, the game's globals in wow.yml) runs in check
@@ -56,7 +57,7 @@ scripts/release.sh [--version X.Y.Z] [--hold] NOTES.md   # check, tag, push; Act
   translated, the others English until they are); no semicolons in any
   language. A new game function goes into addon-kit's `wow.yml` (then
   `bun run kit:sync`).
-- `Kit.lua`, `Media/`, `scripts/root.ts` (and `root.py`), `scripts/locales-lib.ts`,
+- `Kit.lua`, `Media/`, `scripts/root.ts` (and `root.py`), `scripts/locales-lib.ts`, `scripts/package-lib.ts`,
   `i18n/kit/` (the kit's words, translated once), `wow.yml` and `stylua.toml`
   are the kit's copies: edit addon-kit, then `bun run kit:sync`. The addon's
   own globals for selene are `secondwind.yml`.

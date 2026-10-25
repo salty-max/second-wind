@@ -10,9 +10,10 @@ local function check(cond, msg)
   passed = passed + 1
   io.stdout:write("✓ ", msg, "\n")
 end
-local function said(pattern)
+-- (plain: the text as written, no pattern)
+local function said(pattern, plain)
   for _, l in ipairs(G.printed) do
-    if l:find(pattern) then return true end
+    if l:find(pattern, 1, plain) then return true end
   end
   return false
 end
@@ -116,7 +117,14 @@ check(not book:IsShown(), "/wind again closes it")
 G.slash("settings")
 check(G.panel.opened == 42, "/wind settings opens the Options page")
 G.slash("minimap")
-check(ns.option("minimapHidden"), "/wind minimap hides the button")
+check(
+  ns.option("minimapHidden")
+    and said(ns.kit.L["Minimap button hidden (%s minimap shows it again)."]:format("/wind"), true),
+  "/wind minimap hides the button, and says so"
+)
+G.slash("minimap")
+check(not ns.option("minimapHidden") and said(ns.kit.L["Minimap button shown."], true), "… and shows it again")
+G.slash("minimap")
 table.insert(ns.record().debriefs, { at = 1 })
 G.slash("reset")
 check(#ns.record().debriefs == 1 and said("reset yes"), "/wind reset asks first")
