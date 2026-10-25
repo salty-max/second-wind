@@ -17,14 +17,10 @@ local L = ns.kit.L
 local PREFIX = "|cffa8c7e0Second Wind:|r "
 ns.PREFIX = PREFIX
 
--- Which game: World of Warcraft: Forever (the original world on the modern
--- client, interface 16xxx) or Classic (Era, TBC Anniversary).
-local interface = select(4, GetBuildInfo()) or 0
-ns.forever = interface >= 16000 and interface < 20000
-
--- Forever hides some values from addons ("secret values", in combat or
--- instances): never compare or print one.
-ns.secret = issecretvalue or function() return false end
+-- Which game (ns.forever: World of Warcraft: Forever, the original world on
+-- the modern client) the kit says. Forever hides some values from addons
+-- ("secret values", in combat or instances): never compare or print one.
+ns.secret = ns.kit.secret
 
 local char
 function ns.record() return char end
@@ -67,64 +63,13 @@ function ns.fightsOf(every)
 end
 
 -- ── events ───────────────────────────────────────────────────────────────────
--- Every file listens through ns.on (an event a client doesn't know is never
--- heard), unit events through ns.onUnit (for one unit only: UNIT_HEALTH fires
--- for every unit in sight). Nothing is heard before the login.
-local frame = CreateFrame("Frame")
-local listeners = {}
-
--- (one listener's error is reported, and the others still hear the event)
-local function run(fn, ...)
-  local ok, err = pcall(fn, ...)
-  if not ok then geterrorhandler()(err) end
-end
-
-frame:SetScript("OnEvent", function(_, event, ...)
-  if event == "PLAYER_LOGIN" then ns.login() end
-  if not char then return end
-  for _, fn in ipairs(listeners[event] or {}) do
-    run(fn, ...)
-  end
-end)
-frame:RegisterEvent("PLAYER_LOGIN")
-
-function ns.on(event, fn)
-  if not listeners[event] then
-    listeners[event] = {}
-    pcall(frame.RegisterEvent, frame, event)
-  end
-  table.insert(listeners[event], fn)
-end
-
-local units = {} -- unit = its frame, with its own listeners
-function ns.onUnit(event, unit, fn)
-  local f = units[unit]
-  if not f then
-    f = CreateFrame("Frame")
-    f.listeners = {}
-    f:SetScript("OnEvent", function(_, e, ...)
-      if not char then return end
-      for _, listener in ipairs(f.listeners[e]) do
-        run(listener, ...)
-      end
-    end)
-    units[unit] = f
-  end
-  if not f.listeners[event] then
-    f.listeners[event] = {}
-    f:RegisterUnitEvent(event, unit)
-  end
-  table.insert(f.listeners[event], fn)
-end
-
--- Does this client have the event? (registering an unknown one throws, and
--- Forever forbids the combat log to addons)
-local probe = CreateFrame("Frame")
-function ns.knows(event)
-  local ok = pcall(probe.RegisterEvent, probe, event)
-  if ok then probe:UnregisterEvent(event) end
-  return ok
-end
+-- Every file listens through ns.on (the kit's events: each listener on its
+-- own, the login too, an event a client doesn't know never heard), unit
+-- events through ns.onUnit (for one unit only: UNIT_HEALTH fires for every
+-- unit in sight), nothing before the login. ns.knows: does this client have
+-- the event? (Forever forbids the combat log to addons)
+local events = ns.kit.events({ login = function() ns.login() end, ready = function() return char ~= nil end })
+ns.on, ns.onUnit, ns.knows = events.on, events.onUnit, events.knows
 
 -- ── the login ────────────────────────────────────────────────────────────────
 local function account()
@@ -144,7 +89,7 @@ function ns.see(unit)
   if not UnitExists(unit) or UnitIsPlayer(unit) or not UnitCanAttack("player", unit) then return end
   local guid, name = UnitGUID(unit), UnitName(unit)
   if not (clear(guid) and clear(name)) then return end
-  local npc = tonumber(guid:match("^Creature%-%d+%-%d+%-%d+%-%d+%-(%d+)%-") or "")
+  local npc = ns.kit.npcId(guid)
   if not npc then return end
   local level, rank, kind = UnitLevel(unit), UnitClassification(unit), UnitCreatureType(unit)
   local acc = account()
@@ -263,17 +208,8 @@ function ns.areaName(id)
   local n = id and C_Map and C_Map.GetAreaInfo and C_Map.GetAreaInfo(id)
   return type(n) == "string" and n ~= "" and n or nil
 end
--- A spell's name in the client's language, by its id.
-function ns.spellNameOf(id)
-  if not id or ns.secret(id) then return nil end
-  local n
-  if C_Spell and C_Spell.GetSpellName then
-    n = C_Spell.GetSpellName(id)
-  elseif GetSpellInfo then
-    n = GetSpellInfo(id)
-  end
-  return type(n) == "string" and n ~= "" and not ns.secret(n) and n or nil
-end
+-- A spell's name in the client's language, by its id (the kit's).
+function ns.spellNameOf(id) return ns.kit.spellName(id) end
 
 -- A debrief in the client's language of today: a debrief keeps the names of
 -- the day it was written (the game's, in that client's language), and its ids

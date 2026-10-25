@@ -1,0 +1,16 @@
+# The addon's own globals: its saved variables and its slash command
+# (selene.toml: std = "wow+secondwind"; the game's are the kit's wow.yml).
+name: secondwind
+globals:
+  SecondWindAccount:
+    any: true
+  SecondWindChar:
+    any: true
+  SecondWindCollect:
+    any: true
+  SecondWindSettings:
+    any: true
+  SLASH_SECONDWIND1:
+    any: true
+  SLASH_SECONDWIND2:
+    any: true

@@ -23,7 +23,7 @@ local DEFAULTS = {
   openAfterDeath = true,
   prepull = true,
   minimapHidden = false,
-  minimapAngle = 250,
+  minimapAngle = K.MINIMAP_ANGLES.SecondWind,
   welcomed = false,
 }
 local SHARED = { "threshold", "toast", "openAfterDeath", "prepull", "minimapHidden", "minimapAngle" }

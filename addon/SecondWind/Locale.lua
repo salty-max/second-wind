@@ -6,16 +6,6 @@
 local _, ns = ...
 local K = ns.kit
 
--- (is n the "one" form? English, German, Spanish, Italian: 1; French and
--- Brazilian Portuguese: 0 and 1; Russian: 1, 21, 31... but not 11; Korean
--- and Chinese have one form)
-local PLURALS = {
-  one = function(n) return n == 1 end,
-  fr = function(n) return n == 0 or n == 1 end,
-  ru = function(n) return n % 10 == 1 and n % 100 ~= 11 end,
-  none = function() return false end,
-}
-
 -- A sentence's blanks filled in, in the order its language puts them: a
 -- translation may number them ("%2$s de %1$s"), which LuaJIT's format can't
 -- read (the game's can).
@@ -99,16 +89,12 @@ function ns.noun(word)
   if not word then return nil end
   return ns.locale == "deDE" and word or word:lower()
 end
+-- (the kit's: the language's plural rule, every word agreed to the reader's
+-- gender; its decimal point the addon's)
 function ns.translate(t)
   ns.locale = t.locale
-  K.isOne = PLURALS[t.plural] or K.isOne
   ns.DECIMAL = t.decimal or ns.DECIMAL
-  -- (the reader's gender, the game's own token: $gmasculine:feminine;)
-  local female = UnitSex and UnitSex("player") == 3
-  local L = K.L
-  for english, word in pairs(t.words or {}) do
-    L[english] = word:gsub("%$g([^:;]*):([^;]*);", function(m, f) return female and f or m end)
-  end
+  K.translate(t)
 end
 
 -- The game's names in the client's language (its Text file's, from

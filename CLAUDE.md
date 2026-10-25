@@ -54,9 +54,12 @@ scripts/release.sh [--version X.Y.Z] [--hold] NOTES.md   # check, tag, push; Act
   generator goes into `game-data.yml` too.
 - Every language the game has, through `L` (French, German and Spanish
   translated, the others English until they are); no semicolons in any
-  language. A new game function goes into `wow.yml`.
-- `Kit.lua` and `scripts/root.ts` are the kit's copies: edit addon-kit,
-  then `bun run kit:sync`.
+  language. A new game function goes into addon-kit's `wow.yml` (then
+  `bun run kit:sync`).
+- `Kit.lua`, `Media/`, `scripts/root.ts` (and `root.py`), `scripts/locales-lib.ts`,
+  `i18n/kit/` (the kit's words, translated once), `wow.yml` and `stylua.toml`
+  are the kit's copies: edit addon-kit, then `bun run kit:sync`. The addon's
+  own globals for selene are `secondwind.yml`.
 - Conventional Commits, lowercase subjects, no AI trailers. Commit locally;
   ask before any push, release or deploy. The pre-push hook wants a check
   stamp on the tree (q), which `release.sh` makes after the version bump.

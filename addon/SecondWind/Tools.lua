@@ -400,12 +400,7 @@ function ns.spellIcon(spell)
   local ok, icon = pcall(get, spell)
   if ok and icon and not ns.secret(icon) then return icon end
 end
-function ns.itemIcon(item)
-  if not item then return nil end
-  local get = C_Item and C_Item.GetItemIconByID or GetItemIcon
-  local ok, icon = pcall(get, item)
-  if ok and icon and not ns.secret(icon) then return icon end
-end
+function ns.itemIcon(item) return ns.kit.itemIcon(item) end
 -- A spell's id by its name, for one I know (its tooltip).
 function ns.spellIdOf(name)
   if not name then return nil end

@@ -83,7 +83,10 @@ check(
   "… on: account-wide, this addon collects"
 )
 ns.collect:set(false)
-check(not ns.collect:on() and next(SecondWindCollect.facts) == nil, "… off: what was kept forgotten")
+check(
+  not ns.collect:on() and SecondWindCollect.facts ~= nil and SaltyMaxCollector == nil,
+  "… off: nothing more kept, the claim given up (what was kept stays here, never sent while off)"
+)
 SaltyMaxCollector = nil
 
 -- ── one listener's error ─────────────────────────────────────────────────────

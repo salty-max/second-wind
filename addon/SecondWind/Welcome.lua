@@ -58,12 +58,7 @@ local W = K.welcome({
         get = function() return ns.option("prepull") end,
         set = function(v) ns.setOption("prepull", v) end,
       },
-      {
-        text = L["The book by the minimap"],
-        hint = L["Click it to open the book, or drag it around the minimap."],
-        get = function() return not ns.option("minimapHidden") end,
-        set = function(v) ns.setOption("minimapHidden", not v) end,
-      },
+      K.minimapChoice(ns.option, ns.setOption),
       K.collectChoice(ns.collect),
     }
   end,

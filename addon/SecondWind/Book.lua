@@ -296,7 +296,13 @@ function ns.openDebrief(at)
 end
 
 -- ── a debrief written ────────────────────────────────────────────────────────
-function ns.link(at, text) return ("|cffa8c7e0|Hsecondwind:debrief:%d|h[%s]|h|r"):format(at, text) end
+-- Links in chat (|Hsecondwind:debrief:<at>|h, the kit's): the game hands a
+-- link of an unknown type to the handler registered for it.
+local link = K.links("secondwind", function(target)
+  local at = tonumber(target:match("^debrief:(%d+)$") or "")
+  if at then ns.openDebrief(at) end
+end, "a8c7e0")
+function ns.link(at, text) return link("debrief:" .. at, text) end
 
 -- The banner (the kit's, among the game's alerts): what it was, where; a
 -- click opens the debrief, a right-click or its cross dismisses it.
@@ -322,20 +328,4 @@ function ns.debriefed(d)
   if d.kind == "death" and ns.option("toast") then toast(d) end
   if d.kind == "death" and ns.option("openAfterDeath") then ns.openDebrief(d.at) end
   if book and book:IsShown() then ns.refresh() end
-end
-
--- Links in chat (|Hsecondwind:debrief:<at>|h): the game hands a link of an
--- unknown type to the handler registered for it.
-local function followLink(link)
-  local at = tonumber(link:match("^secondwind:debrief:(%d+)$") or "")
-  if at then ns.openDebrief(at) end
-end
-if LinkUtil and LinkUtil.RegisterLinkHandler then
-  LinkUtil.RegisterLinkHandler("secondwind", function(link)
-    followLink(link)
-    return LinkProcessorResponse and LinkProcessorResponse.Handled
-  end)
-elseif hooksecurefunc and SetItemRef then
-  -- Clients without the link registry still pass every click to SetItemRef.
-  hooksecurefunc("SetItemRef", function(link) followLink(link) end)
 end
