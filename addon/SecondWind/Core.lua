@@ -204,10 +204,7 @@ function ns.areaIdOfEnglish(name)
   end
   return byEnglish[name]
 end
-function ns.areaName(id)
-  local n = id and C_Map and C_Map.GetAreaInfo and C_Map.GetAreaInfo(id)
-  return type(n) == "string" and n ~= "" and n or nil
-end
+function ns.areaName(id) return ns.kit.areaName(id) end
 -- A spell's name in the client's language, by its id (the kit's).
 function ns.spellNameOf(id) return ns.kit.spellName(id) end
 

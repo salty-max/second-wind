@@ -28,13 +28,7 @@ end
 
 -- A moment as the book writes it, the month in the language's word: "14 Oct",
 -- with the time "14 Oct 16:05" (the kit's month names, K.day's).
-local MONTHS = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" }
-function ns.date(at, time)
-  local d = date("*t", at or 0)
-  local L = K.L
-  local day = L["%02d %s"]:format(d.day, L[MONTHS[d.month]])
-  return time and L["%s %02d:%02d"]:format(day, d.hour, d.min) or day
-end
+function ns.date(at, time) return K.day(at, { year = false, time = time }) end
 
 -- A creature type by its id (the game's, C_CreatureInfo's: a debrief keeps
 -- the id, its icon and the critter test by it, its word the client's).

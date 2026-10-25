@@ -781,7 +781,12 @@ local five = {
 check(not ns.patternsOf({ five[1], five[2] }).enough, "patterns: nothing said before three debriefs")
 local pat = ns.patternsOf(five)
 check(
-  pat.enough and pat.sub == "From 5 debriefs: 4 close calls and a death, since " .. date("%d %b", 1000),
+  pat.enough
+    and pat.sub
+      == "From 5 debriefs: 4 close calls and a death, since " .. ("%d %s"):format(
+        date("*t", 1000).day,
+        date("%b", 1000)
+      ),
   "… then what they are drawn from"
 )
 check(

@@ -13,7 +13,7 @@ ns.translate({
     [", %d character"] = ", %d personnage",
     [", %d characters"] = ", %d personnages",
     ["/secondwind (or /wind) opens the book, /wind settings its settings. /wind minimap shows or hides the button. /wind copy gives the open debrief as text. /wind lifelines shows what you carry for the worst moments. /wind welcome shows the welcome page again. /wind export gives this character's settings as a code, and /wind import CODE takes them. /wind reset forgets this character's debriefs. /wind probe says, after the next fight, what the game let Second Wind read of it."] = "/secondwind (ou /wind) ouvre le livre, /wind settings ses réglages. /wind minimap affiche ou masque le bouton. /wind copy donne le bilan ouvert en texte. /wind lifelines montre ce que vous avez sur vous pour les pires moments. /wind welcome affiche de nouveau la page d'accueil. /wind export donne les réglages de ce personnage sous forme de code, et /wind import CODE les reprend. /wind reset efface les bilans de ce personnage. /wind probe indique, après le prochain combat, ce que le jeu a laissé lire à Second Wind.",
-    ["%02d %s"] = "%d %s",
+    ["%d %s"] = "%d %s",
     ["%d %s %d"] = "%d %s %d",
     ["%d close calls"] = "%d morts frôlées",
     ["%d deaths"] = "%d morts",
