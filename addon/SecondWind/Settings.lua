@@ -71,74 +71,52 @@ ns.collect = K.collect({
   prefix = ns.PREFIX,
 })
 
-local category
+-- The page in the game's Options (the kit's: K.options).
+local O
 
 function ns.createSettingsPanel()
-  if category or not (Settings and Settings.RegisterVerticalLayoutCategory) then return end
-  category = Settings.RegisterVerticalLayoutCategory("Second Wind")
-
-  local threshold = Settings.RegisterProxySetting(
-    category,
-    "SECONDWIND_THRESHOLD",
-    Settings.VarType.Number,
+  if O then return end
+  O = K.options({
+    title = "Second Wind",
+    key = "SECONDWIND",
+    get = ns.option,
+    set = ns.setOption,
+    defaults = DEFAULTS,
+    profiles = P,
+    slash = "/wind",
+    prefix = ns.PREFIX,
+  })
+  O:choice(
+    "threshold",
     L["A close call below"],
-    DEFAULTS.threshold,
-    function() return ns.option("threshold") end,
-    function(value) ns.setOption("threshold", value) end
-  )
-  Settings.CreateDropdown(category, threshold, function()
-    local options = Settings.CreateControlTextContainer()
-    for _, n in ipairs(ns.THRESHOLDS) do
-      options:Add(n, L["%d%% health"]:format(n))
+    L["A fight you survive with your health below this is a close call, and gets a debrief."],
+    function()
+      local out = {}
+      for _, n in ipairs(ns.THRESHOLDS) do
+        table.insert(out, { n, L["%d%% health"]:format(n) })
+      end
+      return out
     end
-    return options:GetData()
-  end, L["A fight you survive with your health below this is a close call, and gets a debrief."])
-
-  local function checkbox(key, name, tooltip, invert)
-    invert = invert or false
-    local setting = Settings.RegisterProxySetting(
-      category,
-      "SECONDWIND_" .. key:upper(),
-      Settings.VarType.Boolean,
-      name,
-      not DEFAULTS[key] == invert,
-      function() return ns.option(key) ~= invert end,
-      function(value) ns.setOption(key, value ~= invert) end
-    )
-    Settings.CreateCheckbox(category, setting, tooltip)
-  end
-  checkbox(
+  )
+  O:check(
     "toast",
     L["An alert after a death"],
     L["After a death, a banner among the game's alerts. A click opens the debrief."]
   )
-  checkbox(
+  O:check(
     "openAfterDeath",
     L["The debrief after a death"],
     L["Open the debrief on its own after a death (you aren't playing then). A close call's waits for a click."]
   )
-  checkbox(
+  O:check(
     "prepull",
     L["A word before a pull"],
     L["Out of a fight, when you target a foe like those of your close calls (an elite, two levels up, one met before), or you're hurt and that's one of the things they share: a line in chat, with the counts."]
   )
-  checkbox("minimapHidden", L["Minimap button"], L["The book by the minimap: click to open it, drag to move it."], true)
-
-  K.collectSetting(category, "SECONDWIND_SHARE", ns.collect)
-
-  -- Another character's settings (of this game), for this one.
-  K.copySetting(
-    category,
-    "SECONDWIND_COPYFROM",
-    P,
-    L["Another character's choices, for this one (of this game: Classic and Forever keep their own). From elsewhere: /wind export there, then /wind import CODE here."],
-    function(other) print(ns.PREFIX .. L["%s's settings copied."]:format(other)) end
-  )
-
-  Settings.RegisterAddOnCategory(category)
+  O:check("minimapHidden", L["Minimap button"], L["The book by the minimap: click to open it, drag to move it."], true)
+  O:collect(ns.collect)
+  O:copy()
+  O:done()
 end
 
-function ns.openSettings()
-  if category then Settings.OpenToCategory(category:GetID()) end
-  return category ~= nil
-end
+function ns.openSettings() return O ~= nil and O:open() end

@@ -123,7 +123,7 @@ check(#ns.record().debriefs == 1 and said("reset yes"), "/wind reset asks first"
 G.slash("reset yes")
 check(#ns.record().debriefs == 0, "/wind reset yes forgets the debriefs")
 G.slash("import SW1:p10")
-check(ns.option("threshold") == 10 and said("settings imported"), "/wind import CODE")
+check(ns.option("threshold") == 10 and said("Settings imported"), "/wind import CODE")
 G.slash("what")
 check(said("/wind settings"), "an unknown word: the commands")
 

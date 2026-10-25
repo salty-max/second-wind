@@ -427,40 +427,35 @@ end)
 local USAGE =
   L["/secondwind (or /wind) opens the book, /wind settings its settings. /wind minimap shows or hides the button. /wind copy gives the open debrief as text. /wind lifelines shows what you carry for the worst moments. /wind welcome shows the welcome page again. /wind export gives this character's settings as a code, and /wind import CODE takes them. /wind reset forgets this character's debriefs. /wind probe says, after the next fight, what the game let Second Wind read of it."]
 
-SLASH_SECONDWIND1 = "/secondwind"
-SLASH_SECONDWIND2 = "/wind"
-SlashCmdList.SECONDWIND = function(msg)
-  local raw = strtrim(msg or "")
-  msg = raw:lower()
-  if msg == "" then
-    ns.toggle()
-  elseif msg == "reset" then
-    print(PREFIX .. L["this forgets every debrief of this character. Type /wind reset yes to do it."])
-  elseif msg == "reset yes" then
-    newRecord(char.guid)
-    ns.refresh()
-    print(PREFIX .. L["this character's debriefs are forgotten."])
-  elseif msg == "welcome" then
-    ns.showWelcome()
-  elseif msg == "export" then
-    ns.showWelcome("export")
-  elseif msg:match("^import%s") then
-    if ns.profiles:import(raw:match("^%a+%s+(.+)$")) then
-      print(PREFIX .. L["settings imported for this character."])
-    else
-      print(PREFIX .. L["that isn't a Second Wind settings code (/wind export makes one)."])
-    end
-  elseif msg == "probe" then
-    ns.probeArm()
-  elseif msg == "copy" then
-    if not ns.copyDebrief() then print(PREFIX .. L["no debrief to copy yet."]) end
-  elseif msg == "lifelines" or msg == "carry" or msg == "kit" then
-    ns.openTab(ns.TAB.carry)
-  elseif msg == "minimap" then
-    ns.setOption("minimapHidden", not ns.option("minimapHidden"))
-  elseif msg == "settings" or msg == "options" then
-    if not ns.openSettings() then print(PREFIX .. L["no settings page in this client."]) end
-  else
-    print(PREFIX .. USAGE)
-  end
-end
+-- The kit's command (K.commands): alone it opens the book, an unknown word
+-- prints the usage.
+local function lifelines() ns.openTab(ns.TAB.carry) end
+ns.kit.commands({
+  names = { "/wind", "/secondwind" },
+  key = "SECONDWIND",
+  name = "Second Wind",
+  prefix = PREFIX,
+  profiles = function() return ns.profiles end,
+  open = function() ns.toggle() end,
+  usage = USAGE,
+  settings = function() return ns.openSettings() end,
+  welcome = function(mode) ns.showWelcome(mode) end,
+  minimap = { get = function(k) return ns.option(k) end, set = function(k, v) ns.setOption(k, v) end },
+  commands = {
+    reset = function()
+      print(PREFIX .. L["This forgets every debrief of this character. Type /wind reset yes to do it."])
+    end,
+    ["reset yes"] = function()
+      newRecord(char.guid)
+      ns.refresh()
+      print(PREFIX .. L["This character's debriefs are forgotten."])
+    end,
+    probe = function() ns.probeArm() end,
+    copy = function()
+      if not ns.copyDebrief() then print(PREFIX .. L["No debrief to copy yet."]) end
+    end,
+    lifelines = lifelines,
+    carry = lifelines,
+    kit = lifelines,
+  },
+})
