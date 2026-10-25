@@ -149,7 +149,7 @@ function ns.probeArm()
     rows = {},
     healthBefore = ns.secret(UnitHealth("player")) and "hidden" or "readable",
   }
-  print(ns.PREFIX .. L["the probe is armed: the next fight is watched. Fight anything, then read the report here."])
+  print(ns.PREFIX .. L["The probe is armed: the next fight is watched. Fight anything, then read the report here."])
 end
 
 -- My health through the heal-prediction calculator (Forever's), read back
@@ -190,35 +190,35 @@ local function report()
   local warning = GetCVarBool and GetCVarBool("doNotFlashLowHealthWarning") and L["turned off in your settings"]
     or said(p.lowWarn, L["seen in the fight"], L["not seen (below 35% in the fight?)"])
   local lines = {
-    L["the combat log: %s"]:format(ns.forever and L["closed (Forever)"] or L["%d lines heard"]:format(p.log)),
-    L["your health in the fight: %s"]:format(
+    L["The combat log: %s"]:format(ns.forever and L["closed (Forever)"] or L["%d lines heard"]:format(p.log)),
+    L["Your health in the fight: %s"]:format(
       p.healthSecret and HIDDEN or said(p.healthRead, READABLE, L["no change seen"])
     ),
-    L["your health out of a fight: %s"]:format(ns.secret(UnitHealth("player")) and HIDDEN or READABLE),
-    L["your casts in the fight: %s"]:format(p.castSecret and HIDDEN or said(p.castRead, READABLE, L["none cast"])),
-    L["the notice before combat's restrictions: %s"]:format(said(p.notice, L["seen"], L["not seen"])),
-    L["losing control: %s"]:format(lostWhy),
-    L["the damage meter: %s"]:format(meter),
-    L["the meter's healing: %s"]:format(healing),
-    L["the game's low-health warning (35%%): %s"]:format(warning),
+    L["Your health out of a fight: %s"]:format(ns.secret(UnitHealth("player")) and HIDDEN or READABLE),
+    L["Your casts in the fight: %s"]:format(p.castSecret and HIDDEN or said(p.castRead, READABLE, L["none cast"])),
+    L["The notice before combat's restrictions: %s"]:format(said(p.notice, L["seen"], L["not seen"])),
+    L["Losing control: %s"]:format(lostWhy),
+    L["The damage meter: %s"]:format(meter),
+    L["The meter's healing: %s"]:format(healing),
+    L["The game's low-health warning (35%%): %s"]:format(warning),
   }
   local build, number = GetBuildInfo()
   local restricted = C_Secrets and C_Secrets.HasSecretRestrictions and C_Secrets.HasSecretRestrictions()
   table.insert(
     lines,
     1,
-    L["the game: %s.%s, secret values %s"]:format(build, number, restricted and L["on"] or L["off"])
+    L["The game: %s.%s, secret values %s"]:format(build, number, restricted and L["on"] or L["off"])
   )
   table.insert(
     lines,
-    L["the hits on you (UNIT_COMBAT): %s"]:format(
+    L["The hits on you (UNIT_COMBAT): %s"]:format(
       p.combat == 0 and L["none heard"] or L["%d heard, %d with a hidden amount"]:format(p.combat, p.combatSecret)
     )
   )
   local calc = calculated()
   local CALC = { hidden = HIDDEN, readable = READABLE, refused = L["refused"] }
-  if calc then table.insert(lines, L["your health through the heal calculator: %s"]:format(CALC[calc] or calc)) end
-  print(ns.PREFIX .. L["the probe's report:"])
+  if calc then table.insert(lines, L["Your health through the heal calculator: %s"]:format(CALC[calc] or calc)) end
+  print(ns.PREFIX .. L["The probe's report:"])
   for _, l in ipairs(lines) do
     print("  " .. l)
   end
@@ -241,7 +241,7 @@ local function report()
     end
     print(
       "  "
-        .. L["kept in SecondWind.lua, the account's saved file (WTF\\Account\\<account>\\SavedVariables), written at /reload or logout."]
+        .. L["Kept in SecondWind.lua, the account's saved file (WTF\\Account\\<account>\\SavedVariables), written at /reload or logout."]
     )
   end
 end

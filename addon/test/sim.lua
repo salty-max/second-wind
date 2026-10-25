@@ -1180,7 +1180,7 @@ end
 
 debriefs = life()
 G.slash("probe")
-check(said("the probe is armed"), "/wind probe: armed for the next fight")
+check(said("The probe is armed"), "/wind probe: armed for the next fight")
 G.pull()
 G.hit({ from = "Ragged Young Wolf", amount = 30 })
 G.hit({ from = "Ragged Young Wolf", amount = 100 })
@@ -1190,13 +1190,13 @@ G.wait(1)
 G.cast({ 6673, "Battle Shout" })
 G.leave()
 G.wait(1)
-check(said("the probe's report"), "… its report once the fight is over")
+check(said("The probe's report"), "… its report once the fight is over")
 check(
-  said(G.FOREVER and "the game: 1%.60%.1%.70338, secret values on" or "the game: 1%.15%.9%.70003, secret values off")
-    and said("the hits on you %(UNIT_COMBAT%): 3 heard, 0 with a hidden amount"),
+  said(G.FOREVER and "The game: 1%.60%.1%.70338, secret values on" or "The game: 1%.15%.9%.70003, secret values off")
+    and said("The hits on you %(UNIT_COMBAT%): 3 heard, 0 with a hidden amount"),
   "… the build, its secret values, and the hits the game tells unit by unit"
 )
-check(said("losing control: told by the game %(Stunned, Cheap Shot%)"), "… what it could tell of a stun")
+check(said("Losing control: told by the game %(Stunned, Cheap Shot%)"), "… what it could tell of a stun")
 local kept = SecondWindSettings.probes and SecondWindSettings.probes[#SecondWindSettings.probes]
 local kinds = {}
 for _, row in ipairs(kept and kept.rows or {}) do
@@ -1204,7 +1204,7 @@ for _, row in ipairs(kept and kept.rows or {}) do
 end
 check(
   kept
-    and kept.lines[1]:find("^the game: ")
+    and kept.lines[1]:find("^The game: ")
     and kept.healthBefore
     and kinds.combat == 3
     and kinds.cast == 1
@@ -1213,34 +1213,34 @@ check(
     and kept.rows[1].k == "combat"
     and kept.rows[1].event == "WOUND"
     and kept.rows[1].amount == 30
-    and said("kept in SecondWind.lua"),
+    and said("Kept in SecondWind.lua"),
   "… the report kept in the account's saved file, with what it was drawn from (each hit and heal, cast, stun event, the warning)"
 )
 check(
-  said("the meter's healing: yours 20 %(its spells name Pippa%)")
-    and said("the game's low%-health warning %(35%%%): seen in the fight")
+  said("The meter's healing: yours 20 %(its spells name Pippa%)")
+    and said("The game's low%-health warning %(35%%%): seen in the fight")
     and said("read, 0 marked avoidable"),
   "… the harm marked avoidable or not, the meter's healing and whom it names, the game's own low-health warning"
 )
 if G.FOREVER then
   check(
-    said("the combat log: closed")
-      and said("your health in the fight: hidden")
-      and said("your health out of a fight: hidden")
-      and said("your health through the heal calculator: hidden"),
+    said("The combat log: closed")
+      and said("Your health in the fight: hidden")
+      and said("Your health out of a fight: hidden")
+      and said("Your health through the heal calculator: hidden"),
     "… Forever: the log closed, my health hidden in a fight and out of it, the calculator no way round"
   )
   check(
-    said("the notice before combat's restrictions: seen") and said("the damage meter: 1 of the spells"),
+    said("The notice before combat's restrictions: seen") and said("The damage meter: 1 of the spells"),
     "… the notice seen, the meter read"
   )
 else
   check(
-    said("the combat log: %d+ lines heard") and said("your health in the fight: readable"),
+    said("The combat log: %d+ lines heard") and said("Your health in the fight: readable"),
     "… Classic: the log heard, my health readable"
   )
   check(
-    said("your casts in the fight: readable") and said("the notice before combat's restrictions: not seen"),
+    said("Your casts in the fight: readable") and said("The notice before combat's restrictions: not seen"),
     "… my casts readable, no notice"
   )
 end

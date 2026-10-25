@@ -444,7 +444,7 @@ G.wait(3)
 G.leave()
 local probe = SecondWindSettings.probes[#SecondWindSettings.probes]
 check(
-  table.concat(probe.lines, "\n"):find("pérdida de control: solo consta que perdiste el control", 1, true),
+  table.concat(probe.lines, "\n"):find("Pérdida de control: solo consta que perdiste el control", 1, true),
   "the diagnostic fallback states only what is known"
 )
 
