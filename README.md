@@ -65,7 +65,7 @@ bun run check      # Translations, Lua, game and locale simulations, TOCs
 bun run locales    # Write addon/SecondWind/Text_<locale>.lua from i18n/
 bun run creatures  # Write the creatures' portraits from wow-data's databases
 bun run package    # Create dist/SecondWind-<version>.zip
-scripts/release.sh [--version X.Y.Z] [--hold] NOTES.md
+scripts/release.sh --version X.Y.Z [--hold] NOTES.md
 ```
 
 The release script tags and pushes. GitHub Actions publishes the addon on

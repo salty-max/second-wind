@@ -31,7 +31,7 @@ bun run package      # dist/SecondWind-<version>.zip (git describe), for a test 
 bun run format:lua   # StyLua (stylua.toml); selene (selene.toml, the game's globals in wow.yml) runs in check
 bun run kit:sync     # after a change to the kit (Kit.lua, Media, scripts/root.ts)
 bun run creatures    # the creatures' portraits again (scripts/creatures.ts); game.ts, creature_names.ts <locale> likewise
-scripts/release.sh [--version X.Y.Z] [--hold] NOTES.md   # check, tag, push; Actions publish
+scripts/release.sh --version X.Y.Z [--hold] NOTES.md   # check, tag, push; Actions publish
 ```
 
 ## Hard rules
