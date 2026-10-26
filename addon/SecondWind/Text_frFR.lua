@@ -337,7 +337,7 @@ ns.translate({
     ["the water"] = "l'eau",
     ["This character"] = "Ce personnage",
     ["This character's debriefs are forgotten."] = "Les bilans de ce personnage sont effacés.",
-    ["This forgets every debrief of this character. Type /wind reset yes to do it."] = "Cela efface tous les bilans de ce personnage. Tapez /wind reset yes pour le faire.",
+    ["This forgets every debrief of this character. Type /wind reset yes to do it."] = "Ceci efface tous les bilans de ce personnage. Tapez /wind reset yes pour confirmer.",
     ["three"] = "trois",
     ["three foes or more at once"] = "trois ennemis ou plus à la fois",
     ["told by the game (%s)"] = "indiquée par le jeu (%s)",

@@ -337,7 +337,7 @@ ns.translate({
     ["the water"] = "Wasser",
     ["This character"] = "Dieser Charakter",
     ["This character's debriefs are forgotten."] = "Die Berichte dieses Charakters wurden gelöscht.",
-    ["This forgets every debrief of this character. Type /wind reset yes to do it."] = "Das löscht alle Berichte dieses Charakters. Tippe /wind reset yes, um sie zu löschen.",
+    ["This forgets every debrief of this character. Type /wind reset yes to do it."] = "Das löscht alle Berichte dieses Charakters. Gib /wind reset yes ein, um zu bestätigen.",
     ["three"] = "drei",
     ["three foes or more at once"] = "drei Gegner oder mehr auf einmal",
     ["told by the game (%s)"] = "vom Spiel gemeldet (%s)",
