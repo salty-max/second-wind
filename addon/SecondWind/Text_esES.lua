@@ -286,7 +286,7 @@ ns.translate({
     ["readable"] = "accesible",
     ["ready"] = "disponible",
     ["Ready"] = "Disponibles",
-    ["Ready check"] = "Control de disponibilidad",
+    ["Ready check"] = "¿Listos?",
     ["ready in %s"] = "disponible en %s",
     ["ready now"] = "disponible ahora",
     ["Ready, but out of your control"] = "Disponibles, pero no podías actuar",
