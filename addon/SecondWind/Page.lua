@@ -25,22 +25,9 @@
 local _, ns = ...
 
 -- ── look ─────────────────────────────────────────────────────────────────────
--- The kit's, in Second Wind's theme: frost steel, blue-grey titles on cool
--- panels, calm after the fight (the Codex's gold on ink, Yonder's
--- sage, Hearthtale's ember).
+-- The kit's, its theme (Second Wind's: frost steel) set first thing in Core.lua.
 local K = ns.kit
 local L = K.L
-K.theme({
-  accent = { 0.66, 0.78, 0.88 },
-  text = { 0.90, 0.92, 0.95 },
-  soft = { 0.56, 0.61, 0.67 },
-  ring = { 0.48, 0.60, 0.72 },
-  bar = { 0.45, 0.66, 0.86 },
-  dim = { 0.50, 0.53, 0.57 },
-  tint = { 0.86, 0.92, 1.00 },
-  shade = { 0.02, 0.025, 0.035, 0.55 },
-  highlight = { 0.78, 0.88, 1.00 },
-})
 local T = K.T
 local label, rule = K.label, K.rule
 

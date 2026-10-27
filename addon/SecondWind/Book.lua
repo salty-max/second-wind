@@ -207,7 +207,8 @@ end
 local function build()
   local window = K.gameWindow("SecondWindFrame", TITLE, ICON)
   book = window or K.dialog("SecondWindFrame", TITLE)
-  K.movable(book, 760, 520)
+  SecondWindSettings = SecondWindSettings or {}
+  K.movable(book, K.BOOK_W, K.BOOK_H, K.place(SecondWindSettings, "book"))
   book.rows = {}
 
   local edge = window and 8 or 14
@@ -231,10 +232,8 @@ local function build()
   book.card = ns.newPage(book.sheet, "SecondWindCard", LIST_W + 20, CARD_W, true)
   book.patterns = ns.newPage(book.sheet, "SecondWindPatterns", 20, PAGE_W, false)
   book.carry = ns.newPage(book.sheet, "SecondWindCarry", 20, PAGE_W, false)
-  book.copy = CreateFrame("Button", nil, book, "UIPanelButtonTemplate")
-  book.copy:SetSize(120, 22)
+  book.copy = K.button(book, L["Copy as text"], 120)
   book.copy:SetPoint("TOPRIGHT", -14, -31)
-  book.copy:SetText(L["Copy as text"])
   book.copy:SetScript("OnClick", function() ns.copyDebrief() end)
   -- (whose debriefs: this character's, or every character's of this game)
   book.scope = K.select(book, 150, L["This character"])
@@ -301,14 +300,15 @@ end
 local link = K.links("secondwind", function(target)
   local at = tonumber(target:match("^debrief:(%d+)$") or "")
   if at then ns.openDebrief(at) end
-end, "a8c7e0")
+end)
 function ns.link(at, text) return link("debrief:" .. at, text) end
 
 -- The banner (the kit's, among the game's alerts): what it was, where; a
 -- click opens the debrief, a right-click or its cross dismisses it.
 local banners
 local function toast(d)
-  banners = banners or K.banners({ name = "SecondWindBanner", art = ICON, seconds = 12 })
+  banners = banners
+    or K.banners({ name = "SecondWindBanner", art = ICON, seconds = function() return ns.option("bannerSeconds") end })
   banners:show({
     picture = ICON,
     kicker = d.kind == "death" and L["Death"] or L["Close call: %s"]:format(ns.lowOf(d)),

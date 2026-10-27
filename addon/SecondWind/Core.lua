@@ -13,8 +13,25 @@
 --   SecondWindChar (SavedVariablesPerCharacter): the record before 0.1.3,
 --     moved into the account's at the login
 local _, ns = ...
-local L = ns.kit.L
-local PREFIX = "|cffa8c7e0Second Wind:|r "
+local K = ns.kit
+local L = K.L
+
+-- The kit's, in Second Wind's theme: frost steel, blue-grey titles on cool
+-- panels, calm after the fight (the Codex's gold on ink, Yonder's
+-- sage, Hearthtale's ember).
+K.theme({
+  accent = { 0.66, 0.78, 0.88 },
+  text = { 0.90, 0.92, 0.95 },
+  soft = { 0.56, 0.61, 0.67 },
+  ring = { 0.48, 0.60, 0.72 },
+  bar = { 0.45, 0.66, 0.86 },
+  dim = { 0.50, 0.53, 0.57 },
+  tint = { 0.86, 0.92, 1.00 },
+  shade = { 0.02, 0.025, 0.035, 0.55 },
+  highlight = { 0.78, 0.88, 1.00 },
+})
+
+local PREFIX = K.prefix("Second Wind")
 ns.PREFIX = PREFIX
 
 -- Which game (ns.forever: World of Warcraft: Forever, the original world on

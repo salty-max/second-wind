@@ -36,7 +36,7 @@ check(
   "the defaults: a death's debrief opens, the button shows"
 )
 check(ns.option("prepull"), "the defaults: a word before a pull")
-check(ns.profiles:export() == "SW1:p15:t1:d1:w1:h0:a250", "the settings as a code")
+check(ns.profiles:export() == "SW1:p15:t1:n10:d1:w1:h0:a250", "the settings as a code")
 check(ns.profiles:import("SW1:p20:c0:t0"), "a code taken")
 check(
   ns.option("threshold") == 20 and not ns.option("toast") and ns.option("prepull"),

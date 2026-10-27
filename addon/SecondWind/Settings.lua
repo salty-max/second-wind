@@ -6,7 +6,7 @@
 -- welcome page (Welcome.lua) offers them too.
 --
 --   SecondWindSettings.profiles["Name - Realm"] = { threshold, toast,
---     openAfterDeath, prepull, minimapHidden, minimapAngle, welcomed }
+--     bannerSeconds, openAfterDeath, prepull, minimapHidden, minimapAngle, welcomed }
 --   (the chat line after a close call or a death has no setting any more,
 --   always shown: a profile's old chat value is left unread)
 local _, ns = ...
@@ -20,17 +20,18 @@ local L = K.L
 local DEFAULTS = {
   threshold = 15,
   toast = true,
+  bannerSeconds = K.BANNER_SECONDS,
   openAfterDeath = true,
   prepull = true,
   minimapHidden = false,
   minimapAngle = K.MINIMAP_ANGLES.SecondWind,
   welcomed = false,
 }
-local SHARED = { "threshold", "toast", "openAfterDeath", "prepull", "minimapHidden", "minimapAngle" }
+local SHARED = { "threshold", "toast", "bannerSeconds", "openAfterDeath", "prepull", "minimapHidden", "minimapAngle" }
 ns.THRESHOLDS = { 10, 15, 20, 25 }
 
--- The profiles: a code "SW1:p15:t1:d1:w1:h0:a250" (the threshold, the banner,
--- the card after a death, the word before a pull, the minimap button hidden,
+-- The profiles: a code "SW1:p15:t1:n10:d1:w1:h0:a250" (the threshold, the banner,
+-- how long it stays, the card after a death, the word before a pull, the minimap button hidden,
 -- its angle; an older code without w leaves it, an older one's c, the chat
 -- line, is left out).
 local P = K.profiles({
@@ -43,6 +44,7 @@ local P = K.profiles({
   letters = {
     threshold = "p",
     toast = "t",
+    bannerSeconds = "n",
     openAfterDeath = "d",
     prepull = "w",
     minimapHidden = "h",
@@ -103,6 +105,7 @@ function ns.createSettingsPanel()
     L["An alert after a death"],
     L["After a death, a banner among the game's alerts. A click opens the debrief."]
   )
+  O:bannerSeconds("bannerSeconds")
   O:check(
     "openAfterDeath",
     L["The debrief after a death"],
