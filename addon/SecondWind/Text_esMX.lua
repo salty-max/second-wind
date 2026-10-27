@@ -204,7 +204,7 @@ ns.translate({
     ["Hits that mattered"] = "Golpes decisivos",
     ["Holds"] = "Control de enemigos",
     ["holy"] = "sagrado",
-    ["How long the alert stays on screen. At 0 it stays until you read or dismiss it (right-click)."] = "Cuánto tiempo permanece el aviso en pantalla. Con 0, permanece hasta que lo lees o lo cierras con clic derecho.",
+    ["How long the alert stays on screen. At 0 it stays until you read or dismiss it (right-click)."] = "Tiempo que permanece el aviso en pantalla. Con 0, permanece hasta que lo lees o lo cierras con clic derecho.",
     ["in %d of your %d"] = "en %d de tus %d",
     ["In %d of your %d close calls and deaths, %s."] = "En %d de tus %d combates casi mortales y muertes: %s.",
     ["In %d of your %d close calls, %s."] = "En %d de tus %d combates casi mortales: %s.",
