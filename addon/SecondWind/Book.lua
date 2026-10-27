@@ -23,7 +23,7 @@ ns.TAB = TAB
 local TAB_TITLES = { L["Debriefs"], L["Patterns"], L["Lifelines"] }
 -- (a page's text stops 28px short of its frame, as the other books' do: the
 -- scroll thumb sits in that margin)
-local LIST_W, ROW_H, CARD_W, PAGE_W = 236, 38, 440, 676
+local LIST_W, ROW_H, CARD_W, PAGE_W = 236, 38, 460, 696
 
 -- A tab with nothing to show yet: a page all the same, what it will hold.
 local function emptyText(n, count)
