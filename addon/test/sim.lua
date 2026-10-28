@@ -107,9 +107,9 @@ G.slash("")
 local book = ns.window()
 check(book:IsShown(), "/wind opens the book")
 check(
-  book.patterns:IsShown()
-    and book.patterns.shown.title == "Debriefs"
-    and book.patterns.shown.sections[1].lines[1]:find("below 15%%"),
+  book.card:IsShown()
+    and book.card.shown.title == "Debriefs"
+    and book.card.shown.sections[1].lines[1]:find("below 15%%"),
   "… a page, which says what it will hold, at this character's threshold"
 )
 G.slash("")
@@ -833,8 +833,8 @@ end
 ns.refresh()
 check(
   book.patterns.shown.title == "What your close calls share"
-    and book.patterns.strip:IsShown()
-    and book.patterns.strip.tiles[1].value:GetText() == tostring(#debriefs),
+    and book.patterns.tiles[1]:IsShown()
+    and book.patterns.tiles[1].value:GetText() == tostring(#debriefs),
   "… then the patterns, their figures on top"
 )
 local share = drawn(book.patterns, "share", 1)
@@ -1366,9 +1366,9 @@ book:Hide()
 G.slash("lifelines")
 check(book:IsShown() and book.carry.shown.title == "Your lifelines", "/wind lifelines: the book at that page")
 check(
-  book.carry.strip:IsShown()
-    and book.carry.strip.tiles[1].label:GetText():find("carried$")
-    and book.carry.strip.tiles[2].label:GetText() == "ready now",
+  book.carry.tiles[1]:IsShown()
+    and book.carry.tiles[1].label:GetText():find("carried$")
+    and book.carry.tiles[2].label:GetText() == "ready now",
   "… its figures on top: what you carry, what is ready"
 )
 book:Hide()
@@ -1525,7 +1525,7 @@ check(
 )
 local subs = {}
 for _, r in ipairs(book.rows) do
-  if r:IsShown() then table.insert(subs, r.sub:GetText()) end
+  if r:IsShown() then table.insert(subs, r.under:GetText()) end
 end
 check(subs[2] and subs[2]:find("^Hellefie · "), "… each row naming whose it is")
 book.open = ns.debriefsOf(true)[1].at

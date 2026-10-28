@@ -1,7 +1,8 @@
--- The book's pages, drawn (Book.lua holds the window, its tabs and the list):
--- a header (a round portrait, the title, the line under it, a rule), the
--- lessons (a bar of the accent beside each), my health over the fight (a
--- debrief's), then sections, a heading over a rule, and their rows, each drawn
+-- The book's pages, drawn on the kit's page (K.page: Book.lua holds the
+-- window, its tabs and the list): its header (a round portrait, the title, the
+-- line under it, a rule), its figures, the names to pick (whose: the
+-- patterns'), the lessons (a bar of the accent beside each), my health over
+-- the fight (a debrief's), then the kit's sections and their rows, each drawn
 -- as its kind wants. What is drawn: Debrief.lua's card, Patterns.lua's page,
 -- Tools.lua's lifelines, { title, sub, face, lessons, death, sections = { {
 -- heading, lines, rows, note } } }, a row of each line:
@@ -18,8 +19,9 @@
 --   tool: one tool, its icon, its state (ready or how long until), what for;
 --     or one of a kind I carry none of
 --   share: a share of my close calls (a bar), against every fight's (a mark)
---   text: a line alone
--- A section without rows draws its lines; a note's lines are an aside, small.
+--   text: a line alone (the kit's paragraph)
+-- A section without rows draws its lines (the kit's text); a note's lines are
+-- quieter.
 -- A picture hovered shows the game's tooltip: an item's, a spell's, a foe's
 -- level and kind.
 local _, ns = ...
@@ -31,8 +33,6 @@ local L = K.L
 local T = K.T
 local label, rule = K.label, K.rule
 
--- (the kit's page: its header's sizes, so the four books' pages match)
-local HEADER_H, PORTRAIT = 90, 64
 ns.DEATH = { 0.86, 0.45, 0.42 } -- a death's title, its ring, the bar at its end
 local DEATH = ns.DEATH
 local HEAL = { 0.45, 0.86, 0.52 }
@@ -167,14 +167,14 @@ local function portrait(p, foe)
   icon(p.tex, KIND[foe.typeId or ns.typeIdOf(foe.type)] or (foe.player and KIND[7]) or FOE)
 end
 
--- A page's face: a foe's portrait, the world's harm, an icon.
-local function face(p, f, death)
-  ringOf(p, death and K.RINGS.rose or (f and f.foe and K.rankRing(f.foe.rank)) or nil)
+-- A page's face: a foe's portrait, the world's harm, an icon; its ring a
+-- death's rose, else the foe's rank.
+local function face(p, f)
   if f and f.foe then return portrait(p, f.foe) end
-  p.tex:SetDesaturated(false)
   if f and f.env then return icon(p.tex, WORLD[f.env]) end
   icon(p.tex, f and f.icon or "Interface\\AddOns\\SecondWind\\Media\\Logo")
 end
+local function faceRing(f, death) return death and K.RINGS.rose or (f and f.foe and K.rankRing(f.foe.rank)) or nil end
 
 -- ── colours and words ────────────────────────────────────────────────────────
 -- The highest level that gives me nothing (the game's grey), then a foe's
@@ -265,31 +265,17 @@ local function toolTip(t)
 end
 
 -- ── a page ───────────────────────────────────────────────────────────────────
--- A scroll area holding the header and pools of blocks, one a kind (reused
--- from one drawing to the next).
+-- The kit's page (K.page), with pools of Second Wind's own blocks, one a kind
+-- (reused from one drawing to the next), and the graph on a debrief's.
 local Page = {}
 
-function ns.newPage(parent, name, x, width, withGraph)
-  local p = K.scrollArea(parent, width, name)
+function ns.newPage(parent, name, width, withGraph)
+  local p = K.page(parent, name, { width = width })
   for k, v in pairs(Page) do
     p[k] = v
   end
-  p:SetPoint("TOPLEFT", x, -16)
-  p:SetPoint("BOTTOMRIGHT", -20, 12)
-  p.width, p.pools, p.hasGraph = width, {}, withGraph and true or false
-  p.portrait = K.roundIcon(p.child, PORTRAIT, true)
-  p.portrait:SetPoint("TOPLEFT", 2, -2)
-  p.title = label(p.child, K.TITLE_FONT, 24, T.accent)
-  p.title:SetPoint("TOPLEFT", p.portrait, "TOPRIGHT", 16, -8)
-  p.title:SetWidth(width - PORTRAIT - 20)
-  p.title:SetWordWrap(false)
-  p.sub = label(p.child, K.BODY_FONT, 12, T.soft)
-  p.sub:SetPoint("TOPLEFT", p.title, "BOTTOMLEFT", 0, -7)
-  p.sub:SetWidth(width - PORTRAIT - 20)
-  local line = rule(p.child)
-  line:SetPoint("TOPLEFT", 0, -76)
-  line:SetPoint("TOPRIGHT", 0, -76)
-  if withGraph then p.graph = Page.newGraph(p.child, width) end
+  p.pools, p.hasGraph = {}, withGraph and true or false
+  if withGraph then p.graph = Page.newGraph(p.child, p.width) end
   return p
 end
 
@@ -312,27 +298,8 @@ function Page:take(kind)
   return b
 end
 
--- A block at the page's next place, so tall (and a gap after it).
--- (any block ends a list of cards: placeCard)
-function Page:place(b, height, gap)
-  self.lastCard = nil
-  b:SetPoint("TOPLEFT", self.child, "TOPLEFT", 0, -self.y)
-  self.y = self.y + height + (gap or 0)
-end
-
 -- ── the blocks ───────────────────────────────────────────────────────────────
 local ROW_TEXT = 12
-
-function MAKERS.heading(p)
-  local h = CreateFrame("Frame", nil, p.child)
-  h:SetSize(p.width, 24)
-  h.text = label(h, K.TITLE_FONT, 16, T.accent)
-  h.text:SetPoint("BOTTOMLEFT", 0, 5)
-  h.line = rule(h)
-  h.line:SetPoint("BOTTOMLEFT")
-  h.line:SetPoint("BOTTOMRIGHT")
-  return h
-end
 
 function MAKERS.lesson(p)
   local b = CreateFrame("Frame", nil, p.child)
@@ -344,16 +311,6 @@ function MAKERS.lesson(p)
   b.text = label(b, K.BODY_FONT, 13, T.text)
   b.text:SetPoint("TOPLEFT", 12, 0)
   b.text:SetWidth(p.width - 12)
-  b.text:SetSpacing(2)
-  return b
-end
-
-function MAKERS.text(p)
-  local b = CreateFrame("Frame", nil, p.child)
-  b:SetWidth(p.width)
-  b.text = label(b, K.BODY_FONT, ROW_TEXT, T.text)
-  b.text:SetPoint("TOPLEFT")
-  b.text:SetWidth(p.width)
   b.text:SetSpacing(2)
   return b
 end
@@ -379,15 +336,6 @@ local function shareBar(b, width, colour)
 end
 -- A card's height: the kit's, a little more with a bar under its line.
 local function cardHeight(withBar) return K.CARD_H + (withBar and 6 or 0) end
--- A card at its place: the rule under the card before it back, none under
--- this one till another comes (a list ends with no rule under its last).
-local function placeCard(p, b, height)
-  local before = rawget(p, "lastCard")
-  if before then before.line:Show() end
-  b.line:Hide()
-  p:place(b, height, 4)
-  p.lastCard = b
-end
 
 function MAKERS.foe(p)
   local b = card(p)
@@ -491,7 +439,7 @@ function DRAW.foe(p, r)
   if r.share then b.share:SetValue(r.share) end
   local height = cardHeight(r.share ~= nil)
   b:SetHeight(height)
-  placeCard(p, b, height)
+  p:placeCard(b, height)
 end
 
 function DRAW.blow(p, r)
@@ -510,7 +458,7 @@ function DRAW.blow(p, r)
   end
   local height = cardHeight(r.share ~= nil)
   b:SetHeight(height)
-  placeCard(p, b, height)
+  p:placeCard(b, height)
 end
 
 function DRAW.held(p, r)
@@ -523,7 +471,7 @@ function DRAW.held(p, r)
   b.detail:SetText(r.detail or "")
   b.share:Hide()
   b:SetHeight(cardHeight(false))
-  placeCard(p, b, cardHeight(false))
+  p:placeCard(b, cardHeight(false))
 end
 
 local ICON_SIZE, ICON_GAP = K.SLOT, 8
@@ -553,7 +501,7 @@ function DRAW.tools(p, r)
   local lines = math.max(1, math.ceil(n / perRow))
   local height = 20 + lines * (ICON_SIZE + ICON_GAP)
   b:SetHeight(height)
-  p:place(b, height, 6)
+  p:place(b, height + 6)
 end
 
 function DRAW.tool(p, r)
@@ -574,7 +522,7 @@ function DRAW.tool(p, r)
     K.setSlot(b.icon, t and ns.toolIcon(t), t and t.count, nil, r.ready == false and r.value ~= nil)
     b.icon.tip = t and toolTip(t) or nil
   end
-  placeCard(p, b, cardHeight(false))
+  p:placeCard(b, cardHeight(false))
 end
 
 function DRAW.share(p, r)
@@ -588,18 +536,10 @@ function DRAW.share(p, r)
   b.detail:SetText(r.detail or "")
   local height = r.detail and 40 or 28
   b:SetHeight(height)
-  p:place(b, height, 4)
+  p:place(b, height + 4)
 end
 
-function DRAW.text(p, r, size, colour)
-  local b = p:take("text")
-  b.text:SetFont(K.BODY_FONT, size or ROW_TEXT, "")
-  b.text:SetTextColor(unpack(colour or T.text))
-  b.text:SetText(r.text or "")
-  local height = b.text:GetStringHeight()
-  b:SetHeight(height)
-  p:place(b, height, 4)
-end
+function DRAW.text(p, r) p:paragraph(r.text or "") end
 
 -- ── the graph ────────────────────────────────────────────────────────────────
 -- My health over the fight, by time, as a chart: a dark plot, its 100% and
@@ -949,10 +889,7 @@ end
 function Page:graphOf(d)
   local g = self.graph
   local samples = d.samples or {}
-  g:ClearAllPoints()
-  g:SetPoint("TOPLEFT", self.child, "TOPLEFT", 0, -self.y)
-  g:SetShown(#samples > 1)
-  if #samples <= 1 then return end
+  if #samples <= 1 then return g:Hide() end
   local threshold = ns.option("threshold")
   local kinds = g:draw(d, samples, threshold)
   local keys = { { "danger", DANGER, L["Below %d%%, your threshold"]:format(threshold) } }
@@ -961,12 +898,13 @@ function Page:graphOf(d)
   end
   local height = PAD + PLOT_H + 6 + LANE_H + 24 + g:legendOf(keys) + PAD
   g:SetHeight(height)
-  self.y = self.y + height + 18
+  self:place(g, height + 18)
 end
 
 -- ── a page drawn ─────────────────────────────────────────────────────────────
--- c: what it shows; d: a debrief (my health over the fight), or nil; keep:
--- where it was scrolled to stays (a page drawn again as it changes).
+-- c: what it shows (c.chips: names to pick under its header, the kit's); d: a
+-- debrief (my health over the fight), or nil; keep: where it was scrolled to
+-- stays (a page drawn again as it changes).
 function Page:draw(c, d, keep)
   for _, pool in pairs(self.pools) do
     for i = 1, pool.n do
@@ -974,60 +912,46 @@ function Page:draw(c, d, keep)
     end
     pool.n = 0
   end
-  self.title:SetText(c.title)
-  self.title:SetTextColor(unpack(c.death and DEATH or T.accent))
-  self.sub:SetText(c.sub or "")
-  face(self.portrait, c.face, c.death)
-  self.y = HEADER_H
-  -- (its figures first, the kit's strip, as every book's pages)
-  local strip = rawget(self, "strip")
-  if c.figures then
-    strip = strip or K.figures(self.child)
-    self.strip = strip
-    strip:ClearAllPoints()
-    strip:Show()
-    self:place(strip, strip:set(c.figures, self.width), 14)
-  elseif strip then
-    strip:Hide()
-  end
+  self:start(c.title, c.sub, function(p) face(p, c.face) end, nil, faceRing(c.face, c.death))
+  self.title:SetTextColor(unpack(c.death and DEATH or T.gold))
+  if c.figures then self:stats(c.figures) end
+  if c.chips then self:chips(c.chips) end
   for _, lesson in ipairs(c.lessons or {}) do
     local b = self:take("lesson")
     b.bar:SetColorTexture(unpack(c.death and DEATH or T.accent))
     b.text:SetText(lesson)
     local height = b.text:GetStringHeight()
     b:SetHeight(height)
-    self:place(b, height, 8)
+    self:place(b, height + 8)
   end
   if self.hasGraph then
     if d and #(d.samples or {}) > 1 then
       self.y = self.y + 6
-      local h = self:take("heading")
-      h.text:SetText(L["Your health"])
-      self:place(h, 24, 10)
-      self:graphOf(d)
-    elseif d then
+      self:section(L["Your health"])
       self:graphOf(d)
     else
       self.graph:Hide()
     end
   end
   for _, s in ipairs(c.sections or {}) do
-    local h = self:take("heading")
-    h.text:SetText(s.heading)
-    self:place(h, 24, 10)
-    for i, l in ipairs(s.lines) do
-      local r = s.rows and s.rows[i]
-      if s.note then
-        DRAW.text(self, { text = l }, 11, T.soft)
-      elseif r and DRAW[r.kind] then
-        DRAW[r.kind](self, r)
-      else
-        DRAW.text(self, { text = l })
+    self:section(s.heading)
+    if s.note then
+      self:paragraph(table.concat(s.lines, "\n"), T.soft)
+    elseif not s.rows then
+      self:text(s.lines)
+    else
+      for i, l in ipairs(s.lines) do
+        local r = s.rows[i]
+        if r and DRAW[r.kind] then
+          DRAW[r.kind](self, r)
+        else
+          DRAW.text(self, { text = l })
+        end
       end
     end
     self.y = self.y + 6
   end
-  self.child:SetHeight(self.y + 16)
-  self:ScrollTo(keep and self:GetVerticalScroll() or 0)
+  if c.buttons then self:buttons(c.buttons) end
+  self:finish(keep)
   self.shown = c -- (for the tests)
 end

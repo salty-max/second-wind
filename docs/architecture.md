@@ -188,11 +188,13 @@ stays there). The plan, its research and its decisions: `PLAN.md`.
     label by matching only English and the current language.
     Keep unknown usage separate from unused tools and control loss from a
     missed opportunity. Test complete assembled sentences in both regions.
-  - `Page.lua`: the theme (frost steel) and the pages' renderer
-    (`ns.newPage`, `page:draw(c, d, keep)`): a header (a round portrait: the
-    foe that did the most harm, `ns.faceOf`; the title, the line under it, a
-    rule), its figures (`c.figures`: the kit's strip, `K.figures`; the
-    Patterns' and the Lifelines'), the lessons (an accent bar beside each), the chart for a card
+  - `Page.lua`: the pages' renderer on the kit's page (`ns.newPage`, a
+    `K.page` with Second Wind's own blocks, `page:draw(c, d, keep)`): the
+    kit's header (a round portrait: the foe that did the most harm,
+    `ns.faceOf`, its ring a death's rose or the foe's rank; the title, a
+    death's in red, the line under it, a rule), its figures (`c.figures`:
+    the kit's `page:stats`; the Patterns' and the Lifelines'), names to pick
+    (`c.chips`: whose, the Patterns'), the lessons (an accent bar beside each), the chart for a card
     (`Page.newGraph`, under a heading, "Your health", in a box of the page's
     width (a shade, an edge in the rule's colour), room inside it: a dark plot, 100% and 50% lines, the threshold a red
     danger zone tinting the fill, my health a stepped line (red below the
@@ -203,9 +205,10 @@ stays there). The plan, its research and its decisions: `PLAN.md`.
     shown (the threshold, the hits, control lost), drawn as the chart draws
     it; its words on a frame above the plot;
     hovered: the moment's health and marks),
-    then sections, each line drawn by its row (`sections[i].rows`, beside the
-    `lines` the copy and the tests read); the rows with a picture are the
-    kit's card rows (`K.cardRow`, as every book's: a foe's face round, a
+    then the kit's sections, each line drawn by its row (`sections[i].rows`,
+    beside the `lines` the copy and the tests read; a section without rows
+    the kit's text); the rows with a picture are the kit's card rows
+    (`K.cardRow`, placed by `page:placeCard`, as every book's: a foe's face round, a
     spell or an item in a square slot), the icon strips the kit's slots
     (`K.slot`, as the game draws its own; a kind I carry none of, an empty
     slot): `foe` (the creature's still
@@ -218,16 +221,20 @@ stays there). The plan, its research and its decisions: `PLAN.md`.
     (a strip of slots under its label, the state in the label; untold greyed),
     `tool` (a lifeline: its state, dimmed while not ready; an empty slot for
     a kind I carry none of), `share` (a bar, every fight's rate a mark),
-    `text`; a `note` section small. Icons hovered: the game's tooltip.
-  - `Book.lua`: the window, its tabs: the
-    Debriefs (the list, newest first, this character's or every character's
-    at the select above, `book.every`, each row and card then naming whose it
-    is; the open one's card, my health over
-    the fight by time against the threshold, marked (`ns.marksOf`, their
-    words under it), "Copy as text" (`ns.showCopy`: a box to copy from)),
-    the Patterns (the whole sheet), the Lifelines (Tools.lua's page, drawn
-    again as bags and cooldowns change); a tab with nothing yet, a page of
-    its own all the same (what it will hold). A debrief written
+    `text` (the kit's paragraph); a `note` section quieter. Icons hovered:
+    the game's tooltip; `c.buttons`, the kit's at the page's end.
+  - `Book.lua`: the window, the kit's book (`K.book`: the portrait, the
+    count, the search, the tabs), its tabs: the Debriefs (the kit's list,
+    newest first, a row of two lines each, those the search finds, this
+    character's or every character's at the kit's select under the search,
+    each row and card then naming whose it is; the open one's card, my
+    health over the fight by time against the threshold, marked
+    (`ns.marksOf`, their words under it), "Copy as text" at its end
+    (`ns.showCopy`: a box to copy from)), the Patterns (over the whole
+    window, whose to pick at its head, the same choice as the Debriefs'),
+    the Lifelines (Tools.lua's page over the whole window, drawn again as
+    bags and cooldowns change); a tab with nothing yet, a page of its own
+    all the same (what it will hold). A debrief written
     (`ns.debriefed`): a line in chat with its weightiest lesson and a link
     (`|Hsecondwind:debrief:<at>|h`), every close call; after a death only, a
     banner (the kit's, among the game's alerts) and the book opened at it
