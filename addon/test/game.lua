@@ -307,6 +307,9 @@ local function ui()
       if k == "SetScript" then
         return function(self, name, fn) self.scripts[name] = fn end
       end
+      if k == "SetTextColor" then
+        return function(self, r, g, b) self.color = { r, g, b } end
+      end
       if k == "HookScript" then
         return function(self, name, fn)
           local was = self.scripts[name]

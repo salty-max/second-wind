@@ -746,6 +746,34 @@ ns.openDebrief(death.at)
 check(book.rows[1]:IsShown() and book.rows[2]:IsShown() and book.rows[1].at ~= death.at, "the list: the newest first")
 book.rows[2].scripts.OnClick(book.rows[2])
 check(book.open == death.at and book.cardShown.title == "Death", "… a row clicked: its card")
+check(book.rows[2].text.color[1] == ns.DEATH[1], "… a death's row in its red, picked too")
+-- (the search: the rows it finds)
+local function rowsShown()
+  local n = 0
+  for _, r in ipairs(book.rows) do
+    if r:IsShown() then n = n + 1 end
+  end
+  return n
+end
+SecondWindSearch:SetText("nowhere anyone fought")
+ns.refresh()
+check(rowsShown() == 0, "the search: a word no debrief has, no row")
+local first, words = book.rows[1].at, book.rows[1].under:GetText()
+SecondWindSearch:SetText(words)
+ns.refresh()
+check(rowsShown() >= 1 and book.rows[1].at == first, "… a row's own words: that one")
+SecondWindSearch:SetText("")
+ns.refresh()
+check(rowsShown() == 2, "… cleared: every row again")
+-- (the copy button, at the card's end)
+local copy = book.card.buttonPool[1]
+check(copy.shown and copy.text == "Copy as text", "the card ends with a button to copy it")
+copy.scripts.OnClick(copy)
+check(
+  SecondWindCopy:IsShown() and SecondWindCopy.box:GetText() == ns.textOf(death),
+  "… which opens it in a box to copy"
+)
+SecondWindCopy:Hide()
 book:Hide()
 
 -- ── patterns ─────────────────────────────────────────────────────────────────
@@ -837,6 +865,13 @@ check(
     and book.patterns.tiles[1].value:GetText() == tostring(#debriefs),
   "… then the patterns, their figures on top"
 )
+-- (whose: the names at the head of the patterns, the Debriefs' choice too)
+local mine, every = book.patterns.chipPool[1], book.patterns.chipPool[2]
+check(mine.shown and every.shown and mine.text.text == "This character", "the patterns: whose, to pick at their head")
+every.scripts.OnClick(every)
+check(book.count:GetText():find(", %d+ characters?$") ~= nil, "… every character's, at a click")
+mine.scripts.OnClick(mine)
+check(not book.count:GetText():find("character", 1, true), "… this character's again")
 local share = drawn(book.patterns, "share", 1)
 check(share and share.value.text:find("^%d+ of your %d+$"), "… a trait drawn: its bar, how many of the close calls")
 check(not book.card:IsShown() and not book.left:IsShown(), "… over the whole page, the list put away")

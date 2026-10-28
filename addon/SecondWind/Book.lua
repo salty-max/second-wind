@@ -121,12 +121,13 @@ local function refreshDebriefs(scroll)
     if K.finds(title .. " " .. under, q) then
       local r = book.list:add("entry", title, nil, under)
       r.at = d.at
-      if d.kind == "death" then r.text:SetTextColor(unpack(DEATH)) end
       r:SetScript("OnClick", function(self)
         book.open = self.at
         ns.refresh()
       end)
       if d == open then book.list:pick(r) end
+      -- (a death in its red, picked or not)
+      if d.kind == "death" then r.text:SetTextColor(unpack(DEATH)) end
     end
   end
   book.list:finish(scroll)
