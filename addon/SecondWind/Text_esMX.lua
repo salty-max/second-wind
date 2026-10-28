@@ -121,6 +121,7 @@ ns.translate({
     ["about %d%%"] = "aproximadamente un %d %%",
     ["about %d%% health"] = "aproximadamente un %d %% de salud",
     ["Achievement earned: %s."] = "Logro obtenido: %s.",
+    ["Achievement fanfare"] = "Fanfarria de logro",
     ["Achievement sound"] = "Sonido de logros",
     ["After a death, a banner among the game's alerts. A click opens the debrief."] = "Al morir, aparece un aviso entre las alertas del juego. Haz clic para abrir el informe.",
     ["against %s"] = "contra %s",

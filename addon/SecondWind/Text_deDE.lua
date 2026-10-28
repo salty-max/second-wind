@@ -121,6 +121,7 @@ ns.translate({
     ["about %d%%"] = "etwa %d %%",
     ["about %d%% health"] = "etwa %d %% Gesundheit",
     ["Achievement earned: %s."] = "Erfolg errungen: %s.",
+    ["Achievement fanfare"] = "Erfolgsfanfare",
     ["Achievement sound"] = "Erfolgsklang",
     ["After a death, a banner among the game's alerts. A click opens the debrief."] = "Nach einem Tod ein Banner unter den Meldungen des Spiels. Ein Klick öffnet den Bericht.",
     ["against %s"] = "gegen %s",
