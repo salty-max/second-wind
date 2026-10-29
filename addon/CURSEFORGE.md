@@ -100,6 +100,7 @@ These share Second Wind's book style and work independently:
 - **[Hearthtale](https://www.curseforge.com/wow/addons/hearthtale)** ([Wago](https://addons.wago.io/addons/E6gzPnN1)) writes a diary for your character as you play, with an epitaph when a Hardcore life ends.
 - **[Lorekeeper's Codex](https://www.curseforge.com/wow/addons/lorekeepers-codex)** ([Wago](https://addons.wago.io/addons/j6jAL0NR)) unlocks lore pages as you explore Azeroth and meet its people.
 - **[Yonder](https://www.curseforge.com/wow/addons/yonder)** ([Wago](https://addons.wago.io/addons/ZKbq5y61)) offers exploration riddles, rare hunts, a bestiary, an atlas and records of your fish and herbs.
+- **[Palaver](https://www.curseforge.com/wow/addons/palaver)** ([Wago](https://addons.wago.io/addons/ZKbqbO61)) puts quests and NPC conversations in a large panel beside the one you speak to, read and answered from the keyboard.
 - **[Mealbook](https://www.curseforge.com/wow/addons/mealbook)** ([Wago](https://addons.wago.io/addons/YK9xja6L)) keeps a chef's cookbook that fills in as you learn to cook, and plans your road to 300.
 - **[Goodwill](https://www.curseforge.com/wow/addons/goodwill)** ([Wago](https://addons.wago.io/addons/ZKbqa961)) shows every faction's road to Exalted from where you stand, with a chapter of its story at each standing.
 - **[Yours Truly](https://www.curseforge.com/wow/addons/yours-truly)** ([Wago](https://addons.wago.io/addons/j6jAx1NR)) brings letters from the people whose quest chains you finished, waiting at your next mailbox.
