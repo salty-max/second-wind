@@ -9,7 +9,7 @@ Review close calls and deaths after combat. See what hit you, which emergency to
 
 Second Wind gives you a debrief after a close call or death. Once the fight is over, you can see the hits that hurt most, how your health fell, and which potions or abilities were ready but went unused. After a few debriefs, it starts showing what your dangerous fights have in common.
 
-For Classic Era (including Hardcore and Season of Discovery), TBC Anniversary and World of Warcraft: Forever. Nothing pops up during combat. Duels and battlegrounds are excluded.
+For Classic Era (including Hardcore and Season of Discovery) and World of Warcraft: Forever. Nothing pops up during combat. Duels and battlegrounds are excluded.
 
 ## After the fight
 
@@ -60,7 +60,7 @@ It never appears during combat or for critters, and won't repeat for the same en
 
 ## Compatibility
 
-One download covers Classic Era, Hardcore, Season of Discovery, TBC Anniversary and World of Warcraft: Forever.
+One download covers Classic Era, Hardcore, Season of Discovery and World of Warcraft: Forever.
 
 Forever hides health values and the combat log from addons. Second Wind uses the information the game still provides:
 
@@ -111,4 +111,4 @@ Second Wind is free and will stay free. If the debriefs have helped you survive 
 
 ## Source
 
-MIT licensed: [github.com/salty-max/second-wind](https://github.com/salty-max/second-wind). Item and spell data comes from the CMaNGOS Classic database and the TBC Anniversary client's tables. Foes' portraits and names come from QuestieDB and the CMaNGOS Classic database, Forever's own creatures and the names no database translates from Wowhead. Thanks to their contributors. Not affiliated with Blizzard Entertainment.
+MIT licensed: [github.com/salty-max/second-wind](https://github.com/salty-max/second-wind). Item and spell data comes from the CMaNGOS Classic database and the game clients' tables. Foes' portraits and names come from QuestieDB and the CMaNGOS Classic database, Forever's own creatures and the names no database translates from Wowhead. Thanks to their contributors. Not affiliated with Blizzard Entertainment.

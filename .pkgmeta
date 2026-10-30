@@ -21,7 +21,6 @@ ignore:
   - scripts
   - CLAUDE.md
   - LICENSE
-  - PLAN.md
   - README.md
   - saved-ids.json
   - package.json

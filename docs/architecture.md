@@ -1,14 +1,14 @@
 # Second Wind's architecture
 
 The addon file by file (moved from CLAUDE.md on 20 October 2026; the map
-stays there). The plan, its research and its decisions: `PLAN.md`.
+stays there). What Forever lets an addon see: `docs/forever.md`.
 
 ## The files
 
 - `addon/SecondWind/`: one folder for every game, installable as is: each game
-  loads its own TOC (`SecondWind_Vanilla.toc`: Classic Era, 11509; `_TBC.toc`:
-  TBC Anniversary, 20506; `_Camelot.toc`: Forever, 16001), the same but for
-  the interface (`scripts/package.ts` checks).
+  loads its own TOC (`SecondWind_Vanilla.toc`: Classic Era, 11509; `_Camelot.toc`:
+  Forever, 16001; a `_TBC.toc` is left over from the dropped TBC Anniversary
+  and goes after the launch), the same but for the interface (`scripts/package.ts` checks).
   - `Kit.lua`: a copy of the kit shared with the siblings (~/code/wow-addons/addon-kit:
     the look, the window's pieces, the figures, the banners): never edit the copy; `bun run kit:sync` after changing the kit, `bun run
     kit:check` to verify.
@@ -48,7 +48,7 @@ stays there). The plan, its research and its decisions: `PLAN.md`.
     every language is found; guard, stop, away) and 172 items
     players carry for the worst moments (the Hardcore guides and lists read
     11 October 2026), each by id with the spell its use casts, resolved by
-    name in classic-db and the TBC Anniversary client's ItemSparse/ItemEffect:
+    name in classic-db and the game clients' ItemSparse/ItemEffect:
     heals, bandages, cures (counted only while what they cure is on me),
     guards (a protection potion counted only if harm of its school came),
     holds (grenades, nets, dummies, Magic Dust...), ways out (rocket boots,
@@ -61,8 +61,8 @@ stays there). The plan, its research and its decisions: `PLAN.md`.
     "s<the first id its entry lists>"; a cast by its spell's id, any rank's:
     `Game_<game>.lua`, `bun scripts/game.ts`, from wow-data's
     SkillLineAbility; `ns.castKey`), an item's name the language's
-    (`i18n/<locale>/items.json`, every tool's item, TBC Anniversary's own
-    from wow-data's frozen TBC client names),
+    (`i18n/<locale>/items.json`, every tool's item, the ones classic-db
+    lacks from wow-data's frozen client names),
     `ns.unusedOf(ready, casts, since)`, `ns.tracesOf(ready, t0)` (Forever:
     what a use left, read after the fight: one fewer in my
     bags, a cooldown begun, its start the moment; a spell without a cooldown
@@ -98,8 +98,7 @@ stays there). The plan, its research and its decisions: `PLAN.md`.
     battleground; a hundred kept, a death always; every fight, kept or not,
     tallied by its traits (`record.fights`). Its schema in its header.
     `ns.summaryOf(d)`: a line. Forever (its 1.60.1 docs and the wiki's
-    secret predicates, 11 October 2026; PLAN.md, "Forever, what is
-    verified"): my health secret, in a fight and out of it (measured at
+    secret predicates, 11 October 2026; `docs/forever.md`): my health secret, in a fight and out of it (measured at
     rest on builds 69977 and 70009: Apotheca's probe; `state.healthReadable`
     replays a build that would let it read out of a fight: `lowAtEnd`, "11%
     or lower", `endPct`): my health rebuilt (`rebuilt`: "warning", "death",

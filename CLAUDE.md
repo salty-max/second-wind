@@ -3,8 +3,8 @@
 A World of Warcraft addon: after a fight that nearly killed you, or did, a
 debrief written once the fight is over: how it went, the hits that mattered,
 what you had ready and didn't use, a lesson or two by rule, and over time what
-your close calls share. For Classic Era (Hardcore above all), TBC Anniversary
-and World of Warcraft: Forever. The fourth of a family (Hearthtale, Lorekeeper's
+your close calls share. For Classic Era (Hardcore above all) and World of
+Warcraft: Forever. The fourth of a family (Hearthtale, Lorekeeper's
 Codex, Yonder: same look, kit and release tooling), standalone
 (salty-max/second-wind). Read the family's CLAUDE.md (`../CLAUDE.md`) first.
 
@@ -13,12 +13,9 @@ Codex, Yonder: same look, kit and release tooling), standalone
 | What | Where |
 |---|---|
 | The addon file by file: Core, Settings, Tools, Forever, Recorder, Debrief, Patterns, Pull, the creatures, languages, Page, Book; the tests; the daily game data | `docs/architecture.md` |
-| The plan, its research and its decisions ("Forever, what is verified") | `PLAN.md` |
+| What Forever lets an addon see (the research, with its measurements) | `docs/forever.md` |
 | The store page | `addon/CURSEFORGE.md` |
 | The words to translate, the creatures' names | `i18n/<locale>/` (`words.json`, `meta.json`, `creatures.json`, `items.json`, `subzones.json`) |
-
-`docs/` is ignored locally (`.git/info/exclude`): the docs above are
-force-added, anything else there is a local note, absent from a worktree.
 
 ## Commands
 

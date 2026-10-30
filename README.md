@@ -6,7 +6,7 @@ health fell, and which potions or abilities were ready but went unused.
 After a few debriefs, you can compare what your dangerous fights have in
 common.
 
-For Classic Era, Hardcore, Season of Discovery, TBC Anniversary and World of
+For Classic Era, Hardcore, Season of Discovery and World of
 Warcraft: Forever, in English, French, German and Spanish. Nothing pops up
 during combat. Duels and battlegrounds are excluded.
 
@@ -56,7 +56,7 @@ Yonder. Each addon works independently. Keyring can gather
 their minimap buttons.
 
 The full store description is in [addon/CURSEFORGE.md](addon/CURSEFORGE.md).
-[PLAN.md](PLAN.md) records the design decisions.
+[docs/forever.md](docs/forever.md) records what Forever lets an addon see.
 
 ## Development
 
