@@ -3,7 +3,8 @@
 -- the spell's id, so any language finds them), and the bag's, by item with the
 -- spell its use casts (from the game's own tables: cmangos classic-db, and
 -- the TBC Anniversary client's ItemSparse and ItemEffect on wago.tools, read
--- 11 October 2026). The recorder (Recorder.lua) asks ns.readyTools() when my
+-- 11 October 2026: that game is no longer shipped, its ids stay for the saved
+-- debriefs). The recorder (Recorder.lua) asks ns.readyTools() when my
 -- health first falls below half; at the fight's end ns.unusedOf() says which
 -- of them were not used after. Where my casts are hidden (Forever),
 -- ns.tracesOf() tells what was used by what a use leaves behind: one fewer in
@@ -20,7 +21,7 @@ local K = ns.kit
 local L = K.L
 
 -- { English name, kind, ids...: any rank's, the first this client has (a
--- spell of TBC Anniversary's alone, Season of Discovery's and TBC's) }
+-- spell of Season of Discovery's alone, or one kept from TBC, no longer shipped) }
 local SPELLS = {
   -- warrior
   { "Shield Wall", "guard", 871 },
@@ -89,8 +90,8 @@ local SPELLS = {
 -- kind, n: its name, and what makes it count }. What players carry for the worst moments (the
 -- Hardcore guides and lists read 11 October 2026: Wowhead, Warcraft Tavern's
 -- (barrens.chat) and others), each resolved by its exact name in the game's
--- tables (cmangos classic-db; for TBC Anniversary, its client's ItemSparse
--- and ItemEffect on wago.tools). Kinds as the spells', and:
+-- tables (cmangos classic-db; for the TBC items kept, the TBC Anniversary client's
+-- ItemSparse and ItemEffect on wago.tools). Kinds as the spells', and:
 --   heal: health at once (potions, healthstones, Restoring Balm...)
 --   bandage: First Aid's (not while Recently Bandaged)
 --   cure: counts only while one of its cures is on me (anti-venoms...)

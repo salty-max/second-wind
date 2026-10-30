@@ -37,5 +37,41 @@
       "at": "creatures.models"
     }
   },
-  "removed": []
+  "removed": [
+    {
+      "table": "foes (Forever)",
+      "file": "i18n/itIT/*",
+      "ids": "*",
+      "why": "Italian dropped from every addon: no Italian client in Classic Era or Forever, the file was English copies of the same ids (still in every other language's table)",
+      "approved": "2026-10-30, the user's decision to drop Italian from every addon (the push go asks again)"
+    },
+    {
+      "table": "foes (Classic)",
+      "file": "i18n/itIT/*",
+      "ids": "*",
+      "why": "Italian dropped from every addon: no Italian client in Classic Era or Forever, the file was English copies of the same ids (still in every other language's table)",
+      "approved": "2026-10-30, the user's decision to drop Italian from every addon (the push go asks again)"
+    },
+    {
+      "table": "tools' items",
+      "file": "i18n/itIT/*",
+      "ids": "*",
+      "why": "Italian dropped from every addon: no Italian client in Classic Era or Forever, the file was English copies of the same ids (still in every other language's table)",
+      "approved": "2026-10-30, the user's decision to drop Italian from every addon (the push go asks again)"
+    },
+    {
+      "table": "building areas (Forever)",
+      "file": "i18n/itIT/*",
+      "ids": "*",
+      "why": "Italian dropped from every addon: no Italian client in Classic Era or Forever, the file was English copies of the same ids (still in every other language's table)",
+      "approved": "2026-10-30, the user's decision to drop Italian from every addon (the push go asks again)"
+    },
+    {
+      "table": "building areas (Classic)",
+      "file": "i18n/itIT/*",
+      "ids": "*",
+      "why": "Italian dropped from every addon: no Italian client in Classic Era or Forever, the file was English copies of the same ids (still in every other language's table)",
+      "approved": "2026-10-30, the user's decision to drop Italian from every addon (the push go asks again)"
+    }
+  ]
 }

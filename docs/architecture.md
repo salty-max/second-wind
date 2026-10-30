@@ -7,8 +7,7 @@ stays there). What Forever lets an addon see: `docs/forever.md`.
 
 - `addon/SecondWind/`: one folder for every game, installable as is: each game
   loads its own TOC (`SecondWind_Vanilla.toc`: Classic Era, 11509; `_Camelot.toc`:
-  Forever, 16001; a `_TBC.toc` is left over from the dropped TBC Anniversary
-  and goes after the launch), the same but for the interface (`scripts/package.ts` checks).
+  Forever, 16001), the same but for the interface (`scripts/package.ts` checks).
   - `Kit.lua`: a copy of the kit shared with the siblings (~/code/wow-addons/addon-kit:
     the look, the window's pieces, the figures, the banners): never edit the copy; `bun run kit:sync` after changing the kit, `bun run
     kit:check` to verify.

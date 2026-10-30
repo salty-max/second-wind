@@ -17,7 +17,7 @@
 ## X-Wago-ID: XKqEjbKy
 
 # World of Warcraft: Forever. Each game loads its own TOC (_Vanilla: Classic
-# Era, _TBC: TBC Anniversary, _Camelot: Forever), the same but for the interface
+# Era, _Camelot: Forever), the same but for the interface
 # (scripts/package.ts checks).
 Kit.lua
 Creatures_Forever.lua
