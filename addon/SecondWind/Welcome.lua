@@ -11,7 +11,7 @@ local L = K.L
 
 -- (Forever hides my health from addons: said before it surprises)
 local FOREVER = "\n\n"
-  .. L["On World of Warcraft: Forever, the game hides your health from addons, in a fight and out of it. Second Wind rebuilds it from each blow and heal the game tells. It counts from the game's own low-health warning, the red edge of the screen below 35%. That warning must stay on (Options, Combat)."]
+  .. L["On World of Warcraft: Forever, the game hides your health from addons, in a fight and out of it. Second Wind rebuilds it from each blow and heal the game tells. It starts from the game's own low-health warning, the red edge of the screen below 35%. That warning must stay on (Options, Combat)."]
 
 local W = K.welcome({
   name = "SecondWindWelcome",

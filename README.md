@@ -1,8 +1,8 @@
 # Second Wind
 
 Second Wind gives you a debrief after a close call or death in World of
-Warcraft. Once the fight is over, see the hits that hurt most, how your
-health fell, and which potions or abilities were ready but went unused.
+Warcraft. Once the fight is over, it shows the hits that hurt most, how
+your health fell, and which potions or abilities were ready but went unused.
 After a few debriefs, you can compare what your dangerous fights have in
 common.
 
@@ -33,8 +33,8 @@ against foes like the one you target.
 
 Forever limits the health and combat information addons can read. Second
 Wind reconstructs health estimates from damage, healing and the game's
-low-health warning or death recap. Keep that warning enabled under
-**Options > Combat**. The debrief shows when a health value is an estimate.
+low-health warning or death recap. That warning must stay on
+(**Options > Combat**). The debrief shows when a health value is an estimate.
 
 Second Wind reads in English, French, German and Spanish. German and Spanish
 are first translations, with corrections welcome. Both Spanish clients share
@@ -44,7 +44,7 @@ items and places in their language. Debriefs keep them by the game's ids, so
 they follow your client's language, even after you switch.
 
 - `/wind copy` opens a text version of the debrief for you to copy.
-- `/wind lifelines` opens your emergency supplies.
+- `/wind lifelines` opens the Lifelines tab.
 - `/wind probe` reports what the game let the addon read after your next fight.
 - `/wind settings` opens settings for thresholds, alerts and the word before a pull.
 - `/wind welcome` reopens the welcome page.

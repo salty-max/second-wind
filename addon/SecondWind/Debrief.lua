@@ -107,11 +107,11 @@ local ENV = {
 ns.ENV = ENV
 local ENV_LESSON = {
   Falling = L["A fall took %d%% of your health."],
-  Drowning = L["You ran out of breath: the water took %d%% of your health."],
+  Drowning = L["You ran out of breath, and the water took %d%% of your health."],
   Lava = L["Lava took %d%% of your health."],
   Fire = L["Fire took %d%% of your health."],
   Slime = L["Slime took %d%% of your health."],
-  Fatigue = L["You swam too far out: fatigue took %d%% of your health."],
+  Fatigue = L["You swam too far out, and fatigue took %d%% of your health."],
 }
 
 -- The hits that mattered: the largest of the run-up, the largest first.

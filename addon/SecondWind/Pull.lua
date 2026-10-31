@@ -47,7 +47,7 @@ function ns.wordBefore(c, foe, me)
   local deaths = c.deaths > 0
   local counts = {}
   local elite = ELITE[foe.rank or ""] and often(c, "elite")
-  if elite then table.insert(counts, L["%d had an elite"]:format(elite)) end
+  if elite then table.insert(counts, L["%d had an elite or a boss"]:format(elite)) end
   local up = foe.level and me.level and (foe.level == -1 and 10 or foe.level - me.level) or 0
   local above = up >= 2 and often(c, "above")
   local high

@@ -19,7 +19,7 @@ local HEADLINE = 0.5 -- the commonest told above, from this share
 local ROWS = 5 -- places, foes, tools listed
 local FIGHTS = 20 -- fights tallied before a trait is set against them all
 local TRAITS = {
-  { "world", L["the world did the harm: a fall, the water"] },
+  { "world", L["the harm came from the world, not a foe"] },
   { "low", L["you went in below 60% health"] },
   { "many", L["three foes or more were on you at once"] },
   { "late", L["a foe joined after the start"] },
@@ -30,7 +30,7 @@ local TRAITS = {
   { "above", L["a foe was two levels or more above you"] },
   { "magic", L["the harm was mostly magic"] },
   { "potion", L["a healing potion or healthstone went unused"] },
-  { "guard", L["something that guards went unused"] },
+  { "guard", L["a protective spell or item went unused"] },
   { "cure", L["a cure went unused while what it cures was on you"] },
 }
 

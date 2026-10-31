@@ -1590,13 +1590,13 @@ check(
     { name = "Hogger", level = 12, rank = "worldboss" },
     { level = 12, pct = 100 }
   )
-      == "Hogger, a boss. Of your 4 close calls, 2 had an elite."
+      == "Hogger, a boss. Of your 4 close calls, 2 had an elite or a boss."
     and ns.wordBefore(
         { total = 4, deaths = 0, traits = { elite = 2, above = 3 }, foes = {} },
         { name = "Barnil Stonepot", level = 15, rank = "rareelite" },
         { level = 12, pct = 100 }
       )
-      == "Barnil Stonepot, a rare elite three levels above you. Of your 4 close calls, 2 had an elite and 3 had a foe two levels or more above you.",
+      == "Barnil Stonepot, a rare elite three levels above you. Of your 4 close calls, 2 had an elite or a boss and 3 had a foe two levels or more above you.",
   "… a boss and a rare elite named by their rank"
 )
 check(
@@ -1615,7 +1615,7 @@ check(
     { name = "Defias Pillager", level = 12, rank = "elite" },
     { level = 9, pct = 100 }
   )
-    == "Defias Pillager, an elite three levels above you. Of your 4 close calls, 2 had an elite and 3 had a foe two levels or more above you.",
+    == "Defias Pillager, an elite three levels above you. Of your 4 close calls, 2 had an elite or a boss and 3 had a foe two levels or more above you.",
   "… an elite, levels above: what they had"
 )
 check(

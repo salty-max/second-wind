@@ -42,7 +42,7 @@ Second Wind recognises class and racial emergency abilities such as Divine Shiel
 
 The debrief checks whether an item could have helped. A bandage needs a long enough pause in damage and no Recently Bandaged debuff. Cures need something to cure. Protection potions are matched to the damage school, and swimming or slow-fall items only count in water or during a fall. Equipment must be worn, and anything on cooldown is left out.
 
-The **Lifelines** tab shows what you carry now, grouped by purpose, with quantities and cooldowns. It also shows which kinds of emergency supplies you're missing. Open it with `/wind lifelines` before heading into a dungeon.
+The **Lifelines** tab shows what you carry now, grouped by purpose, with quantities and cooldowns. It also shows which kinds of emergency supplies you're missing. `/wind lifelines` opens it.
 
 ## Spotting patterns
 
@@ -64,14 +64,14 @@ One download covers Classic Era, Hardcore, Season of Discovery and World of Warc
 
 Forever hides health values and the combat log from addons. Second Wind uses the information the game still provides:
 
-- **Health estimates** are reconstructed from damage and healing, using the game's low-health warning or working back from a death. The debrief shows the uncertainty. Keep the game's low-health warning enabled under **Options > Combat**.
+- **Health estimates** are reconstructed from damage and healing, using the game's low-health warning or working back from a death. The debrief shows the uncertainty. The low-health warning must stay on (**Options > Combat**).
 - **Hits** retain their damage and timing. The attacker can be identified when there was a single foe or from the game's damage meter.
 - **Death details** come from the game's death recap.
 - **Foes and damage by spell** come from the damage meter after combat.
 - **The word before a pull** speaks of your foes only: Forever hides your health even out of a fight.
 - **Available tools** are checked at the start of the fight on Forever. Casts, bag changes and cooldowns help determine what you used.
 
-Use `/wind probe` if you need a report of what the game let the addon read after your next fight.
+`/wind probe` reports what the game let the addon read after your next fight.
 
 Second Wind speaks English, French, German and Spanish. With a French, German or Spanish client, every debrief, lesson and page is in that language, with the game's own names for your spells, items and foes. German and Spanish are first translations: corrections are welcome on GitHub. Both Spanish clients share the interface translation, with their own game names and decimal separator. Other clients get English, with the game's own names in their language: your foes, spells, items and places. A debrief keeps them by the game's ids, so it follows your client's language, even after you switch.
 
@@ -84,7 +84,7 @@ Settings are under **Options > AddOns > Second Wind**, through `/wind settings` 
 Each character has its own settings. Copy another character's settings within the same game from the welcome or settings page, or use `/wind export` and `/wind import CODE` to transfer them.
 
 - `/wind copy` opens a text version of the debrief for you to copy.
-- `/wind lifelines` opens your emergency supplies.
+- `/wind lifelines` opens the Lifelines tab.
 - `/wind reset` clears this character's debriefs after confirmation.
 - `/wind minimap` shows or hides the minimap button.
 
