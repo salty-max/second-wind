@@ -13,6 +13,7 @@ Codex, Yonder: same look, kit and release tooling), standalone
 | What | Where |
 |---|---|
 | The addon file by file: Core, Settings, Tools, Forever, Recorder, Debrief, Patterns, Pull, the creatures, languages, Page, Book; the tests; the daily game data | `docs/architecture.md` |
+| The debrief's voice: person, tone, length, counts never advice | `docs/voices.md` |
 | What Forever lets an addon see (the research, with its measurements) | `docs/forever.md` |
 | The store page | `addon/CURSEFORGE.md` |
 | The words to translate, the creatures' names | `i18n/<locale>/` (`words.json`, `meta.json`, `creatures.json`, `items.json`, `subzones.json`) |
