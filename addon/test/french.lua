@@ -60,7 +60,10 @@ local lessons = table.concat(card.lessons, " | ")
 check(lessons:find("Mur protecteur était disponible et n'a pas servi%."), "… a lesson: the guard unused", lessons)
 check(not lessons:find("[A-Z][a-z]+ was "), "… no English sentence among them", lessons)
 local text = ns.textOf(d)
-check(text:find("Ennemis :") and text:find("Ce que vous aviez :"), "… the card as text, French headings")
+check(
+  text:find("Ennemis\194\160:") and text:find("Ce que vous aviez\194\160:"),
+  "… the card as text, French headings"
+)
 check(said("Mort frôlée, ") and said("|Hsecondwind:debrief:%d+|h%[Bilan%]"), "… its line in chat, its link")
 
 -- The lifelines, in French.

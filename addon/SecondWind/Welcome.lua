@@ -62,7 +62,9 @@ local W = K.welcome({
       K.collectChoice(ns.collect),
     }
   end,
-  footnote = L["Change them any time: /wind settings, or a right-click on the minimap button. /wind opens the book."],
+  footnote = L["Change them any time: %s, or a right-click on the minimap button."]:format("/wind settings")
+    .. " "
+    .. L["/wind opens the book."],
   open = { text = L["Open the book"], click = function() ns.toggle() end },
   exportHint = L["Copy it (Ctrl+C), then on another character: Use a code, or /wind import CODE."],
   importHint = L["Paste the code (/wind export on the other character), then press Enter."],
