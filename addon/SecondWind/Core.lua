@@ -439,7 +439,7 @@ end)
 
 -- ── /secondwind ──────────────────────────────────────────────────────────────
 local USAGE =
-  L["/secondwind (or /wind) opens the book, /wind settings its settings. /wind minimap shows or hides the button. /wind copy gives the open debrief as text. /wind lifelines shows what you carry for the worst moments. /wind welcome shows the welcome page again. /wind export gives this character's settings as a code, and /wind import CODE takes them. /wind reset forgets this character's debriefs. /wind probe says, after the next fight, what the game let Second Wind read of it."]
+  L["/secondwind (or /wind) opens the book. /wind settings opens the settings. /wind minimap shows or hides the button. /wind copy gives the open debrief as text. /wind lifelines shows your lifelines. /wind welcome shows the welcome page again. /wind export gives this character's settings as a code. /wind import CODE takes the settings from CODE. /wind reset forgets this character's debriefs. /wind probe says, after the next fight, what the game let Second Wind read of it."]
 
 -- The kit's command (K.commands): alone it opens the book, an unknown word
 -- prints the usage.

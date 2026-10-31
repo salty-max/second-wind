@@ -35,7 +35,7 @@ local function emptyText(n, count)
       count == 0 and L["none"] or tostring(count)
     )
   end
-  return L["No close call yet. When a fight leaves you below %d%% health, or ends you, its debrief is written here: how it went, what you had ready and didn't use, and what to take from it."]:format(
+  return L["No close call yet. When a fight leaves you below %d%% health, or ends you, its debrief is written here: how it went, and what you had ready and didn't use."]:format(
     ns.option("threshold")
   )
 end

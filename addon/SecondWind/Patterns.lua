@@ -207,5 +207,7 @@ function ns.patternsOf(debriefs, fights)
       }
     end
   )
+  -- (enough debriefs, nothing in two of them: said, not a page of tiles alone)
+  if #page.sections == 0 then table.insert(page.lessons, L["Nothing comes back often yet."]) end
   return page
 end

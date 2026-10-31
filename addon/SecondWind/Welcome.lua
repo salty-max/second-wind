@@ -11,7 +11,7 @@ local L = K.L
 
 -- (Forever hides my health from addons: said before it surprises)
 local FOREVER = "\n\n"
-  .. L["On World of Warcraft: Forever, the game hides your health from addons, in a fight and out of it: Second Wind rebuilds it from each blow and heal the game tells, counted from its own low-health warning, the screen's red edge below 35%, so keep that warning on (Options, Combat)."]
+  .. L["On World of Warcraft: Forever, the game hides your health from addons, in a fight and out of it. Second Wind rebuilds it from each blow and heal the game tells. It counts from the game's own low-health warning, the red edge of the screen below 35%. That warning must stay on (Options, Combat)."]
 
 local W = K.welcome({
   name = "SecondWindWelcome",
@@ -20,7 +20,7 @@ local W = K.welcome({
   logo = "Interface\\AddOns\\SecondWind\\Media\\Logo",
   heading = "Second Wind",
   tagline = L["A debrief after each close call and death."],
-  intro = L["When a fight leaves you on your last breath and you live, or ends you, Second Wind writes it down once the fight is over: how it went, the hits that mattered, what you had ready and didn't use, and what to take from it."]
+  intro = L["When a fight leaves you on your last breath and you live, or ends you, Second Wind writes it down once the fight is over: how it went, the hits that mattered, and what you had ready and didn't use."]
     .. "\n\n"
     .. L["Nothing shows during a fight. Over time, the book shows what your close calls have in common."]
     .. "\n\n"
@@ -48,13 +48,13 @@ local W = K.welcome({
       },
       {
         text = L["The debrief after a death"],
-        hint = L["Opened on its own (you aren't playing then). A close call's waits for a click."],
+        hint = L["Opened on its own. A close call's debrief waits for a click."],
         get = function() return ns.option("openAfterDeath") end,
         set = function(v) ns.setOption("openAfterDeath", v) end,
       },
       {
         text = L["A word before a pull"],
-        hint = L["Targeting a foe like those of your close calls, out of a fight: a line in chat, with the counts."],
+        hint = L["Out of a fight, a line in chat with the counts when you target a foe like those of your close calls."],
         get = function() return ns.option("prepull") end,
         set = function(v) ns.setOption("prepull", v) end,
       },

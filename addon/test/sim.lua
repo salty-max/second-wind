@@ -698,6 +698,15 @@ do
     ns.patternsOf(elites).lessons[1] == "In 3 of your 3 close calls, an elite or a boss was among them.",
     "the patterns' headline: a whole clause after the comma"
   )
+  local apart = {}
+  for i = 1, 3 do
+    apart[i] = with({ at = 2000 + i, zone = "Zone " .. i, foes = { { name = "Foe " .. i, npc = 9000 + i } } })
+  end
+  local quiet = ns.patternsOf(apart)
+  check(
+    quiet.lessons[1] == "Nothing comes back often yet." and #quiet.sections == 0 and #quiet.figures == 3,
+    "three debriefs with nothing shared often: said so, and no tile of zero fights"
+  )
 end
 
 -- ── the card ─────────────────────────────────────────────────────────────────

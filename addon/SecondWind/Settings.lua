@@ -109,12 +109,12 @@ function ns.createSettingsPanel()
   O:check(
     "openAfterDeath",
     L["The debrief after a death"],
-    L["Open the debrief on its own after a death (you aren't playing then). A close call's waits for a click."]
+    L["Open the debrief on its own after a death. A close call's debrief waits for a click."]
   )
   O:check(
     "prepull",
     L["A word before a pull"],
-    L["Out of a fight, when you target a foe like those of your close calls (an elite, two levels up, one met before), or you're hurt and that's one of the things they share: a line in chat, with the counts."]
+    L["A line in chat, out of a fight, when you target a foe like those of your close calls: an elite, a foe two levels or more above you, or one that was in two of them or more. On Classic Era, a line also comes when you are hurt and going in hurt is one of the things your close calls share."]
   )
   O:check("minimapHidden", L["Minimap button"], L["The book by the minimap: click to open it, drag to move it."], true)
   O:collect(ns.collect)
