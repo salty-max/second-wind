@@ -21,14 +21,15 @@ Type `/secondwind` or `/wind`, or click the minimap button to open the book.
 By default, surviving below 15% health counts as a close call. The threshold
 can also be set to 10%, 20% or 25%.
 
-The **Debriefs** tab shows individual fights, with a health graph, enemies,
+The **Debriefs** tab shows individual fights, with a health graph, foes,
 large hits, healing, stuns and fears, and the tools you used or left ready.
 **Patterns** compares close calls after your third debrief. **Lifelines**
 shows the emergency supplies you carry now and their cooldowns.
 
 Debriefs are saved across your account, separately for each game. A fallen
 Hardcore character's last fight remains available from your next character.
-Optional chat reminders before a pull use what happened in earlier fights.
+An optional word before a pull gives, in chat, the counts of your close calls
+against foes like the one you target.
 
 Forever limits the health and combat information addons can read. Second
 Wind reconstructs health estimates from damage, healing and the game's
@@ -45,15 +46,14 @@ they follow your client's language, even after you switch.
 - `/wind copy` opens a text version of the debrief for you to copy.
 - `/wind lifelines` opens your emergency supplies.
 - `/wind probe` reports what the game let the addon read after your next fight.
-- `/wind settings` opens settings for thresholds, alerts and reminders.
+- `/wind settings` opens settings for thresholds, alerts and the word before a pull.
 - `/wind welcome` reopens the welcome page.
 - `/wind minimap` shows or hides the minimap button.
 - `/wind export` and `/wind import CODE` transfer settings.
 - `/wind reset` clears this character's debriefs after confirmation.
 
-Second Wind shares its book style with Hearthtale, Lorekeeper's Codex and
-Yonder. Each addon works independently. Keyring can gather
-their minimap buttons.
+Second Wind shares its book style with the other addons of the family. Each
+works independently, and Keyring can gather their minimap buttons behind one button.
 
 The full store description is in [addon/CURSEFORGE.md](addon/CURSEFORGE.md).
 [docs/forever.md](docs/forever.md) records what Forever lets an addon see.
