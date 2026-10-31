@@ -26,6 +26,13 @@ local function list(parts)
   return L["%s and %s"]:format(table.concat(parts, ", ", 1, #parts - 1), parts[#parts])
 end
 
+-- My health now, against how many of the close calls began hurt: one sentence
+-- whole, its counts all there.
+local function hurt(deaths)
+  return deaths and L["You're at %d%% health, and %d of your %d close calls and deaths began below 60%%."]
+    or L["You're at %d%% health, and %d of your %d close calls began below 60%%."]
+end
+
 -- The word (pure): c, Patterns.lua's counts; foe = { name, level (-1: far
 -- above), rank }; me = { level, pct }. Nil when nothing matches; then true
 -- when it speaks of my health alone (said again only after a while, whatever
@@ -55,18 +62,17 @@ function ns.wordBefore(c, foe, me)
     local line = deaths and L["%s, %s. Of your %d close calls and deaths, %s."]
       or L["%s, %s. Of your %d close calls, %s."]
     local out = line:format(foe.name, desc, c.total, list(counts))
-    if low then out = out .. L[" You're at %d%% health, and %d of them began below 60%%."]:format(pct, low) end
+    if low then out = out .. " " .. hurt(deaths):format(pct, low, c.total) end
     return out
   elseif named then
-    local line = deaths and L["%d of your %d close calls and deaths were against %s."]
-      or L["%d of your %d close calls were against %s."]
-    local out = line:format(met, c.total, foe.name)
-    if low then out = out .. L[" You're at %d%% health, and %d began below 60%%."]:format(pct, low) end
+    local line = deaths and L["%s was in %d of your %d close calls and deaths."]
+      or L["%s was in %d of your %d close calls."]
+    -- (ns.fmt: a language may put the name last, "%2$d ... %1$s")
+    local out = ns.fmt(line, foe.name, met, c.total)
+    if low then out = out .. " " .. hurt(deaths):format(pct, low, c.total) end
     return out
   elseif low then
-    local line = deaths and L["You're at %d%% health, and %d of your %d close calls and deaths began below 60%%."]
-      or L["You're at %d%% health, and %d of your %d close calls began below 60%%."]
-    return line:format(pct, low, c.total), true
+    return hurt(deaths):format(pct, low, c.total), true
   end
   return nil
 end

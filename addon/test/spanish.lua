@@ -154,9 +154,13 @@ local held = {
   ready = { { n = "Muro de escudo", k = "guard" } },
   unused = { { n = "Muro de escudo", k = "guard" } },
 }
+-- (the control-loss lessons were rewritten in English on 31 Oct 2026, "You
+-- were stunned for six seconds, until your death": their translations wait
+-- for the language pass, ideas/audit/language/en/second-wind-fixes.md, so
+-- these check what they say until then: the old sentences, carried)
 local h = ns.lessonsOf(held)
 check(
-  #h == 1 and h[1] == "Pérdida de control durante toda la caída de salud, hasta tu muerte.",
+  #h == 1 and h[1] == "Pérdida de control durante cinco segundos mientras tu salud bajaba hasta tu muerte.",
   "control lost until death",
   h[1]
 )
@@ -170,7 +174,7 @@ held.readyT, held.held = 4, { { t = 5, to = 8, what = "Aturdido", spell = "Porra
 held.unused, held.ready = {}, {}
 h = ns.lessonsOf(held)
 check(
-  h[1] == "Aturdido durante tres segundos mientras tu salud bajaba hasta 5 % (Porra).",
+  h[1] == "Aturdido durante tres segundos mientras tu salud bajaba hasta 5 % de salud (Porra).",
   "partial control loss, with its cause and percentage endpoint",
   h[1]
 )
@@ -181,9 +185,9 @@ check(
   "unmeasured health makes no claim about a descent",
   h[1]
 )
-check(ns.lowOf({ lowPct = 11, lowAtEnd = true }) == "11 % o menos", "end-of-fight health stays an upper bound")
+check(ns.lowOf({ lowPct = 11, lowAtEnd = true }, true) == "11 % o menos", "end-of-fight health stays an upper bound")
 check(
-  ns.lowOf({ lowPct = 20, lowRange = { 15, 25 } }) == "aproximadamente un 20 %",
+  ns.lowOf({ lowPct = 20, lowRange = { 15, 25 } }, true) == "aproximadamente un 20 %",
   "reconstructed health stays approximate"
 )
 
@@ -205,6 +209,7 @@ for _, n in ipairs({ 1, 2 }) do
     n .. " hits: total damage, not damage per hit"
   )
 end
+G.spellNamed(11196, "Vendaje reciente") -- (the game's own name, by its id: wow-data)
 local bandages = ns.carryPage({ { n = "Venda de lino", k = "bandage", wrapped = 10, left = 0 } })
 check(
   section(bandages, "Vendas").lines[1] == "Venda de lino: Vendaje reciente, 10 s" and bandages.figures[2][1] == "0",
@@ -269,7 +274,7 @@ counts.deaths, counts.traits.above, counts.traits.low = 1, 2, 3
 warning = ns.wordBefore(counts, { name = "Guardia", rank = "elite", level = 14 }, { level = 12, pct = 40 })
 check(
   warning
-    == "Guardia, un enemigo de élite dos niveles por encima del tuyo. De tus 4 combates casi mortales y muertes: en 3 había un enemigo de élite y en 2 había un enemigo que te superaba en dos niveles o más. Tienes un 40 % de salud y 3 de ellos empezaron por debajo del 60 %.",
+    == "Guardia, un enemigo de élite dos niveles por encima del tuyo. De tus 4 combates casi mortales y muertes: en 3 había un enemigo de élite y en 2 había un enemigo que te superaba en dos niveles o más. Tienes un 40 % de salud y 3 de tus 4 combates casi mortales y muertes empezaron por debajo del 60 %.",
   "combined warning, with low health and deaths",
   warning
 )
@@ -277,7 +282,7 @@ counts.traits.elite, counts.traits.above, counts.foes.Guardia = nil, nil, 2
 warning = ns.wordBefore(counts, { name = "Guardia", level = 12 }, { level = 12, pct = 40 })
 check(
   warning
-    == "En 2 de tus 4 combates casi mortales y muertes te enfrentaste a Guardia. Tienes un 40 % de salud y 3 empezaron por debajo del 60 %.",
+    == "En 2 de tus 4 combates casi mortales y muertes te enfrentaste a Guardia. Tienes un 40 % de salud y 3 de tus 4 combates casi mortales y muertes empezaron por debajo del 60 %.",
   "a repeated enemy, with low health",
   warning
 )

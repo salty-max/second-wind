@@ -228,7 +228,7 @@ local function didFoe(foe)
   if foe.hits and foe.hits > 0 then
     table.insert(did, K.plural(foe.hits, "%d hit for %d", "%d hits for %d"):format(foe.hits, foe.damage or 0))
   elseif foe.damage and foe.damage > 0 then
-    table.insert(did, L["%d in all"]:format(foe.damage))
+    table.insert(did, L["%d damage in all"]:format(foe.damage))
   end
   if foe.misses and foe.misses > 0 then
     table.insert(did, K.plural(foe.misses, "%d miss", "%d misses"):format(foe.misses))
@@ -755,7 +755,7 @@ function G:draw(d, samples, threshold)
     local l = self:text(nl, 11, { 1, 1, 1 })
     local right = x(lowS.t) > w - 70
     l:SetPoint(right and "RIGHT" or "LEFT", plot, "BOTTOMLEFT", x(lowS.t) + (right and -8 or 8), y(lowS.pct) + 8)
-    l:SetText(ns.lowOf(d))
+    l:SetText(ns.lowOf(d, true))
   end
   -- the lane: what happened, by time
   self:rect(lane, "BACKGROUND", 0, { 0, 0, 0 }, 0.25, 0, 0, w, LANE_H)

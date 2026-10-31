@@ -215,7 +215,7 @@ function StartDuel() end
 -- GetTime it is off cooldown, start: when it began, usable }), the bags (by
 -- item: { count, ready, start, usable }), the auras on me (by spell).
 state.book, state.bags, state.auras = {}, {}, {}
-local SPELLS = {}
+local SPELLS = { [11196] = "Recently Bandaged" } -- (the debuff a bandage leaves, by its id)
 function GetSpellInfo(id)
   if type(id) == "string" then
     local s = state.book[id]

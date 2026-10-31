@@ -172,7 +172,7 @@ if G.FOREVER then
     d and d.rebuilt == "warning" and d.lowPct == 11 and d.lowRange[1] == 7 and d.lowRange[2] == 11 and d.warned == 4,
     "Forever: my health secret, rebuilt from each blow and heal the game told, counted from its low-health warning"
   )
-  check(said("Close call, about 11%% in Coldridge Valley"), "… and a line in chat")
+  check(said("Close call at about 11%% health in Coldridge Valley"), "… and a line in chat")
   check(
     ns.cardOf(d).title == "Close call: about 11% health" and #d.samples == 5,
     "… its card, my health over the fight"
@@ -223,7 +223,7 @@ else
   )
   check(d.samples[1].pct == 100 and d.samples[#d.samples].pct >= 11, "… my health over the fight")
   check(
-    said("Close call, 11%% in Coldridge Valley, Dun Morogh %(Ragged Young Wolf, Rockjaw Trogg%)"),
+    said("Close call at 11%% health in Coldridge Valley, Dun Morogh %(Ragged Young Wolf and Rockjaw Trogg%)"),
     "… and a line in chat"
   )
 end
@@ -440,7 +440,11 @@ if not G.FOREVER then
   local d = only(debriefs, "close")
   check(d and named(d.ready) == "Shield Wall, Disarm, Healing Potion", "a close call: what was ready below half health")
   check(named(d.unused) == "Shield Wall, Disarm", "… and what went unused: the potion was drunk")
-  check(lessons(d) == "Shield Wall was ready and went unused. | Disarm was ready too.", "… its lessons")
+  check(
+    lessons(d)
+      == "Shield Wall and Disarm were ready and went unused. | A blow from Ragged Young Wolf took half of your health at once.",
+    "… its lessons"
+  )
 end
 G.state.book, G.state.bags, G.state.auras = {}, {}, {}
 
@@ -461,13 +465,13 @@ check(lessons(with({})) == "", "a plain close call: no lesson to force")
 check(
   lessons(
     with({ startPct = 48, unused = { { n = "Healing Potion", k = "heal" }, { n = "Shield Wall", k = "guard" } } })
-  ) == "You went in at 48% health. | A Healing Potion was in your bags, ready.",
+  ) == "You went in at 48% health. | A Healing Potion was ready in your bags.",
   "the two weightiest: went in hurt, a potion ready"
 )
 check(
   lessons(with({
     unused = { { n = "Shield Wall", k = "guard" }, { n = "Last Stand", k = "guard" }, { n = "Disarm", k = "stop" } },
-  })) == "Shield Wall and Last Stand were ready and went unused. | Disarm was ready too.",
+  })) == "Shield Wall, Last Stand and Disarm were ready and went unused.",
   "guards ready and unused, then what holds a foe"
 )
 check(lessons(with({
@@ -588,9 +592,113 @@ check(
       { n = "Swiftness Potion", k = "away" },
       { n = "Gnomish Net-o-Matic Projector", k = "stop" },
     },
-  })) == "Thorium Grenade, Masterwork Target Dummy, Nifty Stopwatch and 2 more were ready too.",
+  })) == "Thorium Grenade, Masterwork Target Dummy, Nifty Stopwatch and two more were ready and went unused.",
   "a long list: three named, then how many more"
 )
+check(
+  lessons(with({ unused = { { n = "Disarm", k = "stop" } } })) == "Disarm was ready and went unused.",
+  'a hold alone, ready: its own sentence, no "too" without a first'
+)
+local fallen = with({
+  foes = {},
+  env = "Falling",
+  startPct = 100,
+  lowPct = 24,
+  maxHealth = 100,
+  lowT = 1,
+  events = { { k = "hit", amount = 76, what = "Falling", t = 1 } },
+})
+check(lessons(fallen) == "A fall took 76% of your health.", "the world's harm told once, not again as a blow")
+check(
+  ns.cardOf(fallen).sections[1].lines[1] == "76: a fall, at the low point" and not ns.traitsOf(fallen).blow,
+  "… its row the world's word alone, and no blow among its traits"
+)
+local fellFighting = with({
+  maxHealth = 100,
+  lowT = 1,
+  events = { { k = "hit", amount = 50, what = "Falling", t = 1 } },
+})
+check(
+  lessons(fellFighting) == "A fall took half of your health at once." and ns.traitsOf(fellFighting).blow,
+  "… a fall beside a foe: told as the blow it was (no world lesson there), in the world's word"
+)
+check(
+  lessons(with({ foes = { { name = "Hogger", rank = "worldboss" } } })) == "Hogger was a boss."
+    and lessons(with({ foes = { { name = "Barnil Stonepot", rank = "rareelite" } } }))
+      == "Barnil Stonepot was a rare elite.",
+  "a boss and a rare elite told by their rank, not as an elite"
+)
+local crowd = {}
+for i = 1, 25 do
+  crowd[i] = { name = "Defias Bandit " .. i, first = 0 }
+end
+check(
+  lessons(with({ foes = { unpack(crowd, 1, 12) } })):find("^Twelve foes at once%.")
+    and lessons(with({ foes = crowd })):find("^25 foes at once%."),
+  "a count opening a sentence: a word as far as twenty"
+)
+check(
+  lessons(with({
+    kind = "death",
+    readyT = 0,
+    lowT = 6,
+    length = 6,
+    held = { { t = 0, to = 6, what = "Stunned", spell = "Hammer of Justice" } },
+  })) == "You were stunned for six seconds, until your death (Hammer of Justice).",
+  "control lost until a death: a subject, the seconds, your death"
+)
+local dead = ns.cardOf(with({
+  kind = "death",
+  lowT = 10,
+  maxHealth = 100,
+  events = {
+    { k = "hit", amount = 50, src = "Hogger", spell = "Strike", t = 1 },
+    { k = "hit", amount = 40, src = "Hogger", t = 10 },
+  },
+}))
+local function linesOf(c, heading)
+  for _, sec in ipairs(c.sections) do
+    if sec.heading == heading then return table.concat(sec.lines, " | ") end
+  end
+end
+check(
+  linesOf(dead, "The hits that mattered")
+    == "50: Strike, from Hogger, 9 s before your death | 40: a blow, from Hogger, at your death",
+  "a death card's hits: before your death, not the low point"
+)
+check(
+  ns.summaryOf({ kind = "close", lowPct = 9, foes = { { name = "Hogger" } } }) == "Close call at 9% health (Hogger)"
+    and ns.summaryOf({
+      kind = "close",
+      lowPct = 15,
+      lowAtEnd = true,
+      sub = "Goldshire",
+      zone = "Elwynn Forest",
+      foes = {},
+    }) == "Close call at 15% health or lower in Goldshire, Elwynn Forest"
+    and ns.summaryOf({ kind = "close", lowPct = 20, env = "Falling", zone = "Mulgore", foes = {} })
+      == "Close call at 20% health in Mulgore",
+  "the chat line: health named, no \"?\" for a place the game didn't give, the world's harm left to the lesson"
+)
+check(
+  ns.factsOf(with({ lowAtEnd = true, lowPct = 15 })).title == "Close call: 15% health or lower",
+  'Forever\'s low point read at the end: "or lower" after the health'
+)
+check(
+  ns.cardOf(with({ ready = {} })).sections[#ns.cardOf(with({ ready = {} })).sections].lines[1]
+    == "No lifeline was ready.",
+  "nothing ready: said with its noun"
+)
+do
+  local elites = {}
+  for i = 1, 3 do
+    elites[i] = with({ at = 1000 + i, foes = { { name = "Hogger", rank = "elite", npc = 448 } } })
+  end
+  check(
+    ns.patternsOf(elites).lessons[1] == "In 3 of your 3 close calls, an elite or a boss was among them.",
+    "the patterns' headline: a whole clause after the comma"
+  )
+end
 
 -- ── the card ─────────────────────────────────────────────────────────────────
 local function headings(c)
@@ -688,7 +796,7 @@ if not G.FOREVER then
   local last = G.toasted[#G.toasted]
   check(not (last and last.kicker:find("^Close call")), "a close call: no banner, its line in chat enough")
   check(
-    said("Close call, 11%% in Coldridge Valley, Dun Morogh %(.-%): Shield Wall was ready and went unused%. |c"),
+    said("Close call at 11%% health in Coldridge Valley, Dun Morogh %(.-%): Shield Wall was ready and went unused%. |c"),
     "… the line carries its main lesson"
   )
   book:Hide()
@@ -709,7 +817,7 @@ check(
   "… the card: the killing blow first"
 )
 check(
-  book.cardShown.sections[1].lines[1] == "Rockjaw Trogg's Fireball, 150 (30 more than you had)",
+  book.cardShown.sections[1].lines[1] == "Rockjaw Trogg's Fireball, 150 damage (30 more than your health)",
   "… by whom, with what, by how much"
 )
 local killing = drawn(book.card, "blow", 1)
@@ -717,7 +825,7 @@ check(
   killing
     and killing.amount.text == "150"
     and killing.title.text == "Rockjaw Trogg's Fireball"
-    and killing.detail.text == "30 more than you had",
+    and killing.detail.text == "30 more than your health",
   "… drawn: the blow's amount, by whom, the overkill"
 )
 local t = G.toasted[#G.toasted]
@@ -840,11 +948,11 @@ local function section(page, heading)
 end
 check(
   section(pat, "Most often")
-    == "3 of 5: you went in below 60% health | 3 of 5: three foes or more at once | 3 of 5: a foe joined after the start | 2 of 5: a healing potion or healthstone went unused",
+    == "3 of 5: you went in below 60% health | 3 of 5: three foes or more were on you at once | 3 of 5: a foe joined after the start | 2 of 5: a healing potion or healthstone went unused",
   "… the traits that come back, a third of the time or more"
 )
 check(section(pat, "Where") == "Coldridge Valley, Dun Morogh: 2", "… where, twice or more")
-check(section(pat, "Foes met more than once") == "Rockjaw Trogg: in 3", "… the foes met more than once")
+check(section(pat, "Foes met more than once") == "Rockjaw Trogg: in 3 of your 5", "… the foes met more than once")
 check(section(pat, "Left unused most often") == "Healing Potion: 2 times", "… the tools left unused most often")
 debriefs = life()
 book:Show()
@@ -903,12 +1011,13 @@ if not G.FOREVER then
     "control lost: the game's account of it, kept (what, by which spell, until when)"
   )
   check(
-    lessons(d):find("^Stunned the whole way down to 11%% %(Cheap Shot%)%.") and not lessons(d):find("Healing Potion"),
+    lessons(d):find("^You were stunned for two seconds, until you were down to 11%% health %(Cheap Shot%)%.")
+      and not lessons(d):find("Healing Potion"),
     "… held the whole way down: told, and the potion not called a lesson"
   )
   local c = ns.cardOf(d)
   check(
-    sectionOf(c, "Out of your control") == "Stunned (Cheap Shot): 3.0 s, from the start"
+    sectionOf(c, "Out of your control") == "Stunned (Cheap Shot): 3 s, from the start"
       and sectionOf(c, "What you had") == "Ready, but you were stunned: Healing Potion (2)",
     "… the card: the stretch held, and what was ready but out of reach"
   )
@@ -929,7 +1038,7 @@ if not G.FOREVER then
   d = only(debriefs, "close")
   check(
     lessons(d)
-      == "Out of your control for two seconds on the way down to 11%. | A Healing Potion was in your bags, ready.",
+      == "You were not in control for two seconds on the way down to 11% health. | A Healing Potion was ready in your bags.",
     "control lost for part of the way, the game saying only that: told, and the potion still a lesson"
   )
 
@@ -967,7 +1076,7 @@ else
     "Forever: a stun, the game's account of it (the player's own: never secret)"
   )
   check(
-    lessons(d):find("^Stunned for three seconds of the fight %(Cheap Shot%)%."),
+    lessons(d):find("^You were stunned for three seconds of the fight %(Cheap Shot%)%."),
     "… told by the fight, my health hidden"
   )
 end
@@ -992,7 +1101,7 @@ if G.FOREVER then
     if sec.heading == "Foes" then foesSection = table.concat(sec.lines, " | ") end
   end
   check(
-    foesSection == "Ragged Young Wolf: 100 in all | Rockjaw Trogg: 60 in all",
+    foesSection == "Ragged Young Wolf: 100 damage in all | Rockjaw Trogg: 60 damage in all",
     "… on the card: the harm each did in all (the meter has no blows)"
   )
   check(
@@ -1040,7 +1149,7 @@ if G.FOREVER then
       == "Ready, unused: Greater Healing Potion | Used: Shield Wall, Healing Potion (2) | Ready, no trace either way: Polymorph",
     "… the card: unused, used, untold"
   )
-  check(lessons(d):find("A Greater Healing Potion was in your bags, ready%."), "… a lesson again")
+  check(lessons(d):find("A Greater Healing Potion was ready in your bags%."), "… a lesson again")
 
   -- (should a build let my health read out of a fight)
   debriefs = life()
@@ -1420,7 +1529,7 @@ end
 check(ns.record().fights.n == 2 and #debriefs == 0, "every fight counted by its traits, kept or not")
 local against = ns.patternsOf(five, { n = 40, since = 1000, traits = { low = 4, many = 6, late = 3 } })
 check(
-  section(against, "Most often"):find("^3 of 5: you went in below 60%% health %(4 of your 40 fights%) | "),
+  section(against, "Most often"):find("^3 of 5: you went in below 60%% health %(in 4 of your 40 fights in all%) | "),
   "the patterns against every fight's, once twenty are counted"
 )
 check(
@@ -1459,8 +1568,13 @@ check(
 )
 check(
   ns.wordBefore(counted, { name = "Rockjaw Trogg", level = 7 }, { level = 8, pct = 100 })
-    == "3 of your 5 close calls and deaths were against Rockjaw Trogg.",
+    == "Rockjaw Trogg was in 3 of your 5 close calls and deaths.",
   "a word before a pull: a foe met in close calls before"
+)
+check(
+  ns.wordBefore(counted, { name = "Rockjaw Trogg", level = 7 }, { level = 8, pct = 45 })
+    == "Rockjaw Trogg was in 3 of your 5 close calls and deaths. You're at 45% health, and 3 of your 5 close calls and deaths began below 60%.",
+  "… a foe met before, and going in hurt: each count whole, of what"
 )
 check(
   ns.wordBefore(counted, { name = "Frostmane Seer", level = 8 }, { level = 8, pct = 45 })
@@ -1487,7 +1601,7 @@ for _, d in ipairs(five) do
 end
 local before = #G.printed
 G.target({ name = "Rockjaw Trogg", level = 7 })
-check(said("were against Rockjaw Trogg") and #G.printed == before + 1, "… said in chat when I target one")
+check(said("Rockjaw Trogg was in ") and #G.printed == before + 1, "… said in chat when I target one")
 G.target({ name = "Rockjaw Trogg", level = 7, guid = "Creature-0-4170-0-12-1999-00000999" })
 check(#G.printed == before + 1, "… a name not again for a while")
 G.state.inCombat = true
@@ -1588,7 +1702,7 @@ G.target({ name = "Rockjaw Ambusher", level = 7 })
 check(
   #ns.record().debriefs == 0
     and #G.printed == printedBefore + 1
-    and said("3 of your 3 close calls were against Rockjaw Ambusher"),
+    and said("Rockjaw Ambusher was in 3 of your 3 close calls"),
   "the word before a pull: a past life's close calls count for the next character"
 )
 G.target(nil)

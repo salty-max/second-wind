@@ -867,17 +867,14 @@ if StartDuel then hooksecurefunc("StartDuel", function() duelAt = GetTime() end)
 -- A debrief in a line: when, where, how low or dead, the foes.
 function ns.summaryOf(d)
   local names = {}
-  for i, foe in ipairs(d.foes or {}) do
-    if i > 3 then
-      table.insert(names, L["%d more"]:format(#d.foes - 3))
-      break
-    end
+  for _, foe in ipairs(d.foes or {}) do
     table.insert(names, foe.name)
   end
-  local place = d.sub and (d.sub .. ", " .. d.zone) or d.zone or "?"
-  local what = d.kind == "death" and L["Death"] or L["Close call, %s"]:format(ns.lowOf and ns.lowOf(d) or "?")
-  -- (harm from the world by its word: "a fall")
-  local env = d.env and (ns.ENV and ns.ENV[d.env] or d.env)
-  local by = #names > 0 and L[" (%s)"]:format(table.concat(names, ", ")) or (env and L[" (%s)"]:format(env) or "")
+  -- (no place the game named: none said, never "?")
+  local place = d.sub and d.zone and (d.sub .. ", " .. d.zone) or d.sub or d.zone
+  local what = d.kind == "death" and L["Death"] or L["Close call at %s"]:format(ns.lowOf and ns.lowOf(d) or "?")
+  -- (the foes; harm from the world is told by the lesson, not here)
+  local by = #names > 0 and L[" (%s)"]:format(ns.listOf and ns.listOf(names) or table.concat(names, ", ")) or ""
+  if not place then return what .. by end
   return L["%s in %s%s"]:format(what, place, by)
 end

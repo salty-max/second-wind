@@ -46,6 +46,10 @@ local SPELLS = {
   { "Frost Nova", "stop", 122 },
   { "Polymorph", "stop", 118 },
   { "Blink", "away", 1953 },
+  -- (66 is TBC's mage spell, "Lesser Invisibility" by its id on both games now:
+  -- kept by TBC's name, which game.ts finds no rank of, where "Lesser
+  -- Invisibility" would add 7870, the Succubus's; a player sees the client's
+  -- name by the id)
   { "Invisibility", "away", 66 },
   -- priest
   { "Power Word: Shield", "guard", 17 },
@@ -686,9 +690,11 @@ local function span(s)
   if s < 3600 then return L["%d min"]:format(math.ceil(s / 60)) end
   return L["%d h %d min"]:format(math.floor(s / 3600), math.ceil((s % 3600) / 60))
 end
+local RECENTLY = 11196 -- Recently Bandaged, the debuff after a bandage
 local function stateOf(t)
   if t.worn == "bags" then return L["in your bags, not worn"] end
-  if t.wrapped and t.wrapped > 0 then return L["Recently Bandaged, %s"]:format(span(t.wrapped)) end
+  -- (the debuff by its id, the client's own name: Recently Bandaged)
+  if t.wrapped and t.wrapped > 0 then return L["%s, %s"]:format(ns.spellNameOf(RECENTLY) or "?", span(t.wrapped)) end
   if t.left == nil then return "?" end
   return t.left <= 0 and L["ready"] or L["ready in %s"]:format(span(t.left))
 end

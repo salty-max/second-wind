@@ -19,19 +19,19 @@ local HEADLINE = 0.5 -- the commonest told above, from this share
 local ROWS = 5 -- places, foes, tools listed
 local FIGHTS = 20 -- fights tallied before a trait is set against them all
 local TRAITS = {
-  { "world", L["harm from the world: a fall, the water"] },
+  { "world", L["the world did the harm: a fall, the water"] },
   { "low", L["you went in below 60% health"] },
-  { "many", L["three foes or more at once"] },
+  { "many", L["three foes or more were on you at once"] },
   { "late", L["a foe joined after the start"] },
   { "held", L["you were stunned, feared or the like on the way down"] },
-  { "fast", L["from half health to the low point in three seconds or less"] },
+  { "fast", L["you went from half health to the low point in three seconds or less"] },
   { "blow", L["one blow took a third of your health or more"] },
-  { "elite", L["an elite"] },
-  { "above", L["a foe two levels or more above you"] },
+  { "elite", L["an elite or a boss was among them"] },
+  { "above", L["a foe was two levels or more above you"] },
   { "magic", L["the harm was mostly magic"] },
   { "potion", L["a healing potion or healthstone went unused"] },
   { "guard", L["something that guards went unused"] },
-  { "cure", L["a cure went unused, with what it cures on you"] },
+  { "cure", L["a cure went unused while what it cures was on you"] },
 }
 
 -- Keys counted (once a debrief: a creature's id, a place's areas, a tool's
@@ -131,8 +131,11 @@ function ns.patternsOf(debriefs, fights)
     { tostring(total), K.plural(total, "debrief", "debriefs") },
     { tostring(closes), K.plural(closes, "close call", "close calls") },
     { tostring(deaths), K.plural(deaths, "death", "deaths") },
-    { fights and fights.n and tostring(fights.n) or "0", L["fights counted"] },
   }
+  -- (no tally yet: no tile of zero fights)
+  if fights and fights.n and fights.n > 0 then
+    table.insert(page.figures, { tostring(fights.n), L["fights counted"] })
+  end
 
   local often = {}
   for i, t in ipairs(TRAITS) do
@@ -163,7 +166,7 @@ function ns.patternsOf(debriefs, fights)
     L["Most often"],
     often,
     function(t)
-      local all = base and L[" (%d of your %d fights)"]:format(base.traits[t.key] or 0, base.n) or ""
+      local all = base and L[" (in %d of your %d fights in all)"]:format(base.traits[t.key] or 0, base.n) or ""
       return L["%d of %d: %s%s"]:format(t.n, total, t.phrase, all)
     end,
     function(t)
@@ -188,7 +191,7 @@ function ns.patternsOf(debriefs, fights)
   section(
     L["Foes met more than once"],
     ranked(foes, firstSeen, label),
-    function(f) return L["%s: in %d"]:format(f.name, f.n) end,
+    function(f) return L["%s: in %d of your %d"]:format(f.name, f.n, total) end,
     function(f) return { kind = "foe", foe = c.foeOf[f.key], detail = L["in %d of your %d"]:format(f.n, total) } end
   )
   section(

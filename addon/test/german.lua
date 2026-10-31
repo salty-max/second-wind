@@ -94,9 +94,14 @@ local held = {
   ready = { { n = "Schildwall", k = "guard" } },
   unused = { { n = "Schildwall", k = "guard" } },
 }
+-- (the control-loss lessons were rewritten in English on 31 Oct 2026, "You
+-- were stunned for six seconds, until your death": their translations wait
+-- for the language pass, ideas/audit/language/en/second-wind-fixes.md, so
+-- these check what they say until then: the old sentences, carried)
 local lessonsHeld = ns.lessonsOf(held)
 check(
-  #lessonsHeld == 1 and lessonsHeld[1] == "Kontrollverlust, durchgehend bis zu deinem Tod.",
+  #lessonsHeld == 1
+    and lessonsHeld[1] == "Kontrollverlust für fünf Sekunden bei sinkender Gesundheit, bis zu deinem Tod.",
   "control lost until death: a complete German endpoint",
   lessonsHeld[1]
 )
@@ -109,7 +114,7 @@ held.kind, held.lowPct, held.lowT, held.length = "close", 5, 10, 10
 held.readyT, held.held = 4, { { t = 5, to = 8, what = "Betäubt" } }
 held.unused, held.ready = {}, {}
 check(
-  ns.lessonsOf(held)[1] == "Betäubt für drei Sekunden bei sinkender Gesundheit, bis 5 %.",
+  ns.lessonsOf(held)[1] == "Betäubt für drei Sekunden bei sinkender Gesundheit, bis 5 % Gesundheit.",
   "partial control loss: German duration and health endpoint"
 )
 held.blind = true
@@ -117,8 +122,11 @@ check(
   ns.lessonsOf(held)[1] == "Betäubt für drei Sekunden des Kampfes.",
   "an unmeasured fight makes no claim about the health descent"
 )
-check(ns.lowOf({ lowPct = 11, lowAtEnd = true }) == "11 % oder weniger", "end-of-fight health remains an upper bound")
-check(ns.lowOf({ lowPct = 20, lowRange = { 15, 25 } }) == "etwa 20 %", "rebuilt health stays approximate")
+check(
+  ns.lowOf({ lowPct = 11, lowAtEnd = true }, true) == "11 % oder weniger",
+  "end-of-fight health remains an upper bound"
+)
+check(ns.lowOf({ lowPct = 20, lowRange = { 15, 25 } }, true) == "etwa 20 %", "rebuilt health stays approximate")
 
 -- One hit versus several: the damage value is the total, not per hit.
 for _, n in ipairs({ 1, 2 }) do
@@ -132,6 +140,7 @@ for _, n in ipairs({ 1, 2 }) do
     n .. " hit(s): German total damage"
   )
 end
+G.spellNamed(11196, "Kürzlich bandagiert") -- (the game's own name, by its id: wow-data)
 local bandages = ns.carryPage({ { n = "Leinenverband", k = "bandage", wrapped = 10, left = 0 } })
 check(
   section(bandages, L["Bandages"]).lines[1] == "Leinenverband: Kürzlich bandagiert, 10 s"

@@ -96,7 +96,7 @@ local function counted(debriefs)
 end
 
 -- A row's two lines: what it was, and whose, where and when.
-local function rowTitle(d) return d.kind == "death" and L["Death"] or L["Close call: %s"]:format(ns.lowOf(d)) end
+local function rowTitle(d) return d.kind == "death" and L["Death"] or L["Close call: %s"]:format(ns.lowOf(d, true)) end
 local function rowUnder(d)
   local who = every() and ns.whose(d).name and (ns.whose(d).name .. " · ") or ""
   return who .. (d.sub or d.zone or "?") .. " · " .. ns.date(d.at)
@@ -303,7 +303,7 @@ local function toast(d)
     or K.banners({ name = "SecondWindBanner", art = ICON, seconds = function() return ns.option("bannerSeconds") end })
   banners:show({
     picture = ICON,
-    kicker = d.kind == "death" and L["Death"] or L["Close call: %s"]:format(ns.lowOf(d)),
+    kicker = d.kind == "death" and L["Death"] or L["Close call: %s"]:format(ns.lowOf(d, true)),
     title = d.sub or d.zone or "",
     tip = L["Click to read its debrief"],
     click = function() ns.openDebrief(d.at) end,

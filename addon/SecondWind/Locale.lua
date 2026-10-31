@@ -19,10 +19,12 @@ function ns.fmt(s, ...)
   return plain:format(unpack(order))
 end
 
--- A number with a decimal, as the language writes it ("2.5", "2,5").
+-- A number with a decimal, as the language writes it ("2.5", "2,5"; a whole one
+-- without: "6").
 ns.DECIMAL = "."
 function ns.tenths(x)
-  local s = ("%.1f"):format(x)
+  -- (a whole figure without its ".0": "6", not "6.0")
+  local s = ("%.1f"):format(x):gsub("%.0$", "")
   return ns.DECIMAL == "." and s or (s:gsub("%.", ns.DECIMAL))
 end
 
@@ -82,6 +84,13 @@ end
 function ns.noun(word)
   if not word then return nil end
   return ns.locale == "deDE" and word or word:lower()
+end
+-- The game's word for a state (its loss of control's: "Stunned") inside a
+-- sentence: lower case in English, "You were stunned"; a translated
+-- language's sentence keeps the game's case (its translation decides).
+function ns.state(word)
+  if not word then return nil end
+  return (not ns.locale or ns.locale:sub(1, 2) == "en") and word:lower() or word
 end
 -- (the kit's: the language's plural rule, every word agreed to the reader's
 -- gender; its decimal point the addon's)
