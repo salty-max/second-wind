@@ -681,6 +681,10 @@ check(
   "the chat line: health named, no \"?\" for a place the game didn't give, the world's harm left to the lesson"
 )
 check(
+  ns.cardOf(with({ level = 8, length = 3 })).sub == "level 8 · 3 seconds",
+  'a card where the game named no place: none said, never "?"'
+)
+check(
   ns.factsOf(with({ lowAtEnd = true, lowPct = 15 })).title == "Close call: 15% health or lower",
   'Forever\'s low point read at the end: "or lower" after the health'
 )
@@ -1579,6 +1583,21 @@ check(
   ns.wordBefore(counted, { name = "Rockjaw Trogg", level = 7 }, { level = 8, pct = 100 })
     == "Rockjaw Trogg was in 3 of your 5 close calls and deaths.",
   "a word before a pull: a foe met in close calls before"
+)
+check(
+  ns.wordBefore(
+    { total = 4, deaths = 0, traits = { elite = 2, above = 3 }, foes = {} },
+    { name = "Hogger", level = 12, rank = "worldboss" },
+    { level = 12, pct = 100 }
+  )
+      == "Hogger, a boss. Of your 4 close calls, 2 had an elite."
+    and ns.wordBefore(
+        { total = 4, deaths = 0, traits = { elite = 2, above = 3 }, foes = {} },
+        { name = "Barnil Stonepot", level = 15, rank = "rareelite" },
+        { level = 12, pct = 100 }
+      )
+      == "Barnil Stonepot, a rare elite three levels above you. Of your 4 close calls, 2 had an elite and 3 had a foe two levels or more above you.",
+  "… a boss and a rare elite named by their rank"
 )
 check(
   ns.wordBefore(counted, { name = "Rockjaw Trogg", level = 7 }, { level = 8, pct = 45 })

@@ -870,8 +870,7 @@ function ns.summaryOf(d)
   for _, foe in ipairs(d.foes or {}) do
     table.insert(names, foe.name)
   end
-  -- (no place the game named: none said, never "?")
-  local place = d.sub and d.zone and (d.sub .. ", " .. d.zone) or d.sub or d.zone
+  local place = ns.placeOf(d)
   local what = d.kind == "death" and L["Death"] or L["Close call at %s"]:format(ns.lowOf and ns.lowOf(d) or "?")
   -- (the foes; harm from the world is told by the lesson, not here)
   local by = #names > 0 and L[" (%s)"]:format(ns.listOf and ns.listOf(names) or table.concat(names, ", ")) or ""

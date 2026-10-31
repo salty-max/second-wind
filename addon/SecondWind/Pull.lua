@@ -16,6 +16,11 @@ local NEAR = 4 -- levels below mine a foe may be, for a word on my health
 local WORDS =
   { L["one"], L["two"], L["three"], L["four"], L["five"], L["six"], L["seven"], L["eight"], L["nine"], L["ten"] }
 local ELITE = { elite = true, rareelite = true, worldboss = true }
+local RANK = {
+  elite = { L["an elite"], L["an elite %s"] },
+  rareelite = { L["a rare elite"], L["a rare elite %s"] },
+  worldboss = { L["a boss"], L["a boss %s"] },
+}
 
 local function often(c, key)
   local n = c.traits[key] or 0
@@ -50,7 +55,9 @@ function ns.wordBefore(c, foe, me)
     high = foe.level == -1 and L["far above you"] or L["%s levels above you"]:format(WORDS[up] or up)
     table.insert(counts, L["%d had a foe two levels or more above you"]:format(above))
   end
-  local desc = elite and high and L["an elite %s"]:format(high) or elite and L["an elite"] or high
+  -- (the foe by its rank: an elite, a rare elite, a boss)
+  local rank = elite and RANK[foe.rank]
+  local desc = rank and high and rank[2]:format(high) or rank and rank[1] or high
   -- (by its creature's id, a name only where the game gave none)
   local met = c.foes[ns.foeKey(foe) or ""] or (foe.name and c.foes[(c.keyOf or {})[foe.name] or foe.name]) or 0
   local named = met >= 2 and L["%d were against %s"]:format(met, foe.name) or nil

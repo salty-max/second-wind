@@ -68,7 +68,7 @@ local function counted(debriefs)
     for key in pairs(ns.traitsOf(d)) do
       traits[key] = (traits[key] or 0) + 1
     end
-    local place = d.sub and (d.sub .. ", " .. (d.zone or "?")) or d.zone
+    local place = ns.placeOf(d)
     if place then
       local sub = d.subArea or (d.subInside and ("w" .. d.subInside)) or d.sub or ""
       count(places, tostring(sub) .. "|" .. tostring(d.zoneArea or d.zone or ""), place)

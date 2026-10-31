@@ -182,7 +182,7 @@ end
 
 function ns.factsOf(d)
   local title = d.kind == "death" and L["Death"] or L["Close call: %s"]:format(ns.lowOf(d))
-  local place = d.sub and (d.sub .. ", " .. (d.zone or "?")) or d.zone or "?"
+  local place = ns.placeOf(d)
   local unused, used, ready, left, untold, silent = {}, {}, {}, {}, {}, {}
   -- (Forever: a tool whose use leaves no trace is neither used nor unused;
   -- the tools by their keys, never their names)
@@ -471,7 +471,8 @@ end
 
 function ns.cardOf(d)
   local f = ns.factsOf(d)
-  local sub = { f.place }
+  local sub = {}
+  if f.place then table.insert(sub, f.place) end
   if d.level then table.insert(sub, L["level %d"]:format(d.level)) end
   if d.length then table.insert(sub, d.length == 1 and L["a second"] or L["%d seconds"]:format(d.length)) end
   if d.at then table.insert(sub, ns.date(d.at, true)) end

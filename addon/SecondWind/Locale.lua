@@ -85,6 +85,9 @@ function ns.noun(word)
   if not word then return nil end
   return ns.locale == "deDE" and word or word:lower()
 end
+-- A debrief's place as it is written: "Goldshire, Elwynn Forest", the one the
+-- game named alone, nil where it named none (never "?").
+function ns.placeOf(d) return d.sub and d.zone and (d.sub .. ", " .. d.zone) or d.sub or d.zone end
 -- The game's word for a state (its loss of control's: "Stunned") inside a
 -- sentence: lower case in English, "You were stunned"; a translated
 -- language's sentence keeps the game's case (its translation decides).
