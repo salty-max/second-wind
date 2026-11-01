@@ -25,8 +25,43 @@ G.login()
 check(ns.locale == "frFR" and L["Debriefs"] == "Bilans", "the French language file, loaded by the client's own name")
 check(L["A word Second Wind never says"] == "A word Second Wind never says", "… a word it lacks stays English")
 check(
-  ns.fmt(L["%s's %s"], "Mage défias", "Boule de feu") == "Boule de feu de Mage défias",
-  "… a sentence in its own order"
+  ns.fmt(L["%s's %s"], "Araignée forestière", "Boule de feu") == "Boule de feu (Araignée forestière)",
+  '… a sentence in its own order, no "de" before a name that may open on a vowel'
+)
+check(
+  L["A critical %s"]:format("Attaque mentale") == "Un coup critique (Attaque mentale)",
+  "… a critical spell, likewise"
+)
+for kind, affliction in pairs({
+  Poison = "le poison",
+  Disease = "une maladie",
+  Curse = "une malédiction",
+  Magic = "la magie",
+}) do
+  local cure = { kind = "close", lowPct = 5, unused = { { n = "Remède", k = "cure", against = kind } } }
+  check(
+    ns.lessonsOf(cure)[1] == "Remède était disponible alors que vous subissiez " .. affliction .. ".",
+    "… a cure with " .. affliction .. ', no "que une"',
+    ns.lessonsOf(cure)[1]
+  )
+end
+check(
+  ns.opening(12) == "Douze" and ns.opening(20) == "Vingt",
+  "… a count opening a sentence, a word as far as twenty"
+)
+check(
+  L["%s and %s more"]:format("Fade, Mur protecteur, Désarmement", L["two"])
+    == "Fade, Mur protecteur, Désarmement et deux de plus",
+  '… a list\'s "and two more"'
+)
+check(
+  ns.fmt(L["%s was in %d of your %d close calls."], "Jeune loup", 3, 5)
+    == "Jeune loup figurait dans 3 de vos 5 morts frôlées.",
+  "… a word before a pull opens on its subject, never on a tally"
+)
+check(
+  L["%s joined %s in."]:format("Jeune loup", L["a second"]) == "Jeune loup a rejoint le combat après une seconde.",
+  "… a foe joining a second in"
 )
 check(ns.tenths(2.5) == "2,5", "… numbers with a decimal comma")
 
@@ -61,7 +96,9 @@ check(lessons:find("Mur protecteur était disponible et n'a pas servi%."), "… 
 check(not lessons:find("[A-Z][a-z]+ was "), "… no English sentence among them", lessons)
 local text = ns.textOf(d)
 check(
-  text:find("Ennemis\194\160:") and text:find("Ce que vous aviez\194\160:"),
+  text:find("^Second Wind\194\160: Mort frôlée")
+    and text:find("Ennemis\194\160:")
+    and text:find("Ce que vous aviez\194\160:"),
   "… the card as text, French headings"
 )
 check(said("Mort frôlée à ") and said("|Hsecondwind:debrief:%d+|h%[Bilan%]"), "… its line in chat, its link")

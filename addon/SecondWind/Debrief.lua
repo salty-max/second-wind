@@ -664,7 +664,7 @@ end
 -- The card as plain text, to copy: for a guild's channel, a Discord.
 function ns.textOf(d)
   local c = ns.cardOf(d)
-  local out = { "Second Wind: " .. c.title, c.sub }
+  local out = { L["%s: %s"]:format("Second Wind", c.title), c.sub }
   for _, l in ipairs(c.lessons) do
     table.insert(out, "- " .. l)
   end
