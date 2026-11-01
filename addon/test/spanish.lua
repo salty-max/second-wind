@@ -2,6 +2,10 @@
 -- decimal separator. Run on Classic and Forever, also with LOCALE=esMX.
 LOCALE = os.getenv("LOCALE") or "esES"
 assert(LOCALE == "esES" or LOCALE == "esMX", "choose a Spanish locale")
+if dofile("addon/test/held.lua")(LOCALE) then
+  print("skipped: " .. LOCALE .. " held back (HIDDEN_LOCALES)")
+  os.exit(0)
+end
 local G = dofile("addon/test/game.lua")
 local ns, passed = G.ns, 0
 local L = ns.kit.L

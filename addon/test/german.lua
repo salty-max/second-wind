@@ -3,6 +3,10 @@
 -- the client's own names, the creature types, the word before a pull.
 --   luajit addon/test/german.lua; FOREVER=1 luajit addon/test/german.lua
 LOCALE = "deDE"
+if dofile("addon/test/held.lua")("deDE") then
+  print("skipped: " .. "deDE" .. " held back (HIDDEN_LOCALES)")
+  os.exit(0)
+end
 local G = dofile("addon/test/game.lua")
 local ns = G.ns
 local L = ns.kit.L
