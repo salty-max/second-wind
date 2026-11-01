@@ -6223,4 +6223,7 @@ ns.names({
     [32844]="Major Nature Protection Potion", [32845]="Major Shadow Protection Potion", [32846]="Major Fire Protection Potion", [32847]="Major Frost Protection Potion",
     [34440]="Mad Alchemist's Potion", [35581]="Rocket Boots Xtreme Lite", [37864]="Medallion of the Alliance", [37865]="Medallion of the Horde",
   },
+  itemsClassic = {
+    [3386]="Elixir of Poison Resistance", [4596]="Discolored Healing Potion", [5996]="Elixir of Water Breathing",
+  },
 })

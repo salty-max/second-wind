@@ -258,6 +258,13 @@ check(
   word
 )
 
+-- A tool's item by its id, each game's own French name.
+check(
+  ns.itemNameOf(3386) == (G.FOREVER and "Potion de purification du poison" or "Elixir de résistance au poison"),
+  "an item named as this game's client names it",
+  ns.itemNameOf(3386)
+)
+
 -- Control lost, in the client's words: lowercase inside a row, its token agreed.
 if not G.FOREVER then
   local before = #ns.record().debriefs

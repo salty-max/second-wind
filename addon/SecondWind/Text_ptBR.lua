@@ -6220,4 +6220,7 @@ ns.names({
     [32844]="Poção Elevada de Proteção contra a Natureza", [32845]="Poção Elevada de Proteção contra a Sombra", [32846]="Poção Elevada de Proteção contra o Fogo", [32847]="Poção Elevada de Proteção contra o Gelo",
     [34440]="Poção do Alquimista Louco", [35581]="Botas-foguete Xtremas Lite", [37864]="Medalhão da Aliança", [37865]="Medalhão da Horda",
   },
+  itemsClassic = {
+    [3386]="Elixir de Resistência a Veneno", [4596]="Poção Descolorida de Cura", [5996]="Elixir de Respiração Aquática",
+  },
 })

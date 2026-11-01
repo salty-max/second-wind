@@ -6627,4 +6627,8 @@ ns.names({
     [32844]="Erheblicher Naturschutztrank", [32845]="Erheblicher Schattenschutztrank", [32846]="Erheblicher Feuerschutztrank", [32847]="Erheblicher Frostschutztrank",
     [34440]="Trank des verrückten Alchimisten", [35581]="Raketenstiefel Xtrem-Lite", [37864]="Medaillon der Allianz", [37865]="Medaillon der Horde",
   },
+  itemsClassic = {
+    [3386]="Elixier des Giftwiderstands", [4596]="Verfärbter Heiltrank", [5996]="Elixier der Wasseratmung", [10716]="Gnomen-Schrumpfstrahl",
+    [18834]="Insignien der Horde", [18854]="Insignien der Allianz",
+  },
 })

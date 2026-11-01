@@ -6627,4 +6627,8 @@ ns.names({
     [32844]="Poción de Protección contra la Naturaleza sublime", [32845]="Poción de Protección contra las Sombras sublime", [32846]="Poción de Protección contra el Fuego sublime", [32847]="Poción de Protección contra la Escarcha sublime",
     [34440]="Poción de alquimista loco", [35581]="Botas cohete Xtremo ligeras", [37864]="Medallón de la Alianza", [37865]="Medallón de la Horda",
   },
+  itemsClassic = {
+    [3386]="Elixir de resistencia al envenenamiento", [4596]="Poción curativa descolorida", [5996]="Elixir de respiración acuática", [8544]="Venda de paño mágico",
+    [8545]="Venda de paño mágico pesado", [10725]="Pollo de batalla gnomo",
+  },
 })

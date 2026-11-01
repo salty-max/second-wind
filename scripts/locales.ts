@@ -13,6 +13,7 @@
  *                              kit's own are i18n/kit/'s); i18n/words.json lists them
  *
  *   i18n/<locale>/items.json   the tools' items by id (scripts/creature_names.ts)
+ *   i18n/<locale>/items-classic.json   Classic Era's where they differ
  *   i18n/<locale>/subzones.json
  *                              the places inside buildings by their ids, each
  *                              game's, every language's (../addon-kit/
@@ -57,6 +58,10 @@ function namesLua(locale: string): string[] {
   if (!existsSync(insideFile)) throw new Error(`${relative(ROOT, insideFile)} is missing: python3 ../addon-kit/subzones.py ${NAMES_OF[locale] ?? locale}`);
   const inside: { forever?: Record<string, string>; classic?: Record<string, string> } = json(insideFile);
   const items: Record<string, string> = json(join(I18N, NAMES_OF[locale] ?? locale, "items.json"));
+  // (Classic Era's name where it differs from Forever's, scripts/creature_names.ts)
+  const classicItemsFile = join(I18N, NAMES_OF[locale] ?? locale, "items-classic.json");
+  if (!existsSync(classicItemsFile)) throw new Error(`${relative(ROOT, classicItemsFile)} is missing: run bun scripts/creature_names.ts ${NAMES_OF[locale] ?? locale}`);
+  const itemsClassic: Record<string, string> = json(classicItemsFile);
   const lines = ["ns.names({"];
   for (const [key, list] of [
     ["creatures", t.forever],
@@ -66,6 +71,7 @@ function namesLua(locale: string): string[] {
     ["inside", inside.forever ?? {}],
     ["insideClassic", inside.classic ?? {}],
     ["items", items],
+    ["itemsClassic", itemsClassic],
   ] as const) {
     lines.push(`  ${key} = {`);
     const items = Object.entries(list).sort(([a], [b]) => Number(a) - Number(b));

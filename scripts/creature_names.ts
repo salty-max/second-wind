@@ -6,6 +6,9 @@
  * And i18n/<locale>/items.json: the tools' items (Tools.lua's ITEMS) by id, in
  * the language, { "<item id>": "<name>" } (Forever's name, else Classic's): a
  * debrief names its items at once, the game naming an item only once loaded.
+ * And i18n/<locale>/items-classic.json: Classic Era's name for an item where
+ * it differs from items.json's (3386 is "Elixir de résistance au poison" on a
+ * French Classic client, "Potion de purification du poison" on Forever).
  * A debrief keeps its foes by their ids and reads them in the client's
  * language; Forever's damage meter names a foe only, in the client's
  * language: its id found from this list (the first id of a name). Every foe
@@ -69,16 +72,21 @@ const tools = readFileSync(join(import.meta.dir, "..", "addon", "SecondWind", "T
 const itemsBlock = tools.slice(tools.indexOf("local ITEMS = {"), tools.indexOf("\n}\n", tools.indexOf("local ITEMS = {")));
 const itemIds = [...itemsBlock.matchAll(/\{\s*id = (\d+)/g)].map((m) => Number(m[1]));
 const items: Record<string, string> = {};
+const itemsClassic: Record<string, string> = {};
 for (const game of ["forever", "classic"] as const) {
   const db = openDb(game);
   const get = db.query("SELECT name FROM name WHERE kind = 'item' AND id = ? AND locale = ?");
   for (const id of itemIds) {
     const n = (get.get(id, locale) as { name: string } | null)?.name?.trim();
-    if (n && !items[id] && !/^[[(]/.test(n)) items[id] = n;
+    if (!n || /^[[(]/.test(n)) continue;
+    if (!items[id]) items[id] = n;
+    else if (game === "classic" && items[id] !== n) itemsClassic[id] = n;
   }
   db.close();
 }
-writeFileSync(join(DIR, "items.json"), `${JSON.stringify(Object.fromEntries(Object.entries(items).sort(([a], [b]) => Number(a) - Number(b))), null, 1)}\n`);
+const byId = (t: Record<string, string>) => Object.fromEntries(Object.entries(t).sort(([a], [b]) => Number(a) - Number(b)));
+writeFileSync(join(DIR, "items.json"), `${JSON.stringify(byId(items), null, 1)}\n`);
+writeFileSync(join(DIR, "items-classic.json"), `${JSON.stringify(byId(itemsClassic), null, 1)}\n`);
 console.log(
   `✓ i18n/${locale}/creatures.json: ${Object.keys(out.forever).length} of Forever's foes (${Object.keys(out.foreverLeftOut).length} left out, by name only), ${Object.keys(out.classic).length} of Classic's; items.json: ${Object.keys(items).length} of ${itemIds.length} tools' items`,
 );

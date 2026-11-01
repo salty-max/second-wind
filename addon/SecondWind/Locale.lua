@@ -137,8 +137,12 @@ function ns.insideId(name)
 end
 function ns.insideName(id) return id and inside()[id] or nil end
 -- A tool's item's name in the client's language, by its id (the language's
--- list: the game names an item only once loaded).
-function ns.itemNameOf(id) return id and names and names.items and names.items[id] or nil end
+-- list: the game names an item only once loaded), Classic Era's own where it
+-- differs from Forever's.
+function ns.itemNameOf(id)
+  if not (id and names and names.items) then return nil end
+  return not ns.forever and names.itemsClassic and names.itemsClassic[id] or names.items[id]
+end
 -- A creature's name in the client's language, by its id; nil where the
 -- language's names don't have it.
 function ns.creatureNameOf(id)

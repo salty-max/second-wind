@@ -6627,4 +6627,7 @@ ns.names({
     [32844]="Potion de protection contre la Nature majeure", [32845]="Potion de protection contre l'Ombre majeure", [32846]="Potion de protection contre le Feu majeure", [32847]="Potion de protection contre le Givre majeure",
     [34440]="Potion de l'alchimiste fou", [35581]="Bottes-fusées extrêmes légères", [37864]="Médaillon de l'Alliance", [37865]="Médaillon de la Horde",
   },
+  itemsClassic = {
+    [3386]="Elixir de résistance au poison", [4596]="Potion de soins décolorée", [5996]="Elixir de Respiration aquatique",
+  },
 })

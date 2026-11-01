@@ -61,7 +61,8 @@ stays there). What Forever lets an addon see: `docs/forever.md`.
     `Game_<game>.lua`, `bun scripts/game.ts`, from wow-data's
     SkillLineAbility; `ns.castKey`), an item's name the language's
     (`i18n/<locale>/items.json`, every tool's item, the ones classic-db
-    lacks from wow-data's frozen client names),
+    lacks from wow-data's frozen client names; on Classic Era its own name
+    where it differs, `items-classic.json`),
     `ns.unusedOf(ready, casts, since)`, `ns.tracesOf(ready, t0)` (Forever:
     what a use left, read after the fight: one fewer in my
     bags, a cooldown begun, its start the moment; a spell without a cooldown
