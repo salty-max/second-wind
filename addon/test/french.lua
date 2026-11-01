@@ -64,7 +64,7 @@ check(
   text:find("Ennemis\194\160:") and text:find("Ce que vous aviez\194\160:"),
   "… the card as text, French headings"
 )
-check(said("Mort frôlée, ") and said("|Hsecondwind:debrief:%d+|h%[Bilan%]"), "… its line in chat, its link")
+check(said("Mort frôlée à ") and said("|Hsecondwind:debrief:%d+|h%[Bilan%]"), "… its line in chat, its link")
 
 -- The lifelines, in French.
 local page = ns.carryPage(ns.carried())
