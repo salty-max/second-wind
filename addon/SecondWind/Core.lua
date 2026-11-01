@@ -289,7 +289,8 @@ function ns.localize(d)
   for _, h in ipairs(d.held or {}) do
     h.spell = ns.spellNameOf(h.sid) or h.spell
     local words = h.loc and HELD_WORDS[h.loc]
-    if type(words) == "string" and words ~= "" then h.what = words end
+    -- (a client's state may hold its gender token: "$gPossédé:Possédée;")
+    if type(words) == "string" and words ~= "" then h.what = ns.kit.agree(words) end
   end
   for _, list in ipairs({ d.ready or {}, d.unused or {} }) do
     for _, t in ipairs(list) do

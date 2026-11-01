@@ -41,7 +41,14 @@ a lesson is a rule over those facts, never invented, never a lecture.
   point" ("9 s before your death"), and control lost is told with a subject,
   in plain words: "You were stunned for six seconds, until your death (Hammer
   of Justice)." The state ("stunned", "feared") is the game's own word, its
-  loss-of-control text, lowercase in an English sentence.
+  loss-of-control text, lowercase in an English sentence. In French the
+  game's state is a noun ("Étourdissement", "Peur"), so the line is a verbless
+  fact with no subject: "Étourdissement pendant six secondes, jusqu'à votre
+  mort (Marteau de la justice)." That is allowed (the user's call, 1 November
+  2026): the template agrees with nobody, and the state stays the game's word.
+  Two of the client's states are participles: "Apeuré" (masculine only, as
+  the client writes it) and "$gPossédé:Possédée;", whose token is agreed to
+  the player.
 - **One term a thing.** "Foe", never "enemy", in the addon and on its store
   page. "Lifelines" names what you carry for the worst moments in every label
   and command, the paraphrase only as the Lifelines tab's sub. The line before

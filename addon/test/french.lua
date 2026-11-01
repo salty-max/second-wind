@@ -4,6 +4,8 @@
 -- foe Forever's meter names in French.
 --   luajit addon/test/french.lua; FOREVER=1 luajit addon/test/french.lua
 LOCALE = "frFR"
+-- (the French client's own state for a possession, its gender token in it)
+LOSS_OF_CONTROL_DISPLAY_POSSESS = "$gPossédé:Possédée;"
 local G = dofile("addon/test/game.lua")
 local ns = G.ns
 local L = ns.kit.L
@@ -45,6 +47,28 @@ for kind, affliction in pairs({
     ns.lessonsOf(cure)[1]
   )
 end
+check(L["%s was a boss."]:format("Zaricotl") == "Zaricotl était un boss.", "… a boss named a boss")
+local held = function(kind, all)
+  return ns.lessonsOf({
+    kind = kind,
+    readyT = 0,
+    lowT = 6,
+    lowPct = 9,
+    length = all and 6 or 10,
+    held = { { t = all and 0 or 2, to = 6, what = "Étourdissement", spell = "Marteau de la justice" } },
+  })[1]
+end
+check(
+  held("death", true) == "Étourdissement pendant six secondes, jusqu'à votre mort (Marteau de la justice).",
+  '… control lost, the game\'s noun, until a death (no "de la chute")',
+  held("death", true)
+)
+check(
+  held("close", false)
+    == "Étourdissement pendant quatre secondes, avant de tomber à 9 % de santé (Marteau de la justice).",
+  "… control lost on the way down",
+  held("close", false)
+)
 check(
   ns.opening(12) == "Douze" and ns.opening(20) == "Vingt",
   "… a count opening a sentence, a word as far as twenty"
@@ -233,5 +257,34 @@ check(
   "the word before a pull",
   word
 )
+
+-- Control lost, in the client's words: lowercase inside a row, its token agreed.
+if not G.FOREVER then
+  local before = #ns.record().debriefs
+  G.state.health = G.state.maxHealth
+  G.state.bags = { [929] = { count = 2 } }
+  G.pull()
+  G.hit({ from = "Trogg Rochemâchoire", amount = 95 })
+  G.stun({ seconds = 3, text = "Étourdissement", spell = { 1833, "Coup bas" } })
+  G.wait(1)
+  G.hit({ from = "Trogg Rochemâchoire", amount = 30 })
+  G.wait(1)
+  G.hit({ from = "Trogg Rochemâchoire", amount = 35 })
+  G.wait(1.5)
+  G.leave()
+  local stunned = ns.record().debriefs[#ns.record().debriefs]
+  local rows = ""
+  for _, sec in ipairs(#ns.record().debriefs > before and ns.cardOf(stunned).sections or {}) do
+    rows = rows .. table.concat(sec.lines, " | ") .. " | "
+  end
+  check(
+    rows:find("Disponibles, mais hors de votre contrôle %(étourdissement%)"),
+    "… what was ready, out of reach (étourdissement)",
+    rows
+  )
+end
+local possessed = { held = { { t = 0, to = 6, loc = "POSSESS" } } }
+ns.localize(possessed)
+check(possessed.held[1].what == "Possédé", "… the client's state agreed to the reader", possessed.held[1].what)
 
 io.stdout:write(("%s, French: %d checks passed\n"):format(G.FOREVER and "Forever" or "Classic Era", passed))

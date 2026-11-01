@@ -611,7 +611,7 @@ function ns.cardOf(d)
   if #f.unused > 0 then
     local held = helpless(d) and f.held
     local head = not held and L["Ready, unused"]
-      or (held.what and L["Ready, but you were %s"]:format(held.what:lower()) or L["Ready, but out of your control"])
+      or (held.what and L["Ready, but you were %s"]:format(K.lower(held.what)) or L["Ready, but out of your control"])
     tools(head, f.unused, held and "held" or "unused")
   end
   if #f.used > 0 then tools(L["Used"], f.used, "used") end
