@@ -228,7 +228,8 @@ check(
 local counts = { total = 4, deaths = 0, traits = { elite = 3 }, foes = {} }
 local word = ns.wordBefore(counts, { name = "Garde défias", rank = "elite", level = 12 }, { level = 12 })
 check(
-  word == "Garde défias, une créature d'élite. Sur vos 4 morts frôlées, 3 comptaient une créature d'élite.",
+  word
+    == "Garde défias, une créature d'élite. Sur vos 4 morts frôlées, 3 comptaient une créature d'élite ou un boss.",
   "the word before a pull",
   word
 )
