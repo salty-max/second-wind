@@ -24,7 +24,7 @@
   "%d misses": "%d ratés",
   "%d more than your health": "%d de plus que ce qui vous restait",
   "%d of %d: %s%s": "%d sur %d : %s%s",
-  "%d of the spells that hit you read, %d marked avoidable": "%d sorts reçus lus, dont %d marqués évitables",
+  "%d of the spells that hit you read, %d marked avoidable": "%d sorts reçus et lus, dont %d marqués évitables",
   "%d of your %d": "%d sur %d",
   "%d seconds": "%d secondes",
   "%d seconds in": "au bout de %d secondes",

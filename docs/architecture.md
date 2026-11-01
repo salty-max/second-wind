@@ -159,6 +159,9 @@ stays there). What Forever lets an addon see: `docs/forever.md`.
     "%2$s de %1$s", which LuaJIT's format can't), a number with a decimal
     by `ns.tenths`, a date by `ns.date` (the kit's month names). The TOCs
     load `Text_[TextLocale].lua` after Locale.lua: the client loads its own.
+    `scripts/typography.ts` (its `--check` in `bun run check`) gives the
+    French words a no-break space before ":", "?", "!" and a literal "%", as
+    the French client writes them.
     `scripts/locales.ts` (`bun run locales`, its `--check` in `bun run
     check`) writes them for the game's twelve languages from
     `i18n/<locale>/` (`words.json`; `meta.json`: plural rule, decimal,

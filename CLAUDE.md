@@ -25,6 +25,7 @@ bun run ids          # every table saved-ids.json lists keeps the ids it had at 
 bun run check        # the kit's copies, saved ids, languages, game tables, lint, the simulation on both games, every language's test, TOCs
 bun run check:ci     # what CI and the release gate run: no family folder (the kit, the saved ids and the generators' checks aside)
 bun scripts/root.ts --run addon-kit/q.ts check -- bun run check   # the same, quiet, stamping the tree for the push
+bun scripts/typography.ts   # the French words' no-break space before : ? ! and %, its --check in check
 bun run package      # dist/SecondWind-<version>.zip (git describe), for a test in the game
 bun run format:lua   # StyLua (stylua.toml); selene (selene.toml, the game's globals in wow.yml) runs in check
 bun run kit:sync     # after a change to the kit (Kit.lua, Media, scripts/root.ts)

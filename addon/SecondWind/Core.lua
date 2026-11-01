@@ -348,7 +348,7 @@ function ns.forSave(d)
   for _, h in ipairs(d.held or {}) do
     if h.sid and h.spell and h.spell == ns.spellNameOf(h.sid) then h.spell = nil end
     local words = h.loc and HELD_WORDS[h.loc]
-    if type(words) == "string" and h.what == words then h.what = nil end
+    if type(words) == "string" and h.what == ns.kit.agree(words) then h.what = nil end
   end
   for _, list in ipairs({ d.ready or {}, d.unused or {} }) do
     for _, t in ipairs(list) do

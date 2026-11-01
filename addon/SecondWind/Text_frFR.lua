@@ -34,7 +34,7 @@ ns.translate({
     ["%d of %d"] = "%d sur %d",
     ["%d of %d achievements"] = "%d hauts faits sur %d",
     ["%d of %d: %s%s"] = "%d sur %d : %s%s",
-    ["%d of the spells that hit you read, %d marked avoidable"] = "%d sorts reçus lus, dont %d marqués évitables",
+    ["%d of the spells that hit you read, %d marked avoidable"] = "%d sorts reçus et lus, dont %d marqués évitables",
     ["%d of your %d"] = "%d sur %d",
     ["%d s"] = "%d s",
     ["%d seconds"] = "%d secondes",
