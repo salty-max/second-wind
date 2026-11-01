@@ -65,7 +65,7 @@ check(
 )
 check(
   held("close", false)
-    == "Étourdissement pendant quatre secondes, avant de tomber à 9 % de santé (Marteau de la justice).",
+    == "Étourdissement pendant quatre secondes, avant de tomber à 9\194\160% de santé (Marteau de la justice).",
   "… control lost on the way down",
   held("close", false)
 )
@@ -109,7 +109,7 @@ G.leave()
 local d = ns.record().debriefs[#ns.record().debriefs]
 check(d and d.kind == "close", "a close call recorded")
 local card = ns.cardOf(d)
-check(card.title:find("^Mort frôlée : ") and card.title:find("de santé$"), "its title in French", card.title)
+check(card.title:find("^Mort frôlée\194\160: ") and card.title:find("de santé$"), "its title in French", card.title)
 local headings = {}
 for _, s in ipairs(card.sections) do
   headings[s.heading] = true
@@ -131,7 +131,7 @@ check(said("Mort frôlée à ") and said("|Hsecondwind:debrief:%d+|h%[Bilan%]"),
 local page = ns.carryPage(ns.carried())
 check(page.title == "Vos recours", "the lifelines page")
 check(
-  page.sections[1].heading == "Protections" and page.sections[1].lines[1] == "Mur protecteur : disponible",
+  page.sections[1].heading == "Protections" and page.sections[1].lines[1] == "Mur protecteur\194\160: disponible",
   "… a guard, ready",
   page.sections[1].lines[1]
 )

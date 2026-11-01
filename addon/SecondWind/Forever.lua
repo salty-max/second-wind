@@ -187,7 +187,7 @@ local function report()
         healed
       ))
     or L["nothing read"]
-  local warning = GetCVarBool and GetCVarBool("doNotFlashLowHealthWarning") and L["turned off in your settings"]
+  local warning = GetCVarBool and GetCVarBool("doNotFlashLowHealthWarning") and L["turned off in the game's options"]
     or said(p.lowWarn, L["seen in the fight"], L["not seen (below 35% in the fight?)"])
   local lines = {
     L["The combat log: %s"]:format(ns.forever and L["closed (Forever)"] or L["%d lines heard"]:format(p.log)),

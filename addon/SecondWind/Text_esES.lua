@@ -364,7 +364,7 @@ ns.translate({
     ["three"] = "tres",
     ["three foes or more were on you at once"] = "tres enemigos o más a la vez",
     ["told by the game (%s)"] = "según los datos del juego (%s)",
-    ["turned off in your settings"] = "desactivado en tus opciones",
+    ["turned off in the game's options"] = "desactivado en tus opciones",
     ["twelve"] = "12",
     ["twenty"] = "20",
     ["two"] = "dos",
