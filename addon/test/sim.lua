@@ -556,6 +556,30 @@ for _, t in ipairs(ns.readyTools()) do
   if t.n == "Anti-Venom" then antivenom = t end
 end
 check(antivenom and antivenom.against == "Poison" and antivenom.count == 2, "… with poison on me, the anti-venom")
+-- (a debuff's kind the game keeps secret, or a read that raises: that aura lost, the rest read, no error)
+do
+  local plain = G.state.debuffs
+  G.state.debuffs =
+    { { name = "Hex", type = G.FOREVER and G.makeSecret() or "Curse" }, { name = "Poison", type = "Poison" } }
+  G.state.debuffRaises = 1
+  local ok, tools = pcall(ns.readyTools)
+  local seen
+  for _, t in ipairs(ok and tools or {}) do
+    if t.n == "Anti-Venom" then seen = t end
+  end
+  check(
+    ok and seen and seen.against == "Poison",
+    "… a debuff read that raises: lost alone, the poison after it still read"
+  )
+  G.state.debuffRaises = nil
+  ok, tools = pcall(ns.readyTools)
+  seen = nil
+  for _, t in ipairs(ok and tools or {}) do
+    if t.n == "Anti-Venom" then seen = t end
+  end
+  check(ok and seen and seen.against == "Poison", "… a secret kind: no error, the poison after it still read")
+  G.state.debuffs = plain
+end
 if not G.FOREVER then
   G.pull()
   G.hit({ from = "Ragged Young Wolf", amount = 100 })

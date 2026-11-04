@@ -262,6 +262,7 @@ end
 function GetInventoryItemID(_, slot) return state.equipped[slot] and state.equipped[slot].id or nil end
 function GetInventoryItemCooldown(_, slot) return cooldown(state.equipped[slot]) end
 function UnitDebuff(_, i)
+  if state.debuffRaises == i then error("a secret value") end
   local d = state.debuffs[i]
   if d then return d.name, nil, 1, d.type end
 end
@@ -854,6 +855,7 @@ function G.spellNamed(id, name) SPELLS[id] = name end
 G.shown = shown
 G.toasted, G.click = toasted, G_click
 function G.banners() return bannersMade end
+G.makeSecret = secret
 G.secret = function(v) return secrets[v] == true end
 G.line = function() return line end
 function G.slash(msg) SlashCmdList.SECONDWIND(msg) end

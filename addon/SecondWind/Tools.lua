@@ -367,21 +367,28 @@ local function wornReady(slot) return readyAfter(GetInventoryItemCooldown("playe
 -- is for.
 local function afflictions()
   local found = {}
-  for i = 1, 40 do
+  -- (one aura's kind, nil when it has none, false once there are no more;
+  -- under a pcall: a read that raises loses that aura, not the fight's record)
+  local function kindAt(i)
     local kind
     if C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
       local a = C_UnitAuras.GetAuraDataByIndex("player", i, "HARMFUL")
-      if not a then break end
+      if not a then return false end
       kind = a.dispelName
     elseif UnitDebuff then
       local name, _, _, t = UnitDebuff("player", i)
-      if not name then break end
+      if not name then return false end
       kind = t
     else
-      break
+      return false
     end
     -- (a debuff no cure removes has no kind: nothing to note)
-    if kind ~= nil and clear(kind) and kind ~= "" then found[kind] = true end
+    if clear(kind) and kind ~= nil and kind ~= "" then return kind end
+  end
+  for i = 1, 40 do
+    local ok, kind = pcall(kindAt, i)
+    if ok and kind == false then break end
+    if ok and kind then found[kind] = true end
   end
   return found
 end
