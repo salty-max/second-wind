@@ -1,0 +1,5 @@
+<Bindings>
+	<Binding name="SECONDWIND_OPEN" category="BINDING_HEADER_SECONDWIND">
+		SecondWindBinding();
+	</Binding>
+</Bindings>

@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "check:ci": "bun scripts/locales.ts --check && bun scripts/typography.ts --check && bun run lint:lua && luajit addon/test/sim.lua && FOREVER=1 luajit addon/test/sim.lua && luajit addon/test/french.lua && FOREVER=1 luajit addon/test/french.lua && luajit addon/test/german.lua && FOREVER=1 luajit addon/test/german.lua && luajit addon/test/spanish.lua && FOREVER=1 luajit addon/test/spanish.lua && LOCALE=esMX luajit addon/test/spanish.lua && FOREVER=1 LOCALE=esMX luajit addon/test/spanish.lua && bun scripts/package.ts --check",
-    "check": "bun run kit:check && bun run ids && bun scripts/game.ts --check && bun run check:ci",
+    "bindings": "bun scripts/root.ts --run addon-kit/bindings.ts check addon/SecondWind",
+    "check": "bun run bindings && bun run kit:check && bun run ids && bun scripts/game.ts --check && bun run check:ci",
     "package": "bun scripts/package.ts",
     "lint:lua": "stylua --check addon && selene addon/SecondWind",
     "format:lua": "stylua addon",

@@ -1863,4 +1863,15 @@ do
   table.remove(list)
 end
 
+-- the key binding (Bindings.xml calls this global): it opens and closes the window as ns.toggle does
+do
+  check(type(SecondWindBinding) == "function", "the key binding's function is there")
+  local was = SecondWindFrame and SecondWindFrame:IsShown() or false
+  SecondWindBinding()
+  check(SecondWindFrame and SecondWindFrame:IsShown() == not was, "the key binding opens the window")
+  SecondWindBinding()
+  check(SecondWindFrame:IsShown() == was, "… and a second press closes it")
+  check(BINDING_HEADER_SECONDWIND ~= nil, "… under the addon's own heading")
+end
+
 io.stdout:write(("all good%s: %d checks\n"):format(G.FOREVER and " (Forever)" or "", passed))
