@@ -6,7 +6,7 @@
 -- welcome page (Welcome.lua) offers them too.
 --
 --   SecondWindSettings.profiles["Name - Realm"] = { threshold, toast,
---     bannerSeconds, openAfterDeath, prepull, minimapHidden, minimapAngle, welcomed }
+--     bannerSeconds, openAfterDeath, prepull, minimapHidden, minimapAngle, bookSize, paper, welcomed }
 --   (the chat line after a close call or a death has no setting any more,
 --   always shown: a profile's old chat value is left unread)
 local _, ns = ...
@@ -25,12 +25,24 @@ local DEFAULTS = {
   prepull = true,
   minimapHidden = false,
   minimapAngle = K.MINIMAP_ANGLES.SecondWind,
+  bookSize = 1,
+  paper = false,
   welcomed = false,
 }
-local SHARED = { "threshold", "toast", "bannerSeconds", "openAfterDeath", "prepull", "minimapHidden", "minimapAngle" }
+local SHARED = {
+  "threshold",
+  "toast",
+  "bannerSeconds",
+  "openAfterDeath",
+  "prepull",
+  "minimapHidden",
+  "minimapAngle",
+  "bookSize",
+  "paper",
+}
 ns.THRESHOLDS = { 10, 15, 20, 25 }
 
--- The profiles: a code "SW1:p15:t1:n10:d1:w1:h0:a250" (the threshold, the banner,
+-- The profiles: a code "SW1:p15:t1:n10:d1:w1:h0:a250:z1:k0" (z: the book size 1 to 4, k: the paper look 0 or 1) (the threshold, the banner,
 -- how long it stays, the card after a death, the word before a pull, the minimap button hidden,
 -- its angle; an older code without w leaves it, an older one's c, the chat
 -- line, is left out).
@@ -49,6 +61,8 @@ local P = K.profiles({
     prepull = "w",
     minimapHidden = "h",
     minimapAngle = "a",
+    bookSize = "z",
+    paper = "k",
   },
   tag = "SW1",
   changed = function(key)
@@ -118,6 +132,7 @@ function ns.createSettingsPanel()
   )
   O:check("minimapHidden", L["Minimap button"], L["The book by the minimap: click to open it, drag to move it."], true)
   O:collect(ns.collect)
+  O:look()
   O:copy()
   O:done()
 end

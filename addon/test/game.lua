@@ -320,6 +320,12 @@ local function ui()
           end
         end
       end
+      if k == "SetScale" then
+        return function(self, v) self.scale = v end
+      end
+      if k == "GetScale" then
+        return function(self) return rawget(self, "scale") or 1 end
+      end
       if k == "Show" then
         return function(self)
           -- (OnShow on a showing only, as in the game: not on a shown frame)
@@ -391,6 +397,8 @@ local function ui()
   })
 end
 UIParent, UISpecialFrames = ui(), {}
+UIParent.GetWidth = function() return 1920 end
+UIParent.GetHeight = function() return 1080 end
 -- The game's own low-health warning (the screen's red edge): Blizzard's code
 -- shows it at 35% from my true health, unless the setting turns it off.
 LowHealthFrame = ui()

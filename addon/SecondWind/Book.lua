@@ -127,7 +127,7 @@ local function refreshDebriefs(scroll)
       end)
       if d == open then book.list:pick(r) end
       -- (a death in its red, picked or not)
-      if d.kind == "death" then r.text:SetTextColor(unpack(DEATH)) end
+      if d.kind == "death" then r.text:SetTextColor(unpack(ns.tone(DEATH))) end
     end
   end
   book.list:finish(scroll)
@@ -292,7 +292,7 @@ end
 local link = K.links("secondwind", function(target)
   local at = tonumber(target:match("^debrief:(%d+)$") or "")
   if at then ns.openDebrief(at) end
-end)
+end, "ffd100") -- (chat is dark whatever the look: the game's link yellow)
 function ns.link(at, text) return link("debrief:" .. at, text) end
 
 -- The banner (the kit's, among the game's alerts): what it was, where; a

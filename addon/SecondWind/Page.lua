@@ -33,6 +33,14 @@ local L = K.L
 local T = K.T
 local label, rule = K.label, K.rule
 
+-- A colour of the dark look's palette (the hit's red, a heal's green) as it
+-- reads on the paper: darkened in its hue until its text reads (read when drawn).
+local function tone(c)
+  if not K.paper then return c end
+  return K.ink(c, { T.ground, T.back }, 3.2) -- (a colour's hue is its meaning: large-text contrast, not near black)
+end
+ns.tone = tone
+
 ns.DEATH = { 0.86, 0.45, 0.42 } -- a death's title, its ring, the bar at its end
 local DEATH = ns.DEATH
 local HEAL = { 0.45, 0.86, 0.52 }
@@ -250,7 +258,10 @@ local function tipFor(frame, what)
       GameTooltip:SetSpellByID(tip.spell)
     else
       GameTooltip:AddLine(tip.title or "?", 1, 1, 1)
-      if tip.text and tip.text ~= "" then GameTooltip:AddLine(tip.text, T.soft[1], T.soft[2], T.soft[3], true) end
+      -- (the game's tooltip is dark whatever the look)
+      if tip.text and tip.text ~= "" then
+        GameTooltip:AddLine(tip.text, K.TIP_KNOWN[1], K.TIP_KNOWN[2], K.TIP_KNOWN[3], true)
+      end
     end
     GameTooltip:Show()
   end)
@@ -346,14 +357,14 @@ function MAKERS.foe(p)
   b.about:SetPoint("LEFT", b.name, "RIGHT", 8, 0)
   b.about:SetWordWrap(false)
   b.did = b.facts
-  shareBar(b, p.width - CARD_IN - 4, MARK.hit)
+  shareBar(b, p.width - CARD_IN - 4, tone(MARK.hit))
   return b
 end
 
 function MAKERS.blow(p)
   local b = card(p, true)
   b.icon = b.slot
-  b.amount = label(b, K.TITLE_FONT, 15, MARK.hit)
+  b.amount = label(b, K.TITLE_FONT, 15, tone(MARK.hit))
   b.amount:SetPoint("TOPLEFT", b.slot, "TOPRIGHT", 12, -2)
   b.title, b.detail = b.name, b.facts
   b.detail:ClearAllPoints()
@@ -413,7 +424,7 @@ function MAKERS.share(p)
   b.bar:SetSize(p.width, 6)
   b.bar:SetMinMaxValues(0, 1)
   b.base = b.bar:CreateTexture(nil, "OVERLAY")
-  b.base:SetColorTexture(1, 1, 1, 0.85)
+  b.base:SetColorTexture(unpack(K.paper and { T.text[1], T.text[2], T.text[3], 0.85 } or { 1, 1, 1, 0.85 }))
   b.base:SetSize(2, 10)
   b.detail = label(b, K.BODY_FONT, 10, T.soft)
   b.detail:SetPoint("TOPLEFT", b.bar, "BOTTOMLEFT", 0, -4)
@@ -429,7 +440,7 @@ function DRAW.foe(p, r)
   ringOf(b.portrait, K.rankRing(foe.rank))
   b.portrait.tip = { title = foe.name, text = aboutFoe(foe) }
   b.name:SetText(foe.name or "?")
-  b.name:SetTextColor(unpack(levelColour(foe, r.level)))
+  b.name:SetTextColor(unpack(tone(levelColour(foe, r.level))))
   -- (a long name cut short, what it was beside it)
   fit(b.name, p.width - CARD_IN - 150)
   b.about:SetText(aboutFoe(foe))
@@ -447,14 +458,14 @@ function DRAW.blow(p, r)
   K.setSlot(b.icon, blowIcon(r))
   b.icon.tip = r.id and { spell = r.id } or { title = r.title, text = r.detail }
   b.amount:SetText(r.amount and tostring(r.amount) or "")
-  b.amount:SetTextColor(unpack(r.heal and HEAL or r.death and DEATH or MARK.hit))
+  b.amount:SetTextColor(unpack(tone(r.heal and HEAL or r.death and DEATH or MARK.hit)))
   titleAfter(b, r.amount)
   b.title:SetText(r.title or "")
   b.detail:SetText(r.detail or "")
   b.share:SetShown(r.share ~= nil)
   if r.share then
     b.share:SetValue(math.min(1, r.share))
-    b.share:SetStatusBarColor(unpack(r.heal and HEAL or MARK.hit))
+    b.share:SetStatusBarColor(unpack(tone(r.heal and HEAL or MARK.hit)))
   end
   local height = cardHeight(r.share ~= nil)
   b:SetHeight(height)
@@ -511,7 +522,7 @@ function DRAW.tool(p, r)
   b.title:SetTextColor(unpack(r.missing and T.soft or T.text))
   fit(b.title, p.width - CARD_IN - 150)
   b.value:SetText(r.value or "")
-  b.value:SetTextColor(unpack(r.ready and GOOD or T.soft))
+  b.value:SetTextColor(unpack(r.ready and tone(GOOD) or T.soft))
   b.detail:SetText(r.detail or "")
   if r.missing then
     -- (a kind I carry none of: an empty slot, as a bag's)
@@ -566,7 +577,7 @@ function Page.newGraph(parent, width)
   g:SetSize(width, PLOT_H + LANE_H + 2 * PAD + 40)
   g.shade = g:CreateTexture(nil, "BACKGROUND")
   g.shade:SetAllPoints()
-  g.shade:SetColorTexture(0, 0, 0, 0.22)
+  g.shade:SetColorTexture(unpack(K.paper and T.shade or { 0, 0, 0, 0.22 }))
   for _, side in ipairs({ { "TOPLEFT", "TOPRIGHT" }, { "BOTTOMLEFT", "BOTTOMRIGHT" } }) do
     local edge = rule(g)
     edge:SetPoint(side[1])
@@ -596,7 +607,7 @@ function Page.newGraph(parent, width)
   g.legend:SetSize(width - 2 * PAD, KEY_H)
   -- (the moment under the mouse)
   g.cursor = g.plot:CreateTexture(nil, "OVERLAY", nil, 7)
-  g.cursor:SetColorTexture(1, 1, 1, 0.35)
+  g.cursor:SetColorTexture(unpack(K.paper and { T.text[1], T.text[2], T.text[3], 0.45 } or { 1, 1, 1, 0.35 }))
   g.cursor:SetWidth(1)
   g.cursor:Hide()
   g.plot:EnableMouse(true)
@@ -698,13 +709,28 @@ function G:draw(d, samples, threshold)
   local function x(t) return math.floor(math.max(0, math.min(1, (t or 0) / span)) * w + 0.5) end
   local function y(pct) return math.max(0, math.min(100, pct or 0)) / 100 * PLOT_H end
   -- the plot, its lines, the danger zone (over the fill: a tint)
-  self:rect(plot, "BACKGROUND", 0, { 0, 0, 0 }, 0.4, 0, 0, w, PLOT_H)
-  self:rect(plot, "ARTWORK", 2, DANGER, 0.13, 0, 0, w, y(threshold))
-  self:rect(plot, "ARTWORK", 3, DANGER, 0.55, 0, y(threshold), w, 1)
+  -- (on paper the plot stands on the paper's light trough, its lines and
+  -- fills in ink and the tones of the paper's colours)
+  local paper = K.paper
+  local danger = tone(DANGER)
+  local lines = paper and T.text or { 1, 1, 1 }
+  self:rect(
+    plot,
+    "BACKGROUND",
+    0,
+    paper and T.trough or { 0, 0, 0 },
+    paper and (T.trough[4] or 1) or 0.4,
+    0,
+    0,
+    w,
+    PLOT_H
+  )
+  self:rect(plot, "ARTWORK", 2, danger, 0.13, 0, 0, w, y(threshold))
+  self:rect(plot, "ARTWORK", 3, danger, 0.55, 0, y(threshold), w, 1)
   for _, pct in ipairs({ 50, 100 }) do
-    self:rect(plot, "ARTWORK", 3, { 1, 1, 1 }, 0.08, 0, y(pct) - 1, w, 1)
+    self:rect(plot, "ARTWORK", 3, lines, paper and 0.2 or 0.08, 0, y(pct) - 1, w, 1)
   end
-  self:rect(plot, "ARTWORK", 3, { 1, 1, 1 }, 0.18, 0, 0, w, 1)
+  self:rect(plot, "ARTWORK", 3, lines, paper and 0.35 or 0.18, 0, 0, w, 1)
   local nl = 0
   local function axis(text, pct, colour)
     nl = nl + 1
@@ -714,10 +740,12 @@ function G:draw(d, samples, threshold)
   end
   axis("100%", 100, T.soft)
   axis("50%", 50, T.soft)
-  axis(threshold .. "%", threshold, DANGER)
+  axis(threshold .. "%", threshold, danger)
   -- out of my control: a band over the fill
   for _, h in ipairs(d.held or {}) do
-    if h.to and h.to > h.t then self:rect(plot, "ARTWORK", 1, MARK.held, 0.22, x(h.t), 0, x(h.to) - x(h.t), PLOT_H) end
+    if h.to and h.to > h.t then
+      self:rect(plot, "ARTWORK", 1, tone(MARK.held), 0.22, x(h.t), 0, x(h.to) - x(h.t), PLOT_H)
+    end
   end
   -- my health: a fill and a stepped line, red in the danger zone
   for i, s in ipairs(samples) do
@@ -725,12 +753,14 @@ function G:draw(d, samples, threshold)
     local to = samples[i + 1] and x(samples[i + 1].t) or w
     local low = s.pct < threshold
     -- (the fill opaque, each step a pixel over the next: no seam between)
-    self:rect(plot, "ARTWORK", 0, low and FILL_LOW or FILL, 1, from, 0, to - from + 1, y(s.pct))
-    self:rect(plot, "OVERLAY", 0, low and DANGER or T.bar, 1, from, y(s.pct) - 1, to - from + 1, 2)
+    local fill = low and FILL_LOW or FILL
+    if paper then fill = low and { 0.82, 0.62, 0.52 } or { 0.74, 0.69, 0.57 } end
+    self:rect(plot, "ARTWORK", 0, fill, 1, from, 0, to - from + 1, y(s.pct))
+    self:rect(plot, "OVERLAY", 0, low and danger or T.bar, 1, from, y(s.pct) - 1, to - from + 1, 2)
     local nextPct = samples[i + 1] and samples[i + 1].pct
     if nextPct and nextPct ~= s.pct then
       local a, b = math.min(s.pct, nextPct), math.max(s.pct, nextPct)
-      self:rect(plot, "OVERLAY", 0, nextPct < threshold and DANGER or T.bar, 1, to - 1, y(a) - 1, 2, y(b) - y(a) + 2)
+      self:rect(plot, "OVERLAY", 0, nextPct < threshold and danger or T.bar, 1, to - 1, y(a) - 1, 2, y(b) - y(a) + 2)
     end
   end
   -- the lowest point: a dot and its value; a death: a skull at its end
@@ -748,24 +778,34 @@ function G:draw(d, samples, threshold)
     local dot = self:piece(plot, "OVERLAY", 3)
     dot:SetTexture(MASK)
     dot:SetTexCoord(0, 1, 0, 1)
-    dot:SetVertexColor(1, 1, 1, 1)
+    dot:SetVertexColor(unpack(paper and { T.text[1], T.text[2], T.text[3], 1 } or { 1, 1, 1, 1 }))
     dot:SetSize(9, 9)
     dot:SetPoint("CENTER", plot, "BOTTOMLEFT", x(lowS.t), y(lowS.pct))
     nl = nl + 1
-    local l = self:text(nl, 11, { 1, 1, 1 })
+    local l = self:text(nl, 11, lines)
     local right = x(lowS.t) > w - 70
     l:SetPoint(right and "RIGHT" or "LEFT", plot, "BOTTOMLEFT", x(lowS.t) + (right and -8 or 8), y(lowS.pct) + 8)
     l:SetText(ns.lowOf(d, true))
   end
   -- the lane: what happened, by time
-  self:rect(lane, "BACKGROUND", 0, { 0, 0, 0 }, 0.25, 0, 0, w, LANE_H)
+  self:rect(
+    lane,
+    "BACKGROUND",
+    0,
+    paper and T.trough or { 0, 0, 0 },
+    paper and (T.trough[4] or 1) or 0.25,
+    0,
+    0,
+    w,
+    LANE_H
+  )
   local marks, kinds, nslot, nf, last = ns.marksOf(d), {}, 0, 0, -100
   for _, m in ipairs(marks) do
     kinds[m.kind] = true
     if m.kind == "held" then
-      self:rect(lane, "ARTWORK", 0, MARK.held, 0.9, x(m.t), LANE_H / 2 - 2, x(m.to) - x(m.t), 4)
+      self:rect(lane, "ARTWORK", 0, tone(MARK.held), 0.9, x(m.t), LANE_H / 2 - 2, x(m.to) - x(m.t), 4)
     elseif m.kind == "hit" then
-      self:rect(lane, "ARTWORK", 1, MARK.hit, 1, x(m.t) - 1, 2, 2, LANE_H - 4)
+      self:rect(lane, "ARTWORK", 1, tone(MARK.hit), 1, x(m.t) - 1, 2, 2, LANE_H - 4)
     else
       -- (side by side when two came at once)
       local half = MARK_SIZE / 2
@@ -892,9 +932,9 @@ function Page:graphOf(d)
   if #samples <= 1 then return g:Hide() end
   local threshold = ns.option("threshold")
   local kinds = g:draw(d, samples, threshold)
-  local keys = { { "danger", DANGER, L["Below %d%%, your threshold"]:format(threshold) } }
+  local keys = { { "danger", tone(DANGER), L["Below %d%%, your threshold"]:format(threshold) } }
   for _, l in ipairs(LEGEND) do
-    if kinds[l[1]] then table.insert(keys, { l[1], MARK[l[1]], l[2] }) end
+    if kinds[l[1]] then table.insert(keys, { l[1], tone(MARK[l[1]]), l[2] }) end
   end
   local height = PAD + PLOT_H + 6 + LANE_H + 24 + g:legendOf(keys) + PAD
   g:SetHeight(height)
@@ -913,12 +953,12 @@ function Page:draw(c, d, keep)
     pool.n = 0
   end
   self:start(c.title, c.sub, function(p) face(p, c.face) end, nil, faceRing(c.face, c.death))
-  self.title:SetTextColor(unpack(c.death and DEATH or T.gold))
+  self.title:SetTextColor(unpack(c.death and tone(DEATH) or T.gold))
   if c.figures then self:stats(c.figures) end
   if c.chips then self:chips(c.chips) end
   for _, lesson in ipairs(c.lessons or {}) do
     local b = self:take("lesson")
-    b.bar:SetColorTexture(unpack(c.death and DEATH or T.accent))
+    b.bar:SetColorTexture(unpack(c.death and tone(DEATH) or T.accent))
     b.text:SetText(lesson)
     local height = b.text:GetStringHeight()
     b:SetHeight(height)

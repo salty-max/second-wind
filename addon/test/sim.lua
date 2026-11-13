@@ -19,12 +19,23 @@ local function said(pattern, plain)
 end
 
 -- ── the login ────────────────────────────────────────────────────────────────
+-- (PAPER=1: a character who chose the paper look and the largest book)
+if os.getenv("PAPER") == "1" then
+  SecondWindSettings =
+    { profiles = { [UnitName("player") .. " - " .. GetRealmName()] = { paper = true, bookSize = 4 } } }
+end
 G.login()
 local record = ns.record()
 check(record and record.guid == G.state.guid and #record.debriefs == 0, "a new character: an empty record of its own")
 table.insert(record.debriefs, { at = 1 })
 G.reload()
 check(ns.record() == record and #ns.record().debriefs == 1, "a reload keeps the record")
+if os.getenv("PAPER") == "1" then
+  -- (the reload gives the game's saved settings back: the character's choice again, before the first window)
+  SecondWindSettings =
+    { profiles = { [UnitName("player") .. " - " .. GetRealmName()] = { paper = true, bookSize = 4 } } }
+  ns.loadProfile()
+end
 G.state.guid = "Player-6113-0FFFFFFF"
 G.reload()
 check(ns.record() ~= record and #ns.record().debriefs == 0, "another character of the same name: a record of its own")
@@ -36,7 +47,8 @@ check(
   "the defaults: a death's debrief opens, the button shows"
 )
 check(ns.option("prepull"), "the defaults: a word before a pull")
-check(ns.profiles:export() == "SW1:p15:t1:n10:d1:w1:h0:a250", "the settings as a code")
+local look = (":z%d:k%d"):format(ns.option("bookSize"), ns.option("paper") and 1 or 0) -- (dark at Normal, or the paper at Largest)
+check(ns.profiles:export() == "SW1:p15:t1:n10:d1:w1:h0:a250" .. look, "the settings as a code")
 check(ns.profiles:import("SW1:p20:c0:t0"), "a code taken")
 check(
   ns.option("threshold") == 20 and not ns.option("toast") and ns.option("prepull"),
@@ -1872,6 +1884,99 @@ do
   SecondWindBinding()
   check(SecondWindFrame:IsShown() == was, "… and a second press closes it")
   check(BINDING_HEADER_SECONDWIND ~= nil, "… under the addon's own heading")
+end
+
+-- ── the book's size and the paper look ───────────────────────────────────────
+do
+  local K = ns.kit
+  local PAPER = os.getenv("PAPER") == "1"
+  -- (earlier scenes may have started from fresh settings: the character's choice made again)
+  ns.setOption("paper", PAPER)
+  ns.setOption("bookSize", PAPER and 4 or 1)
+  if not SecondWindFrame then ns.toggle() end -- (the first window reads the look)
+  check(
+    K.lookGet and K.lookGet("bookSize") == ns.option("bookSize") and K.lookGet("paper") == ns.option("paper"),
+    "the kit reads the look from the options"
+  )
+  UIParent.w, UIParent.h = 1920, 1080 -- (a screen that holds the largest book)
+  if not SecondWindFrame then ns.toggle() end
+  local sizes = { 1, 1.15, 1.3, 1.5 }
+  for step = 1, 4 do
+    ns.setOption("bookSize", step)
+    K.resize(step) -- (what the Book size choice calls)
+    check(
+      math.abs(SecondWindFrame:GetScale() - sizes[step]) < 1e-9
+        and math.abs(SecondWindFrame:GetScale() - K.scaleFor(step, K.BOOK_W, K.BOOK_H)) < 1e-9,
+      "size " .. step .. " scales the open window at once to " .. sizes[step]
+    )
+  end
+  ns.setOption("bookSize", PAPER and 4 or 1)
+  K.resize(PAPER and 4 or 1)
+  ns.setOption("paper", PAPER)
+  local code = ns.profiles:export()
+  check(code:find(":z%d") and code:find(":k%d"), "the profile's code carries the size and the paper")
+end
+
+-- RENDER=dir [PAPER=1] luajit addon/test/sim.lua: the book as HTML (addon-kit/render.lua), for a look
+-- at size 1 and 4 and on paper before a build (Chrome's fonts: the game has the last word)
+if os.getenv("RENDER") then
+  local render = dofile("../addon-kit/render.lua")
+  local K, T = ns.kit, ns.kit.T
+  local record = ns.record()
+  local d = record.debriefs[#record.debriefs]
+  local card = ns.cardOf(d)
+  local function css(c, a) return ("rgba(%d,%d,%d,%.2f)"):format(c[1] * 255, c[2] * 255, c[3] * 255, a or 1) end
+  local hit, held = ns.tone({ 0.92, 0.36, 0.30 }), ns.tone({ 0.72, 0.62, 0.92 })
+  -- (the plot as Page.lua paints it: the dark look's black wash and steel fill, the paper's light trough)
+  local bars = {}
+  for i = 1, 40 do
+    local pct = math.max(8, 100 - i * 2 - (i > 24 and (i - 24) * 3 or 0))
+    local low = pct < 25
+    local fill = K.paper and (low and { 0.82, 0.62, 0.52 } or { 0.74, 0.69, 0.57 })
+      or (low and { 0.23, 0.12, 0.12 } or { 0.14, 0.19, 0.25 })
+    table.insert(
+      bars,
+      ('<div style="position:absolute;left:%dpx;bottom:0;width:11px;height:%d%%;background:%s;border-top:2px solid %s"></div>'):format(
+        (i - 1) * 11,
+        pct,
+        css(fill),
+        css(low and ns.tone({ 0.88, 0.32, 0.28 }) or T.bar)
+      )
+    )
+  end
+  local plot = ('<div style="position:relative;height:120px;width:440px;background:%s;margin:8px 0">%s<div style="position:absolute;left:0;right:0;bottom:30px;height:1px;background:%s"></div></div>'):format(
+    K.paper and css(T.trough, T.trough[4]) or "rgba(0,0,0,0.4)",
+    table.concat(bars),
+    css(K.paper and T.text or { 1, 1, 1 }, 0.3)
+  )
+  local blocks = { { "raw", plot } }
+  for _, l in ipairs(card.lessons) do
+    table.insert(blocks, { "para", l })
+  end
+  table.insert(blocks, { "card", K.hex(hit) .. "Hits that mattered|r", "a card the book draws in the hit's colour" })
+  table.insert(blocks, { "card", K.hex(held) .. "Out of your control|r", "and the held band's" })
+  local rows = { { "Debriefs", "section" } }
+  for i = #record.debriefs, 1, -1 do
+    local c = ns.cardOf(record.debriefs[i])
+    table.insert(rows, {
+      (record.debriefs[i].kind == "death" and K.hex(ns.tone(ns.DEATH)) or "|cffffffff") .. (c.title or "?") .. "|r",
+      "row",
+      picked = i == #record.debriefs,
+    })
+  end
+  render(K, os.getenv("RENDER"), {
+    scene = "book",
+    title = "Second Wind",
+    tabs = { "Debriefs", "Patterns", "Carry" },
+    count = #record.debriefs .. " debriefs",
+    rows = rows,
+    page = {
+      heading = card.title,
+      headColour = card.death and ns.tone(ns.DEATH) or nil,
+      sub = card.sub,
+      blocks = blocks,
+    },
+  })
 end
 
 io.stdout:write(("all good%s: %d checks\n"):format(G.FOREVER and " (Forever)" or "", passed))
