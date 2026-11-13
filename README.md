@@ -40,6 +40,10 @@ Second Wind reads in English and French. Other clients get English, with the gam
 items and places in their language. Debriefs keep them by the game's ids, so
 they follow your client's language, even after you switch.
 
+The settings also offer the book's size (four steps) and paper colours (dark ink on tan paper, applied by a
+reload: the page ends with a Reload button). **Options > Key Bindings** lists **Open Second Wind**: one key,
+or on Forever a controller button, opens and closes the book. Nothing is bound until you choose.
+
 - `/wind copy` opens a text version of the debrief for you to copy.
 - `/wind lifelines` opens the Lifelines tab.
 - `/wind probe` reports what the game let the addon read after your next fight.

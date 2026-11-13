@@ -81,6 +81,10 @@ Open the book with `/secondwind`, `/wind` or the minimap button. The welcome pag
 
 Settings are under **Options > AddOns > Second Wind**, through `/wind settings` or by right-clicking the minimap button. Choose the close-call threshold, death alerts, whether a death opens its debrief, the word before a pull, how long banners stay and the minimap button. Chat lines always show.
 
+Two choices change how the book looks. **Book size** makes the whole window larger, in four steps from Normal to Largest. **Paper colours** replace the dark look with dark ink on tan paper, which some players find easier on the eyes. Paper colours take effect after a reload, and the settings page ends with a **Reload** button for it.
+
+**Options > Key Bindings** lists **Open Second Wind** under a heading of its own. Put a key on it, or on Forever a controller button, and one press opens or closes the book. Nothing is bound until you choose.
+
 Each character has its own settings. Copy another character's settings within the same game from the welcome or settings page, or use `/wind export` and `/wind import CODE` to transfer them.
 
 - `/wind copy` opens a text version of the debrief for you to copy.
